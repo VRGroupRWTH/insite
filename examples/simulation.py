@@ -37,9 +37,9 @@ import nest
 nest.Install("insitemodule")
 
 population = nest.Create("izhikevich", 1)
-spike_detector = nest.Create("spike_detector", 1)
-nest.SetStatus(spike_detector, {"record_to": "insite"})
-nest.Connect(population, spike_detector)
+multimeter = nest.Create("multimeter", 1)
+nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
+nest.Connect(multimeter, population)
 
 # regular spiking
 nest.SetStatus(population, {"a": 0.02,
