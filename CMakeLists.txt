@@ -49,8 +49,8 @@ set( MODULE_HEADER ${MODULE_NAME}.h )
 # containing the class description of the class extending the SLIModule
 
 # 4) Specify your module version
-set( MODULE_VERSION_MAJOR 1 )
-set( MODULE_VERSION_MINOR 0 )
+set( MODULE_VERSION_MAJOR 0 )
+set( MODULE_VERSION_MINOR 1 )
 set( MODULE_VERSION "${MODULE_VERSION_MAJOR}.${MODULE_VERSION_MINOR}" )
 
 # 5) Leave the rest as is. All files in `sli` will be installed to
@@ -94,6 +94,12 @@ endif ()
 set( CMAKE_CXX_COMPILER "${NEST_COMPILER}" )
 
 project( ${MODULE_NAME} CXX )
+
+# Add HDF5
+find_package( HDF5 REQUIRED COMPONENTS CXX )
+# A little ugly but there is no USER_INCLUDE_DIRECTORIES
+include_directories( ${HDF5_INCLUDE_DIRS} )
+set( USER_LINK_LIBRARIES ${HDF5_LIBRARIES} )
 
 # Get the Python executable (for help generation).
 execute_process(
@@ -249,14 +255,14 @@ add_custom_target( dist
     )
 
 # check the user link libraries whether installed or not
-foreach( LINKLIB ${USER_LINK_LIBRARIES} )
-  find_library( LIB_${LINKLIB} ${LINKLIB} )
-  if( NOT LIB_${LINKLIB} )
-    message(FATAL_ERROR "ERROR: " ${LINKLIB} " library not found")
-  else()  
-    message( "-- " ${LINKLIB} " library found")
-  endif()
-endforeach()
+# foreach( LINKLIB ${USER_LINK_LIBRARIES} )
+#   find_library( LIB_${LINKLIB} ${LINKLIB} )
+#   if( NOT LIB_${LINKLIB} )
+#     message(FATAL_ERROR "ERROR: " ${LINKLIB} " library not found")
+#   else()  
+#     message( "-- " ${LINKLIB} " library found")
+#   endif()
+# endforeach()
 
 if ( BUILD_SHARED_LIBS )
   # When building shared libraries, also create a module for loading at runtime
@@ -286,6 +292,7 @@ set_target_properties( ${MODULE_NAME}_lib
     COMPILE_FLAGS "${NEST_CXXFLAGS}"
     LINK_FLAGS "${NEST_LIBS}"
     OUTPUT_NAME ${MODULE_NAME} )
+target_link_libraries(${MODULE_NAME}_lib ${USER_LINK_LIBRARIES})
 
 # Install library, header and sli init files.
 install( TARGETS ${MODULE_NAME}_lib DESTINATION ${CMAKE_INSTALL_LIBDIR} )

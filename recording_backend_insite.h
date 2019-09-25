@@ -24,11 +24,13 @@
 #define RECORDING_BACKEND_SOCKET_H
 
 // Includes for network access:
+#include <H5Cpp.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "recording_backend.h"
@@ -39,45 +41,44 @@ class RecordingBackendInsite : public nest::RecordingBackend {
  public:
   RecordingBackendInsite();
 
-  ~RecordingBackendInsite() throw();
+  ~RecordingBackendInsite() throw() override;
 
-  virtual void initialize();
-  virtual void finalize();
+  void initialize() override;
+  void finalize() override;
 
-  virtual void enroll(const nest::RecordingDevice& device,
-                      const DictionaryDatum& params);
+  void enroll(const nest::RecordingDevice& device,
+              const DictionaryDatum& params) override;
 
-  virtual void disenroll(const nest::RecordingDevice& device);
+  void disenroll(const nest::RecordingDevice& device) override;
 
-  virtual void set_value_names(const nest::RecordingDevice& device,
-                               const std::vector<Name>& double_value_names,
-                               const std::vector<Name>& long_value_names);
+  void set_value_names(const nest::RecordingDevice& device,
+                       const std::vector<Name>& double_value_names,
+                       const std::vector<Name>& long_value_names) override;
 
-  virtual void prepare();
+  void prepare() override;
 
-  virtual void cleanup();
+  void cleanup() override;
 
-  virtual void pre_run_hook();
+  void pre_run_hook() override;
 
-  virtual void post_run_hook();
+  void post_run_hook() override;
 
-  virtual void post_step_hook();
+  void post_step_hook() override;
 
-  virtual void write(const nest::RecordingDevice& device,
-                     const nest::Event& event,
-                     const std::vector<double>& double_values,
-                     const std::vector<long>& long_values);
+  void write(const nest::RecordingDevice& device, const nest::Event& event,
+             const std::vector<double>& double_values,
+             const std::vector<long>& long_values) override;
 
-  virtual void set_status(const DictionaryDatum& params);
+  void set_status(const DictionaryDatum& params) override;
 
-  virtual void get_status(DictionaryDatum& params) const;
+  void get_status(DictionaryDatum& params) const override;
 
-  virtual void check_device_status(const DictionaryDatum& params) const;
+  void check_device_status(const DictionaryDatum& params) const override;
 
-  virtual void get_device_defaults(DictionaryDatum& params) const;
+  void get_device_defaults(DictionaryDatum& params) const override;
 
-  virtual void get_device_status(const nest::RecordingDevice& device,
-                                 DictionaryDatum& params) const;
+  void get_device_status(const nest::RecordingDevice& device,
+                         DictionaryDatum& params) const override;
 
  private:
   std::vector<std::uint64_t> neuron_ids_;
@@ -85,7 +86,17 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::vector<double> double_buffer_;
   std::vector<Name> long_attributes_;
   std::vector<long> long_buffer_;
-  bool first_run_ = true;
+  unsigned int run_count_ = 0;
+
+  struct AttributeNames {
+    std::vector<Name> double_attribute_names;
+    std::vector<Name> long_attribute_names;
+  };
+  std::map<std::string, AttributeNames> device_attributes_;
+
+  H5::DSetCreatPropList data_set_properties_;
+  std::unique_ptr<H5::H5File> h5_file_;
+  std::map<std::string, H5::DataSet> data_sets_;
 };
 
 }  // namespace insite
