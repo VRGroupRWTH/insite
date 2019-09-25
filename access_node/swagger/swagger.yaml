@@ -207,20 +207,20 @@ definitions:
         items:
           type: "number"
           format: "int64"
-      data:
+      values:
         type: "array"
         items:
           type: "number"
     example:
       simulation_steps:
-      - 0.8008281904610115
-      - 0.8008281904610115
-      data:
-      - 1.4658129805029452
-      - 1.4658129805029452
+      - 0.1
+      - 0.2
+      values:
+      - 61.48
+      - 13.46
       neuron_ids:
-      - 6.027456183070403
-      - 6.027456183070403
+      - 1
+      - 2
   Spikes:
     type: "object"
     properties:
@@ -236,11 +236,11 @@ definitions:
           format: "int64"
     example:
       simulation_steps:
-      - 0.8008281904610115
-      - 0.8008281904610115
+      - 0.1
+      - 0.2
       neuron_ids:
-      - 6.027456183070403
-      - 6.027456183070403
+      - 1
+      - 2
   Error:
     type: "object"
     properties:

@@ -15,31 +15,31 @@ class Data(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_steps: List[float]=None, neuron_ids: List[float]=None, data: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_steps: List[float]=None, neuron_ids: List[float]=None, values: List[float]=None):  # noqa: E501
         """Data - a model defined in Swagger
 
         :param simulation_steps: The simulation_steps of this Data.  # noqa: E501
         :type simulation_steps: List[float]
         :param neuron_ids: The neuron_ids of this Data.  # noqa: E501
         :type neuron_ids: List[float]
-        :param data: The data of this Data.  # noqa: E501
-        :type data: List[float]
+        :param values: The values of this Data.  # noqa: E501
+        :type values: List[float]
         """
         self.swagger_types = {
             'simulation_steps': List[float],
             'neuron_ids': List[float],
-            'data': List[float]
+            'values': List[float]
         }
 
         self.attribute_map = {
             'simulation_steps': 'simulation_steps',
             'neuron_ids': 'neuron_ids',
-            'data': 'data'
+            'values': 'values'
         }
 
         self._simulation_steps = simulation_steps
         self._neuron_ids = neuron_ids
-        self._data = data
+        self._values = values
 
     @classmethod
     def from_dict(cls, dikt) -> 'Data':
@@ -95,22 +95,22 @@ class Data(Model):
         self._neuron_ids = neuron_ids
 
     @property
-    def data(self) -> List[float]:
-        """Gets the data of this Data.
+    def values(self) -> List[float]:
+        """Gets the values of this Data.
 
 
-        :return: The data of this Data.
+        :return: The values of this Data.
         :rtype: List[float]
         """
-        return self._data
+        return self._values
 
-    @data.setter
-    def data(self, data: List[float]):
-        """Sets the data of this Data.
+    @values.setter
+    def values(self, values: List[float]):
+        """Sets the values of this Data.
 
 
-        :param data: The data of this Data.
-        :type data: List[float]
+        :param values: The values of this Data.
+        :type values: List[float]
         """
 
-        self._data = data
+        self._values = values
