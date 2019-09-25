@@ -7,6 +7,9 @@ from access_node.models.error import Error  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
 
+# My imports
+import json
+import requests
 
 def get_attributes():  # noqa: E501
     """Retrieves the details of per-neuron attributes.
@@ -16,7 +19,12 @@ def get_attributes():  # noqa: E501
 
     :rtype: List[Attribute]
     """
-    return 'do some magic!'
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    information_node = dist_nodes['addresses'][0]
+
+    response = requests.get(information_node+'/attributes').json()
+    return response
 
 
 def get_data(attribute, simulation_steps=None, neuron_ids=None):  # noqa: E501
@@ -27,13 +35,26 @@ def get_data(attribute, simulation_steps=None, neuron_ids=None):  # noqa: E501
     :param attribute: Attribute name.
     :type attribute: str
     :param simulation_steps: Simulation steps (leave empty for all steps).
-    :type simulation_steps: List[float]
+    :type simulation_steps: List[]
     :param neuron_ids: Neuron IDs (leave empty for all neurons).
     :type neuron_ids: List[]
 
     :rtype: Data
     """
-    return 'do some magic!'
+    # Replace this with request to information_node
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    addresses = dist_nodes['addresses']
+
+    data = Data([],[],[])
+    for address in addresses:
+        response = requests.get(address+'/data', params={"attribute": attribute, "simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
+        for x in range(len(response['simulation_steps'])):
+            data.simulation_steps.append(response['simulation_steps'][x])
+            data.neuron_ids.append(response['neuron_ids'][x])
+            data.values.append(response['data'][x])
+    #Sort?
+    return data
 
 
 def get_neuron_ids():  # noqa: E501
@@ -44,7 +65,12 @@ def get_neuron_ids():  # noqa: E501
 
     :rtype: List[float]
     """
-    return 'do some magic!'
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    information_node = dist_nodes['addresses'][0]
+
+    response = requests.get(information_node+'/neuron_ids').json()
+    return response
 
 
 def get_simulation_step_count():  # noqa: E501
@@ -55,7 +81,12 @@ def get_simulation_step_count():  # noqa: E501
 
     :rtype: float
     """
-    return 'do some magic!'
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    information_node = dist_nodes['addresses'][0]
+
+    response = requests.get(information_node+'/simulation_step_count').json()
+    return response
 
 
 def get_spikes(simulation_steps=None, neuron_ids=None):  # noqa: E501
@@ -70,7 +101,20 @@ def get_spikes(simulation_steps=None, neuron_ids=None):  # noqa: E501
 
     :rtype: Spikes
     """
-    return 'do some magic!'
+    # Replace this with request to information_node
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    addresses = dist_nodes['addresses']
+
+    spikes = Spikes([],[])
+    for address in addresses:
+        response = requests.get(address+'/spikes',params={"simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
+        for x in range(len(response['simulation_steps'])):
+            spikes.simulation_steps.append(response['simulation_steps'][x])
+            spikes.neuron_ids.append(response['neuron_ids'][x])
+
+    # Sort this?
+    return spikes
 
 
 def get_timestep():  # noqa: E501
@@ -81,4 +125,9 @@ def get_timestep():  # noqa: E501
 
     :rtype: float
     """
-    return 'do some magic!'
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    information_node = dist_nodes['addresses'][0]
+
+    response = requests.get(information_node+'/timestep').json()
+    return response
