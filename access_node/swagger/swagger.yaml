@@ -1,0 +1,250 @@
+---
+swagger: "2.0"
+info:
+  description: "This is the REST API for the in-situ pipeline."
+  version: "1.0.0"
+  title: "In-Situ Pipeline REST API"
+host: "localhost"
+basePath: "/"
+schemes:
+- "https"
+- "http"
+paths:
+  /timestep:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the time between two simulation steps."
+      operationId: "get_timestep"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "number"
+            format: "double"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+  /simulation_step_count:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the number of simulation steps."
+      operationId: "get_simulation_step_count"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "number"
+            format: "int64"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+  /neuron_ids:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the list of all neuron IDs."
+      operationId: "get_neuron_ids"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "number"
+              format: "int64"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+  /attributes:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the details of per-neuron attributes."
+      operationId: "get_attributes"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Attribute"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+  /data:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the per-neuron attributes for the given attribute name,\
+        \ simulation steps (optional) and neuron IDs (optional)."
+      operationId: "get_data"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "attribute"
+        in: "query"
+        description: "Attribute name."
+        required: true
+        type: "string"
+      - name: "simulation_steps"
+        in: "query"
+        description: "Simulation steps (leave empty for all steps)."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "double"
+        collectionFormat: "multi"
+      - name: "neuron_ids"
+        in: "query"
+        description: "Neuron IDs (leave empty for all neurons)."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Data"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+  /spikes:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ neuron IDs (optional)."
+      operationId: "get_spikes"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "simulation_steps"
+        in: "query"
+        description: "Simulation steps (leave empty for all steps)."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+        collectionFormat: "multi"
+      - name: "neuron_ids"
+        in: "query"
+        description: "Neuron IDs (leave empty for all neurons)."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Spikes"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.nest_controller"
+definitions:
+  Precision:
+    type: "string"
+    enum:
+    - "double"
+    - "integer"
+  Attribute:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      precision:
+        $ref: "#/definitions/Precision"
+    example:
+      precision: {}
+      name: "name"
+  Data:
+    type: "object"
+    properties:
+      simulation_steps:
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+      neuron_ids:
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+      data:
+        type: "array"
+        items:
+          type: "number"
+    example:
+      simulation_steps:
+      - 0.8008281904610115
+      - 0.8008281904610115
+      data:
+      - 1.4658129805029452
+      - 1.4658129805029452
+      neuron_ids:
+      - 6.027456183070403
+      - 6.027456183070403
+  Spikes:
+    type: "object"
+    properties:
+      simulation_steps:
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+      neuron_ids:
+        type: "array"
+        items:
+          type: "number"
+          format: "int64"
+    example:
+      simulation_steps:
+      - 0.8008281904610115
+      - 0.8008281904610115
+      neuron_ids:
+      - 6.027456183070403
+      - 6.027456183070403
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "number"
+      message:
+        type: "string"
