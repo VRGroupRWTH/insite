@@ -48,22 +48,19 @@ def get_data(attribute, simulation_steps=None, neuron_ids=None):  # noqa: E501
     addresses = dist_nodes['addresses']
 
     if simulation_steps != None:
+        num_ts = len(simulation_steps)
         first_ts = simulation_steps[0]
-        last_ts = simulation_steps[-1]
-        num_ts = 
     else:
+        num_ts = get_simulation_step_count()
         first_ts = get_timestep()
-        last_ts = first_ts * get_simulation_step_count()
-        count = get_simulation_step_count()
-        timesteps = [first_ts*x for x in range(count)]
 
     if neuron_ids != None:
         ids = neuron_ids
     else:
         ids = get_neuron_ids()
 
-    data = Data([timesteps[0], timesteps[-1]], ids,
-                [[None]*len(timesteps) for x in range(len(ids))])
+    data = Data(first_ts, num_ts, ids,
+                [[None]*num_ts for x in range(len(ids))])
     for address in addresses:
         response = requests.get(address+'/data', params={
                                 "attribute": attribute, "simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()

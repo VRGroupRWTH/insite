@@ -15,29 +15,34 @@ class Data(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_steps: List[float]=None, neuron_ids: List[float]=None, values: List[float]=None):  # noqa: E501
+    def __init__(self, first_simulation_step: float=None, num_simulation_steps: float=None, neuron_ids: List[float]=None, values: List[List[float]]=None):  # noqa: E501
         """Data - a model defined in Swagger
 
-        :param simulation_steps: The simulation_steps of this Data.  # noqa: E501
-        :type simulation_steps: List[float]
+        :param first_simulation_step: The first_simulation_step of this Data.  # noqa: E501
+        :type first_simulation_step: float
+        :param num_simulation_steps: The num_simulation_steps of this Data.  # noqa: E501
+        :type num_simulation_steps: float
         :param neuron_ids: The neuron_ids of this Data.  # noqa: E501
         :type neuron_ids: List[float]
         :param values: The values of this Data.  # noqa: E501
-        :type values: List[float]
+        :type values: List[List[float]]
         """
         self.swagger_types = {
-            'simulation_steps': List[float],
+            'first_simulation_step': float,
+            'num_simulation_steps': float,
             'neuron_ids': List[float],
-            'values': List[float]
+            'values': List[List[float]]
         }
 
         self.attribute_map = {
-            'simulation_steps': 'simulation_steps',
+            'first_simulation_step': 'first_simulation_step',
+            'num_simulation_steps': 'num_simulation_steps',
             'neuron_ids': 'neuron_ids',
             'values': 'values'
         }
 
-        self._simulation_steps = simulation_steps
+        self._first_simulation_step = first_simulation_step
+        self._num_simulation_steps = num_simulation_steps
         self._neuron_ids = neuron_ids
         self._values = values
 
@@ -53,25 +58,46 @@ class Data(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def simulation_steps(self) -> List[float]:
-        """Gets the simulation_steps of this Data.
+    def first_simulation_step(self) -> float:
+        """Gets the first_simulation_step of this Data.
 
 
-        :return: The simulation_steps of this Data.
-        :rtype: List[float]
+        :return: The first_simulation_step of this Data.
+        :rtype: float
         """
-        return self._simulation_steps
+        return self._first_simulation_step
 
-    @simulation_steps.setter
-    def simulation_steps(self, simulation_steps: List[float]):
-        """Sets the simulation_steps of this Data.
+    @first_simulation_step.setter
+    def first_simulation_step(self, first_simulation_step: float):
+        """Sets the first_simulation_step of this Data.
 
 
-        :param simulation_steps: The simulation_steps of this Data.
-        :type simulation_steps: List[float]
+        :param first_simulation_step: The first_simulation_step of this Data.
+        :type first_simulation_step: float
         """
 
-        self._simulation_steps = simulation_steps
+        self._first_simulation_step = first_simulation_step
+
+    @property
+    def num_simulation_steps(self) -> float:
+        """Gets the num_simulation_steps of this Data.
+
+
+        :return: The num_simulation_steps of this Data.
+        :rtype: float
+        """
+        return self._num_simulation_steps
+
+    @num_simulation_steps.setter
+    def num_simulation_steps(self, num_simulation_steps: float):
+        """Sets the num_simulation_steps of this Data.
+
+
+        :param num_simulation_steps: The num_simulation_steps of this Data.
+        :type num_simulation_steps: float
+        """
+
+        self._num_simulation_steps = num_simulation_steps
 
     @property
     def neuron_ids(self) -> List[float]:
@@ -95,22 +121,22 @@ class Data(Model):
         self._neuron_ids = neuron_ids
 
     @property
-    def values(self) -> List[float]:
+    def values(self) -> List[List[float]]:
         """Gets the values of this Data.
 
 
         :return: The values of this Data.
-        :rtype: List[float]
+        :rtype: List[List[float]]
         """
         return self._values
 
     @values.setter
-    def values(self, values: List[float]):
+    def values(self, values: List[List[float]]):
         """Sets the values of this Data.
 
 
         :param values: The values of this Data.
-        :type values: List[float]
+        :type values: List[List[float]]
         """
 
         self._values = values

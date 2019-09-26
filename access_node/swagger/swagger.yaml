@@ -197,11 +197,12 @@ definitions:
   Data:
     type: "object"
     properties:
-      simulation_steps:
-        type: "array"
-        items:
-          type: "number"
-          format: "int64"
+      first_simulation_step:
+        type: "number"
+        format: "int64"
+      num_simulation_steps:
+        type: "number"
+        format: "int64"
       neuron_ids:
         type: "array"
         items:
@@ -210,14 +211,19 @@ definitions:
       values:
         type: "array"
         items:
-          type: "number"
+          type: "array"
+          items:
+            type: "number"
     example:
-      simulation_steps:
-      - 0.1
-      - 0.2
+      first_simulation_step:
+      - 1
+      num_simulation_steps:
+      - 2
       values:
-      - 61.48
-      - 13.46
+      - - 61.48
+        - 45.23
+      - - 13.46
+        - 23.77
       neuron_ids:
       - 1
       - 2
@@ -236,8 +242,8 @@ definitions:
           format: "int64"
     example:
       simulation_steps:
-      - 0.1
-      - 0.2
+      - 2
+      - 5
       neuron_ids:
       - 1
       - 2
