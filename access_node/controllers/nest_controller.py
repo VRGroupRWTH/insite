@@ -11,6 +11,7 @@ from access_node import util
 import json
 import requests
 
+
 def get_attributes():  # noqa: E501
     """Retrieves the details of per-neuron attributes.
 
@@ -46,14 +47,29 @@ def get_data(attribute, simulation_steps=None, neuron_ids=None):  # noqa: E501
         dist_nodes = json.load(f)
     addresses = dist_nodes['addresses']
 
-    data = Data([],[],[])
+    if simulation_steps != None:
+        first_ts = simulation_steps[0]
+        last_ts = simulation_steps[-1]
+        num_ts = 
+    else:
+        first_ts = get_timestep()
+        last_ts = first_ts * get_simulation_step_count()
+        count = get_simulation_step_count()
+        timesteps = [first_ts*x for x in range(count)]
+
+    if neuron_ids != None:
+        ids = neuron_ids
+    else:
+        ids = get_neuron_ids()
+
+    data = Data([timesteps[0], timesteps[-1]], ids,
+                [[None]*len(timesteps) for x in range(len(ids))])
     for address in addresses:
-        response = requests.get(address+'/data', params={"attribute": attribute, "simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
-        for x in range(len(response['simulation_steps'])):
-            data.simulation_steps.append(response['simulation_steps'][x])
-            data.neuron_ids.append(response['neuron_ids'][x])
-            data.values.append(response['data'][x])
-    #Sort?
+        response = requests.get(address+'/data', params={
+                                "attribute": attribute, "simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
+        for x in range(len(response['neuron_ids'])):
+            data.values[data.neuron_ids.index(
+                response['neuron_ids'][x])] = response['data'][x]
     return data
 
 
@@ -106,9 +122,10 @@ def get_spikes(simulation_steps=None, neuron_ids=None):  # noqa: E501
         dist_nodes = json.load(f)
     addresses = dist_nodes['addresses']
 
-    spikes = Spikes([],[])
+    spikes = Spikes([], [])
     for address in addresses:
-        response = requests.get(address+'/spikes',params={"simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
+        response = requests.get(
+            address+'/spikes', params={"simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
         for x in range(len(response['simulation_steps'])):
             spikes.simulation_steps.append(response['simulation_steps'][x])
             spikes.neuron_ids.append(response['neuron_ids'][x])
