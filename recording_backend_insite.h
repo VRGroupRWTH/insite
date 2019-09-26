@@ -86,6 +86,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::vector<double> double_buffer_;
   std::vector<Name> long_attributes_;
   std::vector<long> long_buffer_;
+  unsigned int current_timestep_ = 0;
   unsigned int run_count_ = 0;
 
   struct AttributeNames {
@@ -97,6 +98,24 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   H5::DSetCreatPropList data_set_properties_;
   std::unique_ptr<H5::H5File> h5_file_;
   std::map<std::string, H5::DataSet> data_sets_;
+  H5::DataSet neuron_ids_data_set_;
+
+  inline std::size_t GetNeuronIndex(std::uint64_t neuron_id) const {
+    return std::find(neuron_ids_.begin(), neuron_ids_.end(), neuron_id) -
+           neuron_ids_.begin();
+  }
+
+  inline std::size_t GetDoubleAttributeIndex(const Name& attribute) {
+    return std::find(double_attributes_.begin(), double_attributes_.end(),
+                     attribute) -
+           double_attributes_.begin();
+  }
+
+  inline std::size_t GetLongAttributeIndex(const Name& attribute) {
+    return std::find(long_attributes_.begin(), long_attributes_.end(),
+                     attribute) -
+           long_attributes_.begin();
+  }
 };
 
 }  // namespace insite

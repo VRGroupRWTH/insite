@@ -36,10 +36,14 @@ backend slows down the simulation to biological real time.
 import nest
 nest.Install("insitemodule")
 
-population = nest.Create("izhikevich", 1)
+population = nest.Create("izhikevich", 100)
 multimeter = nest.Create("multimeter", 1)
+ascii_multimeter = nest.Create("multimeter", 1)
 nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
+nest.SetStatus(ascii_multimeter, {"record_from": [
+               "V_m"], "record_to": "ascii", })
 nest.Connect(multimeter, population)
+nest.Connect(ascii_multimeter, population)
 
 # regular spiking
 nest.SetStatus(population, {"a": 0.02,
