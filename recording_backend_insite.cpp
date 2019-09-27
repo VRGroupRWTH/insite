@@ -53,6 +53,13 @@ RecordingBackendInsite::RecordingBackendInsite() {
   data_set_properties_.setFillValue(H5::PredType::NATIVE_DOUBLE,
                                     &DOUBLE_FILL_VALUE);
   data_set_properties_.setFillTime(H5D_FILL_TIME_IFSET);
+
+  http_listener_.support("test", [](web::http::http_request request) {
+    web::http::http_response response(200);
+    web::json::value response_body("Hello World!");
+    response.set_body(response_body);
+    request.reply(response);
+  });
 }
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}

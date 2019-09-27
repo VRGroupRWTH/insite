@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+typedef void* locale_t;
+#include <cpprest/http_listener.h>
 
 #include "recording_backend.h"
 
@@ -94,6 +96,8 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::unique_ptr<H5::H5File> h5_file_;
   std::map<std::string, H5::DataSet> data_sets_;
   H5::DataSet neuron_ids_data_set_;
+
+  web::http::experimental::listener::http_listener http_listener_;
 
   inline std::size_t GetNeuronIndex(std::uint64_t neuron_id) const {
     return std::find(neuron_ids_.begin(), neuron_ids_.end(), neuron_id) -

@@ -42,6 +42,7 @@ set( MODULE_NAME ${SHORT_NAME}module )
 set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
      recording_backend_insite.h recording_backend_insite.cpp
+     server.hpp server.cpp
    )
 
 # 3) We require a header name like this:
@@ -100,6 +101,9 @@ find_package( HDF5 REQUIRED COMPONENTS CXX )
 # A little ugly but there is no USER_INCLUDE_DIRECTORIES
 include_directories( ${HDF5_INCLUDE_DIRS} )
 set( USER_LINK_LIBRARIES ${HDF5_LIBRARIES} )
+
+# Add cpprestsdk
+find_package(cpprestsdk REQUIRED)
 
 # Get the Python executable (for help generation).
 execute_process(
@@ -268,7 +272,7 @@ if ( BUILD_SHARED_LIBS )
   # When building shared libraries, also create a module for loading at runtime
   # with the `Install` command.
   add_library( ${MODULE_NAME}_module MODULE ${MODULE_SOURCES} )
-  target_link_libraries(${MODULE_NAME}_module ${USER_LINK_LIBRARIES})
+  target_link_libraries(${MODULE_NAME}_module PRIVATE ${USER_LINK_LIBRARIES})
   set_target_properties( ${MODULE_NAME}_module
       PROPERTIES
       COMPILE_FLAGS "${NEST_CXXFLAGS} -DLTX_MODULE"
@@ -278,6 +282,7 @@ if ( BUILD_SHARED_LIBS )
   install( TARGETS ${MODULE_NAME}_module
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
+  target_link_libraries(${MODULE_NAME}_module PRIVATE cpprestsdk::cpprest)
 endif ()
 
 # Build dynamic/static library for standard linking from NEST.
@@ -292,7 +297,8 @@ set_target_properties( ${MODULE_NAME}_lib
     COMPILE_FLAGS "${NEST_CXXFLAGS}"
     LINK_FLAGS "${NEST_LIBS}"
     OUTPUT_NAME ${MODULE_NAME} )
-target_link_libraries(${MODULE_NAME}_lib ${USER_LINK_LIBRARIES})
+target_link_libraries(${MODULE_NAME}_lib PRIVATE ${USER_LINK_LIBRARIES})
+target_link_libraries(${MODULE_NAME}_lib PRIVATE cpprestsdk::cpprest)
 
 # Install library, header and sli init files.
 install( TARGETS ${MODULE_NAME}_lib DESTINATION ${CMAKE_INSTALL_LIBDIR} )
