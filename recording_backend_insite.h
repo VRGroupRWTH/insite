@@ -23,12 +23,7 @@
 #ifndef RECORDING_BACKEND_SOCKET_H
 #define RECORDING_BACKEND_SOCKET_H
 
-// Includes for network access:
 #include <H5Cpp.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <cstdint>
 #include <memory>
 #include <vector>
