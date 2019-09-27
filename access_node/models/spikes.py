@@ -15,25 +15,25 @@ class Spikes(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_steps: List[float]=None, neuron_ids: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_times: List[float]=None, neuron_ids: List[float]=None):  # noqa: E501
         """Spikes - a model defined in Swagger
 
-        :param simulation_steps: The simulation_steps of this Spikes.  # noqa: E501
-        :type simulation_steps: List[float]
+        :param simulation_times: The simulation_times of this Spikes.  # noqa: E501
+        :type simulation_times: List[float]
         :param neuron_ids: The neuron_ids of this Spikes.  # noqa: E501
         :type neuron_ids: List[float]
         """
         self.swagger_types = {
-            'simulation_steps': List[float],
+            'simulation_times': List[float],
             'neuron_ids': List[float]
         }
 
         self.attribute_map = {
-            'simulation_steps': 'simulation_steps',
+            'simulation_times': 'simulation_times',
             'neuron_ids': 'neuron_ids'
         }
 
-        self._simulation_steps = simulation_steps
+        self._simulation_times = simulation_times
         self._neuron_ids = neuron_ids
 
     @classmethod
@@ -48,25 +48,25 @@ class Spikes(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def simulation_steps(self) -> List[float]:
-        """Gets the simulation_steps of this Spikes.
+    def simulation_times(self) -> List[float]:
+        """Gets the simulation_times of this Spikes.
 
 
-        :return: The simulation_steps of this Spikes.
+        :return: The simulation_times of this Spikes.
         :rtype: List[float]
         """
-        return self._simulation_steps
+        return self._simulation_times
 
-    @simulation_steps.setter
-    def simulation_steps(self, simulation_steps: List[float]):
-        """Sets the simulation_steps of this Spikes.
+    @simulation_times.setter
+    def simulation_times(self, simulation_times: List[float]):
+        """Sets the simulation_times of this Spikes.
 
 
-        :param simulation_steps: The simulation_steps of this Spikes.
-        :type simulation_steps: List[float]
+        :param simulation_times: The simulation_times of this Spikes.
+        :type simulation_times: List[float]
         """
 
-        self._simulation_steps = simulation_steps
+        self._simulation_times = simulation_times
 
     @property
     def neuron_ids(self) -> List[float]:

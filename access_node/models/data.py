@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from access_node.models.base_model_ import Model
+from access_node.models.multimeter import Multimeter  # noqa: F401,E501
 from access_node import util
 
 
@@ -15,36 +16,21 @@ class Data(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, first_simulation_step: float=None, num_simulation_steps: float=None, neuron_ids: List[float]=None, values: List[List[float]]=None):  # noqa: E501
+    def __init__(self, multimeters: List[Multimeter]=None):  # noqa: E501
         """Data - a model defined in Swagger
 
-        :param first_simulation_step: The first_simulation_step of this Data.  # noqa: E501
-        :type first_simulation_step: float
-        :param num_simulation_steps: The num_simulation_steps of this Data.  # noqa: E501
-        :type num_simulation_steps: float
-        :param neuron_ids: The neuron_ids of this Data.  # noqa: E501
-        :type neuron_ids: List[float]
-        :param values: The values of this Data.  # noqa: E501
-        :type values: List[List[float]]
+        :param multimeters: The multimeters of this Data.  # noqa: E501
+        :type multimeters: List[Multimeter]
         """
         self.swagger_types = {
-            'first_simulation_step': float,
-            'num_simulation_steps': float,
-            'neuron_ids': List[float],
-            'values': List[List[float]]
+            'multimeters': List[Multimeter]
         }
 
         self.attribute_map = {
-            'first_simulation_step': 'first_simulation_step',
-            'num_simulation_steps': 'num_simulation_steps',
-            'neuron_ids': 'neuron_ids',
-            'values': 'values'
+            'multimeters': 'multimeters'
         }
 
-        self._first_simulation_step = first_simulation_step
-        self._num_simulation_steps = num_simulation_steps
-        self._neuron_ids = neuron_ids
-        self._values = values
+        self._multimeters = multimeters
 
     @classmethod
     def from_dict(cls, dikt) -> 'Data':
@@ -58,85 +44,22 @@ class Data(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def first_simulation_step(self) -> float:
-        """Gets the first_simulation_step of this Data.
+    def multimeters(self) -> List[Multimeter]:
+        """Gets the multimeters of this Data.
 
 
-        :return: The first_simulation_step of this Data.
-        :rtype: float
+        :return: The multimeters of this Data.
+        :rtype: List[Multimeter]
         """
-        return self._first_simulation_step
+        return self._multimeters
 
-    @first_simulation_step.setter
-    def first_simulation_step(self, first_simulation_step: float):
-        """Sets the first_simulation_step of this Data.
-
-
-        :param first_simulation_step: The first_simulation_step of this Data.
-        :type first_simulation_step: float
-        """
-
-        self._first_simulation_step = first_simulation_step
-
-    @property
-    def num_simulation_steps(self) -> float:
-        """Gets the num_simulation_steps of this Data.
+    @multimeters.setter
+    def multimeters(self, multimeters: List[Multimeter]):
+        """Sets the multimeters of this Data.
 
 
-        :return: The num_simulation_steps of this Data.
-        :rtype: float
-        """
-        return self._num_simulation_steps
-
-    @num_simulation_steps.setter
-    def num_simulation_steps(self, num_simulation_steps: float):
-        """Sets the num_simulation_steps of this Data.
-
-
-        :param num_simulation_steps: The num_simulation_steps of this Data.
-        :type num_simulation_steps: float
+        :param multimeters: The multimeters of this Data.
+        :type multimeters: List[Multimeter]
         """
 
-        self._num_simulation_steps = num_simulation_steps
-
-    @property
-    def neuron_ids(self) -> List[float]:
-        """Gets the neuron_ids of this Data.
-
-
-        :return: The neuron_ids of this Data.
-        :rtype: List[float]
-        """
-        return self._neuron_ids
-
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids: List[float]):
-        """Sets the neuron_ids of this Data.
-
-
-        :param neuron_ids: The neuron_ids of this Data.
-        :type neuron_ids: List[float]
-        """
-
-        self._neuron_ids = neuron_ids
-
-    @property
-    def values(self) -> List[List[float]]:
-        """Gets the values of this Data.
-
-
-        :return: The values of this Data.
-        :rtype: List[List[float]]
-        """
-        return self._values
-
-    @values.setter
-    def values(self, values: List[List[float]]):
-        """Sets the values of this Data.
-
-
-        :param values: The values of this Data.
-        :type values: List[List[float]]
-        """
-
-        self._values = values
+        self._multimeters = multimeters

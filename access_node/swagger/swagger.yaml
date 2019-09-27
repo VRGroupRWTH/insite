@@ -10,12 +10,12 @@ schemes:
 - "https"
 - "http"
 paths:
-  /timestep:
+  /info:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the time between two simulation steps."
-      operationId: "get_timestep"
+      summary: "Retrieves general simulation information."
+      operationId: "get_info"
       produces:
       - "application/json"
       parameters: []
@@ -28,14 +28,14 @@ paths:
         400:
           description: "Operation failed."
           schema:
-            $ref: "#/definitions/Error"
+            $ref: "#/definitions/Info"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /simulation_step_count:
+  /current_simulation_time:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the number of simulation steps."
-      operationId: "get_simulation_step_count"
+      summary: "Retrieves the current simulation time."
+      operationId: "get_current_simulation_time"
       produces:
       - "application/json"
       parameters: []
@@ -97,28 +97,38 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the per-neuron attributes for the given attribute name,\
-        \ simulation steps (optional) and neuron IDs (optional)."
+      summary: "Retrieves the per-neuron attributes for the given multimeter name,\
+        \ attribute name, duration (from - to) (optional) and neuron IDs (optional)."
       operationId: "get_data"
       consumes:
       - "application/json"
       produces:
       - "application/json"
       parameters:
+      - name: "multimeter"
+        in: "query"
+        description: "Multimeter name."
+        required: true
+        type: "string"
       - name: "attribute"
         in: "query"
         description: "Attribute name."
         required: true
         type: "string"
-      - name: "simulation_steps"
+      - name: "from"
         in: "query"
-        description: "Simulation steps (leave empty for all steps)."
+        description: "First timestep to retreive (leave empty for first step possible)."
         required: false
-        type: "array"
-        items:
-          type: "number"
-          format: "double"
+        type: "number"
         collectionFormat: "multi"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "Last timestep to retreive (leave empty for last step possible)."
+        required: false
+        type: "number"
+        collectionFormat: "multi"
+        format: "double"
       - name: "neuron_ids"
         in: "query"
         description: "Neuron IDs (leave empty for all neurons)."
@@ -194,15 +204,27 @@ definitions:
     example:
       precision: {}
       name: "name"
-  Data:
+  Multimeter:
     type: "object"
     properties:
-      first_simulation_step:
+      name:
+        type: "string"
+      interval:
         type: "number"
-        format: "int64"
-      num_simulation_steps:
+        format: "double"
+      attribute:
+        $ref: "#/definitions/Attribute"
+      measurement_times:
+        type: "array"
+        items:
+          type: "number"
+          format: "double"
+      from:
         type: "number"
-        format: "int64"
+        format: "double"
+      to:
+        type: "number"
+        format: "double"
       neuron_ids:
         type: "array"
         items:
@@ -215,22 +237,95 @@ definitions:
           items:
             type: "number"
     example:
-      first_simulation_step:
+      name: "Multimeter_name"
+      interval: 0.2
+      attribute:
+        name: "voltage"
+        precission: "double"
+      timesteps:
+      - 1.2
+      - 1.4
+      from: 1.2
+      to: 1.4
+      neuron_ids:
       - 1
-      num_simulation_steps:
       - 2
       values:
       - - 61.48
         - 45.23
       - - 13.46
         - 23.77
-      neuron_ids:
-      - 1
-      - 2
+  MultimeterInfo:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      interval:
+        type: "number"
+        format: "double"
+      attributes:
+        type: "array"
+        items:
+          $ref: "#/definitions/Attribute"
+  Info:
+    type: "object"
+    properties:
+      simulation_resolution:
+        type: "number"
+        format: "double"
+      multimeters:
+        type: "array"
+        items:
+          $ref: "#/definitions/MultimeterInfo"
+  Data:
+    type: "object"
+    properties:
+      multimeters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Multimeter"
+    example:
+      multimeters:
+      - name: "Multimeter_name"
+        interval: 0.2
+        attribute:
+          name: "voltage"
+          precission: "double"
+        timesteps:
+        - 1.2
+        - 1.4
+        from: 1.2
+        to: 1.4
+        neuron_ids:
+        - 1
+        - 2
+        values:
+        - - 61.48
+          - 45.23
+        - - 13.46
+          - 23.77
+      - name: "Multimeter_name"
+        interval: 0.2
+        attribute:
+          name: "voltage"
+          precission: "double"
+        timesteps:
+        - 1.2
+        - 1.4
+        from: 1.2
+        to: 1.4
+        neuron_ids:
+        - 1
+        - 2
+        values:
+        - - 61.48
+          - 45.23
+        - - 13.46
+          - 23.77
   Spikes:
     type: "object"
     properties:
-      simulation_steps:
+      simulation_times:
         type: "array"
         items:
           type: "number"
@@ -241,12 +336,12 @@ definitions:
           type: "number"
           format: "int64"
     example:
-      simulation_steps:
-      - 2
-      - 5
+      simulation_times:
+      - 0.80082819046101150206595775671303272247314453125
+      - 0.80082819046101150206595775671303272247314453125
       neuron_ids:
-      - 1
-      - 2
+      - 6.02745618307040320615897144307382404804229736328125
+      - 6.02745618307040320615897144307382404804229736328125
   Error:
     type: "object"
     properties:
