@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef RECORDING_BACKEND_SOCKET_H
-#define RECORDING_BACKEND_SOCKET_H
+#ifndef RECORDING_BACKEND_INSITE_H
+#define RECORDING_BACKEND_INSITE_H
 
 #include <H5Cpp.h>
 #include <cstdint>
@@ -115,4 +115,4 @@ class RecordingBackendInsite : public nest::RecordingBackend {
 
 }  // namespace insite
 
-#endif  // RECORDING_BACKEND_SOCKET_H
+#endif  // RECORDING_BACKEND_INSITE_H
