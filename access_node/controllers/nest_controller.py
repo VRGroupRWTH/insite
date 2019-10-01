@@ -8,6 +8,8 @@ from access_node.models.multimeter_info import MultimeterInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
 
+import requests
+
 
 def get_current_simulation_time():  # noqa: E501
     """Retrieves the current simulation time.
@@ -114,4 +116,18 @@ def get_spikes(simulation_steps=None, neuron_ids=None):  # noqa: E501
 
     :rtype: Spikes
     """
-    return 'do some magic!'
+   # Replace this with request to information_node
+    with open('access_node//distribution_nodes.json', 'r') as f:
+        dist_nodes = json.load(f)
+    addresses = dist_nodes['addresses']
+
+    spikes = Spikes([], [])
+    for address in addresses:
+        response = requests.get(
+            address+'/spikes', params={"simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
+        for x in range(len(response['simulation_steps'])):
+            spikes.simulation_steps.append(response['simulation_steps'][x])
+            spikes.neuron_ids.append(response['neuron_ids'][x])
+
+    # Sort this?
+    return spikes
