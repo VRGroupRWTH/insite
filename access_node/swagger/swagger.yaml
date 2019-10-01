@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   description: "This is the REST API for the in-situ pipeline."
-  version: "1.0.0"
+  version: "0.0.2"
   title: "In-Situ Pipeline REST API"
 host: "localhost"
 basePath: "/"
@@ -23,12 +23,11 @@ paths:
         200:
           description: "Operation successful."
           schema:
-            type: "number"
-            format: "double"
+            $ref: "#/definitions/Info"
         400:
           description: "Operation failed."
           schema:
-            $ref: "#/definitions/Info"
+            $ref: "#/definitions/Error"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
   /current_simulation_time:
     get:
@@ -44,7 +43,7 @@ paths:
           description: "Operation successful."
           schema:
             type: "number"
-            format: "int64"
+            format: "double"
         400:
           description: "Operation failed."
           schema:
@@ -72,12 +71,12 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /attributes:
+  /multimeters:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the details of per-neuron attributes."
-      operationId: "get_attributes"
+      summary: "Retrieves the details of all multimeters."
+      operationId: "get_multimeters"
       produces:
       - "application/json"
       parameters: []
@@ -87,7 +86,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/Attribute"
+              $ref: "#/definitions/MultimeterInfo"
         400:
           description: "Operation failed."
           schema:
@@ -142,7 +141,7 @@ paths:
         200:
           description: "Operation successful."
           schema:
-            $ref: "#/definitions/Data"
+            $ref: "#/definitions/Multimeter"
         400:
           description: "Operation failed."
           schema:
@@ -267,6 +266,14 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/Attribute"
+    example:
+      name: "name"
+      interval: 0.1
+      attributes:
+      - precision: {}
+        name: "name"
+      - precision: {}
+        name: "name"
   Info:
     type: "object"
     properties:
@@ -277,51 +284,23 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/MultimeterInfo"
-  Data:
-    type: "object"
-    properties:
-      multimeters:
-        type: "array"
-        items:
-          $ref: "#/definitions/Multimeter"
     example:
+      simulation_resolution: 0.01
       multimeters:
-      - name: "Multimeter_name"
+      - name: "name"
+        interval: 0.1
+        attributes:
+        - precision: {}
+          name: "name"
+        - precision: {}
+          name: "name"
+      - name: "name"
         interval: 0.2
-        attribute:
-          name: "voltage"
-          precission: "double"
-        timesteps:
-        - 1.2
-        - 1.4
-        from: 1.2
-        to: 1.4
-        neuron_ids:
-        - 1
-        - 2
-        values:
-        - - 61.48
-          - 45.23
-        - - 13.46
-          - 23.77
-      - name: "Multimeter_name"
-        interval: 0.2
-        attribute:
-          name: "voltage"
-          precission: "double"
-        timesteps:
-        - 1.2
-        - 1.4
-        from: 1.2
-        to: 1.4
-        neuron_ids:
-        - 1
-        - 2
-        values:
-        - - 61.48
-          - 45.23
-        - - 13.46
-          - 23.77
+        attributes:
+        - precision: {}
+          name: "name"
+        - precision: {}
+          name: "name"
   Spikes:
     type: "object"
     properties:
@@ -337,11 +316,11 @@ definitions:
           format: "int64"
     example:
       simulation_times:
-      - 0.80082819046101150206595775671303272247314453125
-      - 0.80082819046101150206595775671303272247314453125
+      - 0.2
+      - 0.3
       neuron_ids:
-      - 6.02745618307040320615897144307382404804229736328125
-      - 6.02745618307040320615897144307382404804229736328125
+      - 1
+      - 2
   Error:
     type: "object"
     properties:
