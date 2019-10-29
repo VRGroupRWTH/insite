@@ -42,7 +42,8 @@ set( MODULE_NAME ${SHORT_NAME}module )
 set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
      recording_backend_insite.h recording_backend_insite.cpp
-     server.hpp server.cpp
+     data_storage.hpp data_storage.cpp
+     http_server.hpp http_server.cpp
    )
 
 # 3) We require a header name like this:
@@ -97,10 +98,10 @@ set( CMAKE_CXX_COMPILER "${NEST_COMPILER}" )
 project( ${MODULE_NAME} CXX )
 
 # Add HDF5
-find_package( HDF5 REQUIRED COMPONENTS CXX )
-# A little ugly but there is no USER_INCLUDE_DIRECTORIES
-include_directories( ${HDF5_INCLUDE_DIRS} )
-set( USER_LINK_LIBRARIES ${HDF5_LIBRARIES} )
+# find_package( HDF5 REQUIRED COMPONENTS CXX )
+# # A little ugly but there is no USER_INCLUDE_DIRECTORIES
+# include_directories( ${HDF5_INCLUDE_DIRS} )
+# set( USER_LINK_LIBRARIES ${HDF5_LIBRARIES} )
 
 # Add cpprestsdk
 find_package(cpprestsdk REQUIRED)
@@ -297,8 +298,6 @@ set_target_properties( ${MODULE_NAME}_lib
     COMPILE_FLAGS "${NEST_CXXFLAGS}"
     LINK_FLAGS "${NEST_LIBS}"
     OUTPUT_NAME ${MODULE_NAME} )
-target_link_libraries(${MODULE_NAME}_lib PRIVATE ${USER_LINK_LIBRARIES})
-target_link_libraries(${MODULE_NAME}_lib PRIVATE cpprestsdk::cpprest)
 
 # Install library, header and sli init files.
 install( TARGETS ${MODULE_NAME}_lib DESTINATION ${CMAKE_INSTALL_LIBDIR} )

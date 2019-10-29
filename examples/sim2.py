@@ -63,7 +63,7 @@ startbuild = time.time()
 # Assigning the simulation parameters to variables.
 
 dt = 0.1  # the resolution in ms
-simtime = 10.0  # Simulation time in ms
+simtime = 10000.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
 
 
@@ -152,6 +152,7 @@ noise = nest.Create("poisson_generator")
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
 multimeter = nest.Create("multimeter")
+multimeter2 = nest.Create("multimeter")
 ascii_multimeter = nest.Create("multimeter")
 
 ###############################################################################
@@ -168,6 +169,7 @@ nest.SetStatus(ispikes, [{"label": "brunel-py-in",
                           "record_to": "insite"}])
 
 nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
+nest.SetStatus(multimeter2, {"record_from": ["V_m"], "record_to": "insite", })
 nest.SetStatus(ascii_multimeter, {"record_from": [
                "V_m"], "record_to": "ascii", })
 
