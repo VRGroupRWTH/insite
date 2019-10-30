@@ -39,22 +39,28 @@ DataStorage::DataStorage(
   //                             spikes_data_space, spikes_set_properties_);
 }
 
-void DataStorage::AddSpike(double time, std::uint64_t neuron_id) {
-  for (const auto& spike : buffered_spikes_) {
-    if (spike.time == time && spike.neuron_id == neuron_id) {
+void DataStorage::AddSpike(std::uint64_t simulation_step, std::uint64_t gid) {
+  std::unique_lock<std::mutex> lock(spike_mutex_);
+  constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
+    return lhs.simulation_step < rhs.simulation_step;
+  };
+  const Spike spike {simulation_step, gid};
+  const auto equal_range = std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike, spike_occured_before);
+  for (auto i = equal_range.first; i != equal_range.second; ++i) {
+    if (i->gid == gid) {
       return;
     }
   }
-  buffered_spikes_.push_back({time, neuron_id});
+  buffered_spikes_.insert(equal_range.second,spike);
+}
+
+std::vector<Spike> DataStorage::GetSpikes() {
+  std::unique_lock<std::mutex> lock(spike_mutex_);
+  std::vector<Spike> spikes = buffered_spikes_;
+  return spikes;
 }
 
 void DataStorage::Flush() {
-  constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
-    return lhs.time < rhs.time;
-  };
-  std::sort(buffered_spikes_.begin(), buffered_spikes_.end(),
-            spike_occured_before);
-
   // const hsize_t spikes_extend[] = {flushed_spikes_count +
   //                                  buffered_spikes_.size()};
   // const hsize_t count[] = {buffered_spikes_.size()};

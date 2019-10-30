@@ -5,12 +5,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 
 namespace insite {
 
 struct Spike {
-  double time;
-  std::uint64_t neuron_id;
+  std::uint64_t simulation_step;
+  std::uint64_t gid;
 };
 static_assert(sizeof(Spike) == 2 * 8);
 
@@ -19,7 +20,8 @@ class DataStorage {
   DataStorage(const std::string& filename
               /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/);
 
-  void AddSpike(double time, std::uint64_t neuron_id);
+  void AddSpike(std::uint64_t simulation_step, std::uint64_t gid);
+  std::vector<Spike> GetSpikes();
   void Flush();
 
  private:
@@ -29,6 +31,7 @@ class DataStorage {
   std::vector<Spike> buffered_spikes_;
   // H5::DataSet spikes_times_dataset_;
   // H5::DataSet spikes_neurons_dataset_;
+  std::mutex spike_mutex_;
 };
 
 }  // namespace insite
