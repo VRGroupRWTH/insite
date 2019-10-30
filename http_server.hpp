@@ -15,6 +15,8 @@ class HttpServer {
  private:
   DataStorage* storage_;
   web::http::experimental::listener::http_listener http_listener_;
+
+  web::http::http_response GetSpikes(const web::http::http_request& request);
 };
 
 }  // namespace insite
