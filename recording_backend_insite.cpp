@@ -62,7 +62,12 @@ void RecordingBackendInsite::post_step_hook() {}
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
-                                   const std::vector<long>& long_values) {}
+                                   const std::vector<long>& long_values) {
+  if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
+    data_storage_.AddSpike(event.get_stamp().get_steps(),
+                           event.get_sender_gid());
+  }
+}
 
 void RecordingBackendInsite::set_status(const DictionaryDatum& params) {
   std::cout << "RecordingBackendInsite::set_status()\n";
