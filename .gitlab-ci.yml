@@ -1,5 +1,6 @@
 stages:
   - build
+  - run
 
 docker:build:
   stage: build
@@ -8,3 +9,14 @@ docker:build:
     - docker
   script:
     - docker build -t insite-nest-module .
+
+docker:run:
+  stage: run
+  tags:
+    - centos
+    - docker
+  dependencies:
+    - docker:build
+  script:
+    - docker run --publish 8000:8000 insite 20
+
