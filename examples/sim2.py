@@ -47,6 +47,7 @@ import nest
 import nest.raster_plot
 
 import time
+import sys
 from numpy import exp
 
 nest.Install("insitemodule")
@@ -63,7 +64,8 @@ startbuild = time.time()
 # Assigning the simulation parameters to variables.
 
 dt = 0.1  # the resolution in ms
-simtime = 10000.0  # Simulation time in ms
+simtime = float(sys.argv[1]) if len(
+    sys.argv) > 1 else 10000.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
 
 
@@ -298,8 +300,3 @@ print("Excitatory rate   : %.2f Hz" % rate_ex)
 print("Inhibitory rate   : %.2f Hz" % rate_in)
 print("Building time     : %.2f s" % build_time)
 print("Simulation time   : %.2f s" % sim_time)
-
-###############################################################################
-# Plot a raster of the excitatory neurons and a histogram.
-
-nest.raster_plot.from_device(espikes, hist=True)
