@@ -14,7 +14,7 @@ namespace insite {
 
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
-      http_server_("http://localhost:8000", &data_storage_) {}
+      http_server_("http://0.0.0.0:8000", &data_storage_) {}
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
 
@@ -43,8 +43,7 @@ void RecordingBackendInsite::set_value_names(
   std::cout << "RecordingBackendInsite::set_value_names()\n";
 }
 
-void RecordingBackendInsite::prepare() {
-}
+void RecordingBackendInsite::prepare() {}
 
 void RecordingBackendInsite::cleanup() {
   std::cout << "RecordingBackendInsite::cleanup()\n";
@@ -58,14 +57,12 @@ void RecordingBackendInsite::post_run_hook() {
   std::cout << "RecordingBackendInsite::post_run_hook()\n";
 }
 
-void RecordingBackendInsite::post_step_hook() {
-}
+void RecordingBackendInsite::post_step_hook() {}
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
-                                   const std::vector<long>& long_values) {
-}
+                                   const std::vector<long>& long_values) {}
 
 void RecordingBackendInsite::set_status(const DictionaryDatum& params) {
   std::cout << "RecordingBackendInsite::set_status()\n";
