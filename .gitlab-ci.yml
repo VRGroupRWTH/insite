@@ -1,9 +1,9 @@
 stages:
-  - docker-build
+  - build
 
 docker:build:
   stage:
-    - docker-build
+    - build
   tags:
     - centos
     - docker
