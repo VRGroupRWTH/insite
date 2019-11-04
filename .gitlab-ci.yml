@@ -1,0 +1,9 @@
+stages:
+  - docker-build
+
+docker:build:
+  tags:
+    - centos
+    - docker
+  script:
+    - docker build -t insite-nest-module .
