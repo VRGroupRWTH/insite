@@ -18,5 +18,5 @@ docker:run:
   dependencies:
     - docker:build
   script:
-    - docker run --publish 8000:8000 insite 20
+    - docker run --publish 8000:8000 insite-nest-module 20
 
