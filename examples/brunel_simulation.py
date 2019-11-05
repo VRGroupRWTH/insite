@@ -300,3 +300,5 @@ print("Excitatory rate   : %.2f Hz" % rate_ex)
 print("Inhibitory rate   : %.2f Hz" % rate_in)
 print("Building time     : %.2f s" % build_time)
 print("Simulation time   : %.2f s" % sim_time)
+
+input("Press Enter to quit...")
