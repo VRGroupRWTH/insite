@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   description: "This is the REST API for the in-situ pipeline."
-  version: "0.0.2"
+  version: "1.0.0"
   title: "In-Situ Pipeline REST API"
 host: "localhost"
 basePath: "/"
@@ -10,31 +10,12 @@ schemes:
 - "https"
 - "http"
 paths:
-  /info:
+  /timestep:
     get:
       tags:
       - "nest"
-      summary: "Retrieves general simulation information."
-      operationId: "get_info"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            $ref: "#/definitions/Info"
-        400:
-          description: "Operation failed."
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /current_simulation_time:
-    get:
-      tags:
-      - "nest"
-      summary: "Retrieves the current simulation time."
-      operationId: "get_current_simulation_time"
+      summary: "Retrieves the time between two simulation steps."
+      operationId: "get_timestep"
       produces:
       - "application/json"
       parameters: []
@@ -49,12 +30,32 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /neuron_ids:
+  /simulation_step_count:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the number of simulation steps."
+      operationId: "get_simulation_step_count"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "number"
+            format: "int64"
+        400:
+          description: "Operation failed."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /gids:
     get:
       tags:
       - "nest"
       summary: "Retrieves the list of all neuron IDs."
-      operationId: "get_neuron_ids"
+      operationId: "get_gids"
       produces:
       - "application/json"
       parameters: []
@@ -66,82 +67,6 @@ paths:
             items:
               type: "number"
               format: "int64"
-        400:
-          description: "Operation failed."
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /multimeters:
-    get:
-      tags:
-      - "nest"
-      summary: "Retrieves the details of all multimeters."
-      operationId: "get_multimeters"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/MultimeterInfo"
-        400:
-          description: "Operation failed."
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /data:
-    get:
-      tags:
-      - "nest"
-      summary: "Retrieves the per-neuron attributes for the given multimeter name,\
-        \ attribute name, duration (from - to) (optional) and neuron IDs (optional)."
-      operationId: "get_data"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "multimeter"
-        in: "query"
-        description: "Multimeter name."
-        required: true
-        type: "string"
-      - name: "attribute"
-        in: "query"
-        description: "Attribute name."
-        required: true
-        type: "string"
-      - name: "from"
-        in: "query"
-        description: "First timestep to retreive (leave empty for first step possible)."
-        required: false
-        type: "number"
-        collectionFormat: "multi"
-        format: "double"
-      - name: "to"
-        in: "query"
-        description: "Last timestep to retreive (leave empty for last step possible)."
-        required: false
-        type: "number"
-        collectionFormat: "multi"
-        format: "double"
-      - name: "neuron_ids"
-        in: "query"
-        description: "Neuron IDs (leave empty for all neurons)."
-        required: false
-        type: "array"
-        items:
-          type: "number"
-          format: "int64"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            $ref: "#/definitions/Multimeter"
         400:
           description: "Operation failed."
           schema:
@@ -159,24 +84,18 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "simulation_steps"
+      - name: "from"
         in: "query"
-        description: "Simulation steps (leave empty for all steps)."
+        description: "TODO"
         required: false
-        type: "array"
-        items:
-          type: "number"
-          format: "int64"
-        collectionFormat: "multi"
-      - name: "neuron_ids"
+        type: "number"
+        format: "int64"
+      - name: "to"
         in: "query"
-        description: "Neuron IDs (leave empty for all neurons)."
+        description: "TODO"
         required: false
-        type: "array"
-        items:
-          type: "number"
-          format: "int64"
-        collectionFormat: "multi"
+        type: "number"
+        format: "int64"
       responses:
         200:
           description: "Operation successful."
@@ -188,137 +107,24 @@ paths:
             $ref: "#/definitions/Error"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
 definitions:
-  Precision:
-    type: "string"
-    enum:
-    - "double"
-    - "integer"
-  Attribute:
-    type: "object"
-    properties:
-      name:
-        type: "string"
-      precision:
-        $ref: "#/definitions/Precision"
-    example:
-      precision: {}
-      name: "name"
-  Multimeter:
-    type: "object"
-    properties:
-      name:
-        type: "string"
-      interval:
-        type: "number"
-        format: "double"
-      attribute:
-        $ref: "#/definitions/Attribute"
-      measurement_times:
-        type: "array"
-        items:
-          type: "number"
-          format: "double"
-      from:
-        type: "number"
-        format: "double"
-      to:
-        type: "number"
-        format: "double"
-      neuron_ids:
-        type: "array"
-        items:
-          type: "number"
-          format: "int64"
-      values:
-        type: "array"
-        items:
-          type: "array"
-          items:
-            type: "number"
-    example:
-      name: "Multimeter_name"
-      interval: 0.2
-      attribute:
-        name: "voltage"
-        precission: "double"
-      timesteps:
-      - 1.2
-      - 1.4
-      from: 1.2
-      to: 1.4
-      neuron_ids:
-      - 1
-      - 2
-      values:
-      - - 61.48
-        - 45.23
-      - - 13.46
-        - 23.77
-  MultimeterInfo:
-    type: "object"
-    properties:
-      name:
-        type: "string"
-      interval:
-        type: "number"
-        format: "double"
-      attributes:
-        type: "array"
-        items:
-          $ref: "#/definitions/Attribute"
-    example:
-      name: "name"
-      interval: 0.1
-      attributes:
-      - precision: {}
-        name: "name"
-      - precision: {}
-        name: "name"
-  Info:
-    type: "object"
-    properties:
-      simulation_resolution:
-        type: "number"
-        format: "double"
-      multimeters:
-        type: "array"
-        items:
-          $ref: "#/definitions/MultimeterInfo"
-    example:
-      simulation_resolution: 0.01
-      multimeters:
-      - name: "name"
-        interval: 0.1
-        attributes:
-        - precision: {}
-          name: "name"
-        - precision: {}
-          name: "name"
-      - name: "name"
-        interval: 0.2
-        attributes:
-        - precision: {}
-          name: "name"
-        - precision: {}
-          name: "name"
   Spikes:
     type: "object"
     properties:
-      simulation_times:
+      simulation_steps:
         type: "array"
         items:
           type: "number"
           format: "int64"
-      neuron_ids:
+      gids:
         type: "array"
         items:
           type: "number"
           format: "int64"
     example:
-      simulation_times:
-      - 0.2
-      - 0.3
-      neuron_ids:
+      simulation_steps:
+      - 2
+      - 5
+      gids:
       - 1
       - 2
   Error:
