@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 // Includes from libnestutil:
 #include "compose.hpp"
 
@@ -14,7 +16,28 @@ namespace insite {
 
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
-      http_server_("http://0.0.0.0:8000", &data_storage_) {}
+      http_server_("http://0.0.0.0:8000", &data_storage_),
+      info_node_("http://localhost:8001"),
+      address_("http://localhost:8000") {
+  web::uri_builder builder("/node");
+  builder.append_query("node_type", "nest_simulation", true);
+  builder.append_query("address", address_, true);
+
+  try {
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            throw std::runtime_error(response.to_string());
+          }
+        })
+        .wait();
+  } catch (const std::exception& exception) {
+    std::cerr << "Failed to register to info node: \n"
+              << exception.what() << "\n"
+              << std::endl;
+    throw;
+  }
+}
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
 
@@ -57,15 +80,70 @@ void RecordingBackendInsite::post_run_hook() {
   std::cout << "RecordingBackendInsite::post_run_hook()\n";
 }
 
-void RecordingBackendInsite::post_step_hook() {}
+void RecordingBackendInsite::post_step_hook() {
+  // Send simulation time
+  {
+    web::uri_builder builder("/time");
+    builder.append_query("time", latest_simulation_time_, false);
+    builder.append_query("node_address", address_, true);
+
+    try {
+      info_node_.request(web::http::methods::PUT, builder.to_string())
+          .then([](const web::http::http_response& response) {
+            if (response.status_code() != web::http::status_codes::OK) {
+              throw std::runtime_error(response.to_string());
+            }
+          });
+    } catch (const std::exception& exception) {
+      std::cerr << "Failed to send time to info node: \n"
+                << exception.what() << "\n"
+                << std::endl;
+      throw;
+    }
+  }
+
+  // Send new gids
+  if (new_gids_.size() > 0) {
+    web::uri_builder builder("/gids");
+    for (auto gid : new_gids_) {
+      builder.append_query("gids", gid, false);
+    }
+
+    try {
+      info_node_.request(web::http::methods::PUT, builder.to_string())
+          .then([](const web::http::http_response& response) {
+            if (response.status_code() != web::http::status_codes::OK) {
+              throw std::runtime_error(response.to_string());
+            }
+          });
+    } catch (const std::exception& exception) {
+      std::cerr << "Failed to send gids to info node: \n"
+                << exception.what() << "\n"
+                << std::endl;
+      throw;
+    }
+
+    gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
+    std::sort(gids_.begin(), gids_.end());
+    new_gids_.clear();
+  }
+}
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
+  const auto sender_gid_ = event.get_sender_gid();
+  const auto time_stamp = event.get_stamp().get_steps();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
-    data_storage_.AddSpike(event.get_stamp().get_steps(),
-                           event.get_sender_gid());
+    data_storage_.AddSpike(time_stamp, sender_gid_);
+  }
+  latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
+  if (!binary_search(gids_.begin(), gids_.end(), sender_gid_) &&
+      !binary_search(new_gids_.begin(), new_gids_.end(), sender_gid_)) {
+    new_gids_.insert(
+        std::lower_bound(new_gids_.begin(), new_gids_.end(), sender_gid_),
+        sender_gid_);
   }
 }
 

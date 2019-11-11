@@ -1,10 +1,12 @@
 #ifndef RECORDING_BACKEND_INSITE_H
 #define RECORDING_BACKEND_INSITE_H
 
+#include <cpprest/http_client.h>
+
 #include "data_storage.hpp"
 #include "http_server.hpp"
-
 #include "recording_backend.h"
+#include "nest_types.h"
 
 namespace insite {
 
@@ -54,6 +56,11 @@ class RecordingBackendInsite : public nest::RecordingBackend {
  private:
   DataStorage data_storage_;
   HttpServer http_server_;
+  web::http::client::http_client info_node_;
+  std::string address_;
+  std::vector<nest::index> gids_;
+  std::vector<nest::index> new_gids_;
+  nest::delay latest_simulation_time_ = 0;
 };
 
 }  // namespace insite
