@@ -17,7 +17,7 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:8000", &data_storage_),
-      info_node_("http://localhost:8001"),
+      info_node_("http://localhost:8080"),
       address_("http://localhost:8000") {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
