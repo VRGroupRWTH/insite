@@ -7,7 +7,10 @@ RUN apt-get update && apt-get install -y \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
     libwebsocketpp-dev openssl libssl-dev ninja-build
 RUN pip3 install Cython
-RUN git clone --single-branch --branch 098ee030f1027be8eb05ee20bc794ea7863c2ef4 https://github.com/jougs/nest-simulator.git nest
+RUN git clone --single-branch --branch nestio https://github.com/jougs/nest-simulator.git nest && \
+    cd nest && \
+    git checkout 098ee030f1027be8eb05ee20bc794ea7863c2ef4 && \
+    cd /
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \
