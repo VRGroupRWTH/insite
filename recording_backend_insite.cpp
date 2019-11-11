@@ -4,6 +4,7 @@
 #include "compose.hpp"
 
 // Includes from nestkernel:
+#include "kernel_manager.h"
 #include "recording_device.h"
 #include "vp_manager_impl.h"
 
@@ -16,9 +17,9 @@ namespace insite {
 
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
-      http_server_("http://0.0.0.0:8000", &data_storage_),
+      http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
       info_node_("http://localhost:8080"),
-      address_("http://localhost:8000") {
+      address_("http://localhost:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
   builder.append_query("address", address_, true);
@@ -170,4 +171,8 @@ void RecordingBackendInsite::get_device_status(
   std::cout << "RecordingBackendInsite::get_device_status()\n";
 }
 
+std::string RecordingBackendInsite::get_port_string() const
+{
+  return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
+}
 }  // namespace insite

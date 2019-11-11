@@ -54,6 +54,8 @@ class RecordingBackendInsite : public nest::RecordingBackend {
                          DictionaryDatum& params) const override;
 
  private:
+  std::string get_port_string() const;
+
   DataStorage data_storage_;
   HttpServer http_server_;
   web::http::client::http_client info_node_;
