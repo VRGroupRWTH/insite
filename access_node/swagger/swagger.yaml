@@ -10,27 +10,7 @@ schemes:
 - "https"
 - "http"
 paths:
-  /timestep:
-    get:
-      tags:
-      - "nest"
-      summary: "Retrieves the time between two simulation steps."
-      operationId: "get_timestep"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            type: "number"
-            format: "double"
-        400:
-          description: "Operation failed."
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /simulation_step_count:
+  /simulation_time_info:
     get:
       tags:
       - "nest"
@@ -43,18 +23,18 @@ paths:
         200:
           description: "Operation successful."
           schema:
-            type: "number"
-            format: "int64"
+            $ref: "#/definitions/SimulationTimeInfo"
         400:
           description: "Operation failed."
           schema:
-            $ref: "#/definitions/Error"
+            type: "string"
+            example: "Error message"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
   /gids:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all neuron IDs."
+      summary: "Retrieves the list of all GID."
       operationId: "get_gids"
       produces:
       - "application/json"
@@ -66,18 +46,92 @@ paths:
             type: "array"
             items:
               type: "number"
-              format: "int64"
+              format: "uint64"
         400:
           description: "Operation failed."
           schema:
-            $ref: "#/definitions/Error"
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /neuron_properties:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the properties of the specified neurons."
+      operationId: "get_neuron_properties"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "gids"
+        in: "query"
+        description: "A list of GIDs queried for properties."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "uint64"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/NeuronProperties"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /positions:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves a mapping from GIDs to 3D positions."
+      operationId: "get_positions"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Positions"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /populations:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the list of all populations."
+      operationId: "get_populations"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "string"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
   /spikes:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ neuron IDs (optional)."
+      summary: "Retrieves the spikes for the given simulation steps (optional) and GIDS (optional)."
       operationId: "get_spikes"
       consumes:
       - "application/json"
@@ -86,16 +140,36 @@ paths:
       parameters:
       - name: "from"
         in: "query"
-        description: "TODO"
+        description: "The start time (including) to be queried."
         required: false
         type: "number"
-        format: "int64"
+        format: "uint64"
       - name: "to"
         in: "query"
-        description: "TODO"
+        description: "The end time (excluding) to be queried."
         required: false
         type: "number"
-        format: "int64"
+        format: "uint64"
+      - name: "gids"
+        in: "query"
+        description: "A list of GIDs queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "number"
+          format: "uint64"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "number"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be result."
+        required: false
+        type: "number"
+        format: "uint64"
       responses:
         200:
           description: "Operation successful."
@@ -104,33 +178,148 @@ paths:
         400:
           description: "Operation failed."
           schema:
-            $ref: "#/definitions/Error"
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"  
+  /population/${population_id}/spikes:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ neuron IDs (optional)."
+      operationId: "get_spikes_by_population"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "population_id"
+        in: "path"
+        description: "The identifier of the population."
+        required: true
+        type: "string"
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "uint64"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "uint64"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "number"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be result."
+        required: false
+        type: "number"
+        format: "uint64"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Spikes"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /population/${population_id}/gids:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the list of all neuron IDs."
+      operationId: "get_gids_in_population"
+      produces:
+      - "application/json"
+      parameters: 
+      - name: "population_id"
+        in: "path"
+        description: "The identifier of the population"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "number"
+              format: "uint64"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
 definitions:
   Spikes:
     type: "object"
     properties:
       simulation_steps:
+        description: "This array is always sorted."
         type: "array"
         items:
           type: "number"
-          format: "int64"
+          format: "uint64"
       gids:
         type: "array"
         items:
           type: "number"
-          format: "int64"
-    example:
-      simulation_steps:
-      - 2
-      - 5
-      gids:
-      - 1
-      - 2
-  Error:
+          format: "uint64"
+  Position:
     type: "object"
     properties:
-      code:
+      x:
         type: "number"
-      message:
-        type: "string"
+        format: "double"
+      y:
+        type: "number"
+        format: "double"
+      z:
+        type: "number"
+        format: "double"
+  Positions:
+    type: "object"
+    properties:
+      gids:
+        type: "array"
+        items:
+          type: "number"
+          format: "uint64"
+      positions:
+        type: "array"
+        items:
+          $ref: "#/definitions/Position"
+  NeuronProperties:
+    type: "object"
+    properties:
+      gid:
+        type: "number"
+        format: "uint64"
+      properties:
+        type: "object"
+  SimulationTimeInfo:
+    type: "object"
+    properties:
+      start:
+        type: "number"
+        format: "uint64"
+      end:
+        type: "number"
+        format: "uint64"
+      current:
+        type: "number"
+        format: "uint64"
+      timestep:
+        type: "number"
+        format: "double"
