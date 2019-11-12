@@ -83,28 +83,6 @@ paths:
             type: "string"
             example: "Error message"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
-  /positions:
-    get:
-      tags:
-      - "nest"
-      summary: "Retrieves a mapping from GIDs to 3D positions."
-      operationId: "get_positions"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Positions"
-        400:
-          description: "Operation failed."
-          schema:
-            type: "string"
-            example: "Error message"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"
   /populations:
     get:
       tags:
@@ -276,30 +254,6 @@ definitions:
         items:
           type: "number"
           format: "uint64"
-  Position:
-    type: "object"
-    properties:
-      x:
-        type: "number"
-        format: "double"
-      y:
-        type: "number"
-        format: "double"
-      z:
-        type: "number"
-        format: "double"
-  Positions:
-    type: "object"
-    properties:
-      gids:
-        type: "array"
-        items:
-          type: "number"
-          format: "uint64"
-      positions:
-        type: "array"
-        items:
-          $ref: "#/definitions/Position"
   NeuronProperties:
     type: "object"
     properties:
@@ -308,6 +262,9 @@ definitions:
         format: "uint64"
       properties:
         type: "object"
+    example:
+      population: "pop1"
+      position: [0.1, 0.1, 0.1]
   SimulationTimeInfo:
     type: "object"
     properties:
