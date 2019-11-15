@@ -3,6 +3,10 @@ import json
 import re
 import sys
 
+link_prefix = ''
+if len(sys.argv) > 2:
+    link_prefix = sys.argv[2]
+
 
 def parse_schema(schema, definitions):
     if '$ref' in schema:
@@ -15,7 +19,7 @@ def parse_schema(schema, definitions):
                 example = definitions[type]['example']
             except:
                 pass
-            return '[{}]({})'.format(type, type.lower()), example
+            return '[{}]({}{})'.format(type, link_prefix, type.lower()), example
         else:
             return ref, ''
     else:
@@ -59,11 +63,12 @@ def create_summary(paths, definitions):
         methods = paths[path]
         for method in methods:
             filename = create_filename(method, path)
-            str += '  * [{} {}]({})\n'.format(method.upper(),
-                                              fix_endpoint_name(path), filename)
+            str += '  * [{} {}]({}{})\n'.format(method.upper(),
+                                                fix_endpoint_name(path), link_prefix, filename)
     str += '* Definitions\n'
     for definition in definitions:
-        str += '  * [{}]({})\n'.format(definition, definition.lower())
+        str += '  * [{}]({}{})\n'.format(definition,
+                                         link_prefix, definition.lower())
     str += '</details>\n\n'
     return str
 
@@ -71,8 +76,8 @@ def create_summary(paths, definitions):
 def parse_method(doc_file, summary, method, endpoint, attributes, definitions):
     filename = create_filename(method, endpoint)
 
-    doc_file.write('### [{} {}]({})\n'.format(
-        method.upper(), fix_endpoint_name(endpoint), filename))
+    doc_file.write('### [{} {}]({}{})\n'.format(
+        method.upper(), fix_endpoint_name(endpoint), link_prefix, filename))
 
     endpoint_file = open('{}.md'.format(filename), 'w')
     endpoint_file.write(summary)
@@ -120,8 +125,8 @@ def parse_method(doc_file, summary, method, endpoint, attributes, definitions):
 def parse_definition(doc_file, summary, definition, properties, definitions):
     filename = definition.lower()
 
-    doc_file.write('### [{}]({})\n'.format(
-        definition, filename))
+    doc_file.write('### [{}]({}{})\n'.format(
+        definition, link_prefix, filename))
 
     definition_file = open('{}.md'.format(filename), 'w')
     definition_file.write(summary)

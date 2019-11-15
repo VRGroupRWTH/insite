@@ -17,7 +17,7 @@ build_api_reference:
     - mkdir -p api
     - cd api
     - rm -rf *
-    - python3 ../../swagger_doc.py ../../access-node/access_node/swagger/swagger.yaml
+    - python3 ../../swagger_doc.py ../../access-node/access_node/swagger/swagger.yaml 'api/'
     - git add -u
     - git add .
     - git status
