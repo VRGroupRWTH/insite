@@ -9,8 +9,8 @@ build_api_reference:
     - centos
     - docker
   script:
-    - mkdir doc
-    - cd doc
+    - git clone git@devhub.vr.rwth-aachen.de:VR-Group/in-situ-pipeline/insite.wiki.git
+    - cd insite.wiki
     - rm -rf *
     - python3 ../swagger_doc.py ../access-node/access_node/swagger/swagger.yaml
     - git add -u
