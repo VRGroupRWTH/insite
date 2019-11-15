@@ -57,7 +57,7 @@ def create_filename(method, endpoint):
 def create_summary(paths, definitions):
     str = '<details open>\n'
     str += '<summary>Overview</summary>\n\n'
-    str += '[API Reference](api_reference)\n'
+    str += '[API Reference]({}api_reference)\n'.format(link_prefix)
     str += '* Endpoints\n'
     for path in paths:
         methods = paths[path]
