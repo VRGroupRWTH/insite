@@ -1,0 +1,7 @@
+before_script:
+  - pip3 install -r swagger_doc_requirements.txt
+
+build_api_reference:
+  script:
+    - python3 swagger_doc.py access-node/access_node/swagger/swagger.yaml
+    

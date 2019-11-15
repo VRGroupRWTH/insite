@@ -1,0 +1,3 @@
+[submodule "access-node"]
+	path = access-node
+	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/access-node.git
