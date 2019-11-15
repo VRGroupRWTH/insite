@@ -16,3 +16,4 @@ build_api_reference:
     - git add -u
     - git add .
     - git status
+    - git push 
