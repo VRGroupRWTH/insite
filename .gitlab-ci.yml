@@ -1,3 +1,6 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 before_script:
   - pip3 install -r swagger_doc_requirements.txt
 
@@ -6,8 +9,4 @@ build_api_reference:
     - centos
     - docker
   script:
-    - ls
-    - ls access-node
-    - ls access-node/access_node
-    - ls access-node/access_node/swagger
     - python3 swagger_doc.py access-node/access_node/swagger/swagger.yaml
