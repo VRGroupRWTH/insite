@@ -9,4 +9,10 @@ build_api_reference:
     - centos
     - docker
   script:
-    - python3 swagger_doc.py access-node/access_node/swagger/swagger.yaml
+    - mkdir doc
+    - cd doc
+    - rm -rf *
+    - python3 ../swagger_doc.py ../access-node/access_node/swagger/swagger.yaml
+    - git add -u
+    - git add .
+    - git status
