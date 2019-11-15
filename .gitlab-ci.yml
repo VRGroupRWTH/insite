@@ -19,6 +19,6 @@ build_api_reference:
     - git add -u
     - git add .
     - git status
-    - git commit -F ../commit_message
+    - git commit -F ../commit_message --author=GitlabCI
     - git log
     # - git commit -m "CI: Update API Wiki"
