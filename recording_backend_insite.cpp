@@ -5,10 +5,15 @@
 
 // Includes from nestkernel:
 #include "kernel_manager.h"
+#include "node_manager.h"
 #include "recording_device.h"
 #include "vp_manager_impl.h"
 
+// Includes from topology:
+#include "topology.h"
+
 // Includes from sli:
+#include "dictdatum.h"
 #include "dictutils.h"
 
 #include "recording_backend_insite.h"
@@ -124,6 +129,45 @@ void RecordingBackendInsite::post_step_hook() {
       throw;
     }
 
+    // Send new properties
+    builder = web::uri_builder("/neuron_properties");
+
+    // Alternative to retrieve the GIDCollection of all local nodes:
+    // nest::kernel().node_manager.get_nodes(DictionaryDatum(), true);
+    auto gid_collection_ptr = nest::GIDCollection::create(TokenArray(new_gids_));
+
+    // Note: The following actually expects a layer GIDCollectionPTR,
+    // however no layer accessors are currently exposed by nest.
+    // Layer GIDCollectionPTRs are only accessible to creator of the layer.
+    // See topology.cpp:85 and layer.cpp:55.
+    auto positions = nest::get_position(gid_collection_ptr);
+
+    auto request_body = web::json::value::array(new_gids_.size());
+    for (std::size_t i = 0; i < new_gids_.size(); ++i) {
+      auto datum = dynamic_cast<DoubleVectorDatum*>(positions[i].datum());
+      request_body[i] = web::json::value::object();
+      request_body[i]["gid"] = new_gids_[i];
+      request_body[i]["position"] = web::json::value::array(2);
+      // Note: Currently there is no way to access individual datum elements in C++.
+      // See arraydatum.h:86.
+      request_body[i]["position"][0] = 42.0;
+      request_body[i]["position"][1] = 42.0;
+    }
+
+    try {
+      info_node_.request(web::http::methods::PUT, builder.to_string(), request_body)
+          .then([](const web::http::http_response& response) {
+            if (response.status_code() != web::http::status_codes::OK) {
+              throw std::runtime_error(response.to_string());
+            }
+          });
+    } catch (const std::exception& exception) {
+      std::cerr << "Failed to send neuron properties to info node: \n"
+                << exception.what() << "\n"
+                << std::endl;
+      throw;
+    }
+
     gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
     std::sort(gids_.begin(), gids_.end());
     new_gids_.clear();
@@ -171,8 +215,7 @@ void RecordingBackendInsite::get_device_status(
   std::cout << "RecordingBackendInsite::get_device_status()\n";
 }
 
-std::string RecordingBackendInsite::get_port_string() const
-{
+std::string RecordingBackendInsite::get_port_string() const {
   return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
 }
 }  // namespace insite
