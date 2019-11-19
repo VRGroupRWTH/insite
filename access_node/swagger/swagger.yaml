@@ -109,7 +109,8 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the spikes for the given simulation steps (optional) and GIDS (optional)."
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ GIDS (optional)."
       operationId: "get_spikes"
       consumes:
       - "application/json"
@@ -158,13 +159,13 @@ paths:
           schema:
             type: "string"
             example: "Error message"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"  
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
   /population/${population_id}/spikes:
     get:
       tags:
       - "nest"
       summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ neuron IDs (optional)."
+        \ population."
       operationId: "get_spikes_by_population"
       consumes:
       - "application/json"
@@ -219,7 +220,7 @@ paths:
       operationId: "get_gids_in_population"
       produces:
       - "application/json"
-      parameters: 
+      parameters:
       - name: "population_id"
         in: "path"
         description: "The identifier of the population"
@@ -244,8 +245,8 @@ definitions:
     type: "object"
     properties:
       simulation_steps:
-        description: "This array is always sorted."
         type: "array"
+        description: "This array is always sorted."
         items:
           type: "number"
           format: "uint64"
@@ -254,6 +255,13 @@ definitions:
         items:
           type: "number"
           format: "uint64"
+    example:
+      simulation_steps:
+      - 0.8008281904610115
+      - 0.8008281904610115
+      gids:
+      - 6.027456183070403
+      - 6.027456183070403
   NeuronProperties:
     type: "object"
     properties:
@@ -262,9 +270,13 @@ definitions:
         format: "uint64"
       properties:
         type: "object"
+        properties: {}
     example:
       population: "pop1"
-      position: [0.1, 0.1, 0.1]
+      position:
+      - 0.1
+      - 0.1
+      - 0.1
   SimulationTimeInfo:
     type: "object"
     properties:
@@ -280,3 +292,8 @@ definitions:
       timestep:
         type: "number"
         format: "double"
+    example:
+      current: 1.4658129805029452
+      timestep: 5.962133916683182
+      start: 0.8008281904610115
+      end: 6.027456183070403
