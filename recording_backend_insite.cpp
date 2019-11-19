@@ -5,7 +5,6 @@
 
 // Includes from nestkernel:
 #include "kernel_manager.h"
-#include "node_manager.h"
 #include "recording_device.h"
 #include "vp_manager_impl.h"
 
@@ -13,7 +12,6 @@
 #include "topology.h"
 
 // Includes from sli:
-#include "dictdatum.h"
 #include "dictutils.h"
 
 #include "recording_backend_insite.h"
@@ -108,11 +106,11 @@ void RecordingBackendInsite::post_step_hook() {
     }
   }
 
-  // Send new gids
-  if (new_gids_.size() > 0) {
+  if (new_neuron_infos_.size() > 0) {
+    // Send new gids
     web::uri_builder builder("/gids");
-    for (auto gid : new_gids_) {
-      builder.append_query("gids", gid, false);
+    for (auto& neuron_info : new_neuron_infos_) {
+      builder.append_query("gids", neuron_info.gid, false);
     }
 
     try {
@@ -131,27 +129,13 @@ void RecordingBackendInsite::post_step_hook() {
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
-
-    // Alternative to retrieve the GIDCollection of all local nodes:
-    // nest::kernel().node_manager.get_nodes(DictionaryDatum(), true);
-    auto gid_collection_ptr = nest::GIDCollection::create(TokenArray(new_gids_));
-
-    // Note: The following actually expects a layer GIDCollectionPTR,
-    // however no layer accessors are currently exposed by nest.
-    // Layer GIDCollectionPTRs are only accessible to creator of the layer.
-    // See topology.cpp:85 and layer.cpp:55.
-    auto positions = nest::get_position(gid_collection_ptr);
-
-    auto request_body = web::json::value::array(new_gids_.size());
-    for (std::size_t i = 0; i < new_gids_.size(); ++i) {
-      auto datum = dynamic_cast<DoubleVectorDatum*>(positions[i].datum());
-      request_body[i] = web::json::value::object();
-      request_body[i]["gid"] = new_gids_[i];
-      request_body[i]["position"] = web::json::value::array(2);
-      // Note: Currently there is no way to access individual datum elements in C++.
-      // See arraydatum.h:86.
-      request_body[i]["position"][0] = 42.0;
-      request_body[i]["position"][1] = 42.0;
+    auto request_body = web::json::value();
+    for (std::size_t i = 0; i < neuron_infos_.size(); ++i) {
+      auto& neuron_info = neuron_infos_[i];
+      request_body[i]["gid"] = neuron_info.gid;
+      request_body[i]["position"][0] = neuron_info.position[0];
+      request_body[i]["position"][1] = neuron_info.position[1];
+      request_body[i]["position"][2] = neuron_info.position[2];
     }
 
     try {
@@ -168,9 +152,9 @@ void RecordingBackendInsite::post_step_hook() {
       throw;
     }
 
-    gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
-    std::sort(gids_.begin(), gids_.end());
-    new_gids_.clear();
+    neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(), new_neuron_infos_.end());
+    std::sort(neuron_infos_.begin(), neuron_infos_.end());
+    neuron_infos_.clear();
   }
 }
 
@@ -178,17 +162,28 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_gid_ = event.get_sender_gid();
+  const auto sender_gid = event.get_sender_gid();
+  const auto sender_gc = event.get_sender().get_gc();
+  const auto sender_metadata = sender_gc->get_metadata();
   const auto time_stamp = event.get_stamp().get_steps();
+
+  auto sender_position = std::vector<double>();
+  auto layer = nest::get_layer(sender_gc);
+  if (layer.get()) {
+    sender_position = layer->get_position_vector(sender_gc->find(sender_gid));
+  }
+
+  NeuronInfo neuron_info {sender_gid, sender_gc, sender_position};
+
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
-    data_storage_.AddSpike(time_stamp, sender_gid_);
+    data_storage_.AddSpike(time_stamp, sender_gid);
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
-  if (!binary_search(gids_.begin(), gids_.end(), sender_gid_) &&
-      !binary_search(new_gids_.begin(), new_gids_.end(), sender_gid_)) {
-    new_gids_.insert(
-        std::lower_bound(new_gids_.begin(), new_gids_.end(), sender_gid_),
-        sender_gid_);
+  if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&
+      !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(), neuron_info)) {
+    new_neuron_infos_.insert(
+        std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(), neuron_info),
+        neuron_info);
   }
 }
 
