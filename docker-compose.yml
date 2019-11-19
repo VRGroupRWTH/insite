@@ -1,0 +1,14 @@
+version: '3'
+services:
+  access-node:
+    build: ./access-node
+    ports:
+      - "8079:8079"
+  info-node:
+    build: ./info-node
+    ports:
+      - "8080:8080"
+  insite-nest-module:
+    build: ./insite-nest-module
+    ports:
+      - "8000-9000:8000-9000"
