@@ -10,5 +10,8 @@ services:
       - "8080:8080"
   insite-nest-module:
     build: ./insite-nest-module
+    depends_on:
+    - "access-node"
+    - "info-node"
     ports:
       - "8000-9000:8000-9000"
