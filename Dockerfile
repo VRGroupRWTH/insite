@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
     libwebsocketpp-dev openssl libssl-dev ninja-build
 RUN pip3 install Cython
-RUN git clone --single-branch --branch nestio https://github.com/jougs/nest-simulator.git nest && \
+RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
     cd nest && \
-    git checkout 098ee030f1027be8eb05ee20bc794ea7863c2ef4 && \
+    git checkout 5c0f41230dda9e4b99b8df89729ea43b340246ad && \
     cd /
 WORKDIR /nest-build
 RUN cmake \
