@@ -23,6 +23,7 @@ WORKDIR /cpprestsdk-build
 RUN cmake \
     -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_TESTS=OFF \
     /cpprestsdk
 RUN ninja && ninja install
 COPY . /insite
