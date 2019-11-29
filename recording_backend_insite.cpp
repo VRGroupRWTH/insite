@@ -10,7 +10,6 @@
 
 // Includes from sli:
 #include "dictutils.h"
-
 #include "recording_backend_insite.h"
 
 namespace insite {
@@ -18,7 +17,7 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      info_node_("http://localhost:8080"),
+      info_node_("http://info-node:8080"),
       address_("http://localhost:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
@@ -171,8 +170,7 @@ void RecordingBackendInsite::get_device_status(
   std::cout << "RecordingBackendInsite::get_device_status()\n";
 }
 
-std::string RecordingBackendInsite::get_port_string() const
-{
+std::string RecordingBackendInsite::get_port_string() const {
   return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
 }
 }  // namespace insite
