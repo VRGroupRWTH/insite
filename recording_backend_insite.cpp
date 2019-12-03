@@ -133,7 +133,7 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_gid_ = event.get_sender_gid();
+  const auto sender_gid_ = event.get_sender_node_id();
   const auto time_stamp = event.get_stamp().get_steps();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
     data_storage_.AddSpike(time_stamp, sender_gid_);
