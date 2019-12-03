@@ -10,7 +10,6 @@
 
 // Includes from sli:
 #include "dictutils.h"
-
 #include "recording_backend_insite.h"
 
 namespace insite {
@@ -18,7 +17,7 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      info_node_("http://localhost:8080"),
+      info_node_("http://info-node:8080"),
       address_("http://localhost:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
@@ -134,7 +133,7 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_gid_ = event.get_sender_gid();
+  const auto sender_gid_ = event.get_sender_node_id();
   const auto time_stamp = event.get_stamp().get_steps();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
     data_storage_.AddSpike(time_stamp, sender_gid_);
@@ -171,8 +170,7 @@ void RecordingBackendInsite::get_device_status(
   std::cout << "RecordingBackendInsite::get_device_status()\n";
 }
 
-std::string RecordingBackendInsite::get_port_string() const
-{
+std::string RecordingBackendInsite::get_port_string() const {
   return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
 }
 }  // namespace insite
