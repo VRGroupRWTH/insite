@@ -163,22 +163,23 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_gid = event.get_sender_node_id();
-  const auto sender_gc = event.get_sender().get_gc();
-  const auto sender_metadata = sender_gc->get_metadata();
+  const auto sender_node_id = event.get_sender_node_id();
+  const auto sender_nc = event.get_sender().get_nc();
+  const auto sender_metadata = sender_nc->get_metadata();
 
   const auto time_stamp = event.get_stamp().get_steps();
 
   auto sender_position = std::vector<double>();
-  auto layer = nest::get_layer(sender_gc);
+  auto layer = nest::get_layer(sender_nc);
   if (layer.get()) {
-    sender_position = layer->get_position_vector(sender_gc->find(sender_gid));
+    sender_position =
+        layer->get_position_vector(sender_nc->find(sender_node_id));
   }
 
-  NeuronInfo neuron_info{sender_gid, sender_gc, sender_position};
+  NeuronInfo neuron_info{sender_node_id, sender_nc, sender_position};
 
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
-    data_storage_.AddSpike(time_stamp, sender_gid);
+    data_storage_.AddSpike(time_stamp, sender_node_id);
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
   if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&

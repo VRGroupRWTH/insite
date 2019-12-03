@@ -41,17 +41,19 @@ DataStorage::DataStorage(
 
 void DataStorage::AddSpike(std::uint64_t simulation_step, std::uint64_t gid) {
   std::unique_lock<std::mutex> lock(spike_mutex_);
-  constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
+  const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
     return lhs.simulation_step < rhs.simulation_step;
   };
-  const Spike spike {simulation_step, gid};
-  const auto equal_range = std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike, spike_occured_before);
+  const Spike spike{simulation_step, gid};
+  const auto equal_range =
+      std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike,
+                       spike_occured_before);
   for (auto i = equal_range.first; i != equal_range.second; ++i) {
     if (i->gid == gid) {
       return;
     }
   }
-  buffered_spikes_.insert(equal_range.second,spike);
+  buffered_spikes_.insert(equal_range.second, spike);
 }
 
 std::vector<Spike> DataStorage::GetSpikes() {
