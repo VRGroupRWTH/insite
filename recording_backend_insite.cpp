@@ -13,7 +13,6 @@
 
 // Includes from sli:
 #include "dictutils.h"
-
 #include "recording_backend_insite.h"
 
 namespace insite {
@@ -21,7 +20,7 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      info_node_("http://localhost:8080"),
+      info_node_("http://info-node:8080"),
       address_("http://localhost:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
@@ -139,7 +138,8 @@ void RecordingBackendInsite::post_step_hook() {
     }
 
     try {
-      info_node_.request(web::http::methods::PUT, builder.to_string(), request_body)
+      info_node_
+          .request(web::http::methods::PUT, builder.to_string(), request_body)
           .then([](const web::http::http_response& response) {
             if (response.status_code() != web::http::status_codes::OK) {
               throw std::runtime_error(response.to_string());
@@ -152,7 +152,8 @@ void RecordingBackendInsite::post_step_hook() {
       throw;
     }
 
-    neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(), new_neuron_infos_.end());
+    neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
+                         new_neuron_infos_.end());
     std::sort(neuron_infos_.begin(), neuron_infos_.end());
     neuron_infos_.clear();
   }
@@ -162,9 +163,10 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_gid = event.get_sender_gid();
+  const auto sender_gid = event.get_sender_node_id();
   const auto sender_gc = event.get_sender().get_gc();
   const auto sender_metadata = sender_gc->get_metadata();
+
   const auto time_stamp = event.get_stamp().get_steps();
 
   auto sender_position = std::vector<double>();
@@ -173,16 +175,18 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
     sender_position = layer->get_position_vector(sender_gc->find(sender_gid));
   }
 
-  NeuronInfo neuron_info {sender_gid, sender_gc, sender_position};
+  NeuronInfo neuron_info{sender_gid, sender_gc, sender_position};
 
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
     data_storage_.AddSpike(time_stamp, sender_gid);
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
   if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&
-      !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(), neuron_info)) {
+      !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(),
+                     neuron_info)) {
     new_neuron_infos_.insert(
-        std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(), neuron_info),
+        std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
+                         neuron_info),
         neuron_info);
   }
 }
