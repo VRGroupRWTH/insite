@@ -6,6 +6,7 @@ from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: 
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
 
+from access_node.models.nodes import nodes
 import requests
 
 
@@ -15,9 +16,10 @@ def get_gids():  # noqa: E501
      # noqa: E501
 
 
-    :rtype: List[float]
+    :rtype: List[int]
     """
-    return 'do some magic!'
+    gids = requests.get(nodes.info_node+'/gids').json()
+    return gids
 
 
 def get_gids_in_population(population_id):  # noqa: E501
@@ -26,11 +28,12 @@ def get_gids_in_population(population_id):  # noqa: E501
      # noqa: E501
 
     :param population_id: The identifier of the population
-    :type population_id: str
+    :type population_id: int
 
-    :rtype: List[float]
+    :rtype: List[int]
     """
-    return 'do some magic!'
+    gids = requests.get(nodes.info_node+'/population/$'+str(population_id)+'/gids').json()
+    return gids
 
 
 def get_neuron_properties(gids=None):  # noqa: E501
@@ -39,33 +42,36 @@ def get_neuron_properties(gids=None):  # noqa: E501
      # noqa: E501
 
     :param gids: A list of GIDs queried for properties.
-    :type gids: List[]
+    :type gids: List[int]
 
     :rtype: List[NeuronProperties]
     """
-    return 'do some magic!'
+    properties = requests.get(nodes.info_node+'/neuron_properties').json()
+    return properties
 
 
 def get_populations():  # noqa: E501
-    """Retrieves the list of all populations.
+    """Retrieves the list of all population IDs.
 
      # noqa: E501
 
 
-    :rtype: List[str]
+    :rtype: List[int]
     """
-    return 'do some magic!'
+    time_info = requests.get(nodes.info_node+'/simulation_time_info').json()
+    return time_info
 
 
-def get_simulation_step_count():  # noqa: E501
-    """Retrieves the number of simulation steps.
+def get_simulation_time_info():  # noqa: E501
+    """Retrieves simulation time information.
 
      # noqa: E501
 
 
     :rtype: SimulationTimeInfo
     """
-    return 'do some magic!'
+    populations = requests.get(nodes.info_node+'/populations').json()
+    return populations
 
 
 def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
@@ -74,34 +80,30 @@ def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa
      # noqa: E501
 
     :param _from: The start time (including) to be queried.
-    :type _from: 
+    :type _from: float
     :param to: The end time (excluding) to be queried.
-    :type to: 
+    :type to: float
     :param gids: A list of GIDs queried for spike data.
-    :type gids: List[]
+    :type gids: List[int]
     :param offset: The offset into the result.
-    :type offset: 
+    :type offset: int
     :param limit: The maximum of entries to be result.
-    :type limit: 
+    :type limit: int
 
     :rtype: Spikes
     """
-    with open('access_node//distribution_nodes.json', 'r') as f:
-        dist_nodes = json.load(f)
-    simulation_nodes = dist_nodes['addresses']
-
     spikes = Spikes([], [])
-    for node in simulation_nodes:
+    for node in nodes.simulation_nodes:
         response = requests.get(
             node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
-        for x in range(len(response['simulation_steps'])):
-            spikes.simulation_steps.append(response['simulation_steps'][x])
+        for x in range(len(response['simulation_times'])):
+            spikes.simulation_times.append(response['simulation_times'][x])
             spikes.neuron_ids.append(response['neuron_ids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_steps, spikes.neuron_ids))]
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
     spikes.neuron_ids = sorted_ids
-    spikes.simulation_steps.sort()
+    spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
@@ -109,7 +111,7 @@ def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa
     if (limit is None):
          limit = len(spikes.neuron_ids)
     spikes.neuron_ids = spikes.neuron_ids[offset:limit]
-    spikes.simulation_steps = spikes.simulation_steps[offset:limit]
+    spikes.simulation_times = spikes.simulation_times[offset:limit]
 
     return spikes
 
@@ -120,34 +122,30 @@ def get_spikes_by_population(population_id, _from=None, to=None, offset=None, li
      # noqa: E501
 
     :param population_id: The identifier of the population.
-    :type population_id: str
+    :type population_id: int
     :param _from: The start time (including) to be queried.
-    :type _from: 
+    :type _from: float
     :param to: The end time (excluding) to be queried.
-    :type to: 
+    :type to: float
     :param offset: The offset into the result.
-    :type offset: 
+    :type offset: int
     :param limit: The maximum of entries to be result.
-    :type limit: 
+    :type limit: int
 
     :rtype: Spikes
     """
-    with open('access_node//distribution_nodes.json', 'r') as f:
-        dist_nodes = json.load(f)
-    simulation_nodes = dist_nodes['addresses']
-
     spikes = Spikes([], [])
-    for node in simulation_nodes:
+    for node in nodes.simulation_nodes:
         response = requests.get(
             node+'/population/'+population_id+'/spikes', params={"_from": _from, "to": to}).json()
-        for x in range(len(response['simulation_steps'])):
-            spikes.simulation_steps.append(response['simulation_steps'][x])
+        for x in range(len(response['simulation_times'])):
+            spikes.simulation_times.append(response['simulation_times'][x])
             spikes.neuron_ids.append(response['neuron_ids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_steps, spikes.neuron_ids))]
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
     spikes.neuron_ids = sorted_ids
-    spikes.simulation_steps.sort()
+    spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
@@ -155,7 +153,7 @@ def get_spikes_by_population(population_id, _from=None, to=None, offset=None, li
     if (limit is None):
          limit = len(spikes.neuron_ids)
     spikes.neuron_ids = spikes.neuron_ids[offset:limit]
-    spikes.simulation_steps = spikes.simulation_steps[offset:limit]
+    spikes.simulation_times = spikes.simulation_times[offset:limit]
 
     return spikes
 

@@ -14,8 +14,8 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the number of simulation steps."
-      operationId: "get_simulation_step_count"
+      summary: "Retrieves simulation time information."
+      operationId: "get_simulation_time_info"
       produces:
       - "application/json"
       parameters: []
@@ -45,7 +45,7 @@ paths:
           schema:
             type: "array"
             items:
-              type: "number"
+              type: "integer"
               format: "uint64"
         400:
           description: "Operation failed."
@@ -68,7 +68,7 @@ paths:
         required: false
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
       responses:
         200:
@@ -87,7 +87,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all populations."
+      summary: "Retrieves the list of all population IDs."
       operationId: "get_populations"
       produces:
       - "application/json"
@@ -98,7 +98,8 @@ paths:
           schema:
             type: "array"
             items:
-              type: "string"
+              type: "integer"
+              format: "uint64"
         400:
           description: "Operation failed."
           schema:
@@ -122,32 +123,32 @@ paths:
         description: "The start time (including) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "to"
         in: "query"
         description: "The end time (excluding) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "gids"
         in: "query"
         description: "A list of GIDs queried for spike data."
         required: false
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
       - name: "offset"
         in: "query"
         description: "The offset into the result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       - name: "limit"
         in: "query"
         description: "The maximum of entries to be result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       responses:
         200:
@@ -176,30 +177,31 @@ paths:
         in: "path"
         description: "The identifier of the population."
         required: true
-        type: "string"
+        type: "integer"
+        format: "uint64"
       - name: "from"
         in: "query"
         description: "The start time (including) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "to"
         in: "query"
         description: "The end time (excluding) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "offset"
         in: "query"
         description: "The offset into the result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       - name: "limit"
         in: "query"
         description: "The maximum of entries to be result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       responses:
         200:
@@ -225,14 +227,15 @@ paths:
         in: "path"
         description: "The identifier of the population"
         required: true
-        type: "string"
+        type: "integer"
+        format: "uint64"
       responses:
         200:
           description: "Operation successful."
           schema:
             type: "array"
             items:
-              type: "number"
+              type: "integer"
               format: "uint64"
         400:
           description: "Operation failed."
@@ -244,19 +247,19 @@ definitions:
   Spikes:
     type: "object"
     properties:
-      simulation_steps:
+      simulation_times:
         type: "array"
         description: "This array is always sorted."
         items:
           type: "number"
-          format: "uint64"
+          format: "double"
       gids:
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
     example:
-      simulation_steps:
+      simulation_times:
       - 0.8008281904610115
       - 0.8008281904610115
       gids:
@@ -266,7 +269,7 @@ definitions:
     type: "object"
     properties:
       gid:
-        type: "number"
+        type: "integer"
         format: "uint64"
       properties:
         type: "object"
@@ -282,18 +285,14 @@ definitions:
     properties:
       start:
         type: "number"
-        format: "uint64"
+        format: "double"
       end:
         type: "number"
-        format: "uint64"
+        format: "double"
       current:
-        type: "number"
-        format: "uint64"
-      timestep:
         type: "number"
         format: "double"
     example:
       current: 1.4658129805029452
-      timestep: 5.962133916683182
       start: 0.8008281904610115
       end: 6.027456183070403

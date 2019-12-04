@@ -15,16 +15,16 @@ class NeuronProperties(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, gid: float=None, properties: object=None):  # noqa: E501
+    def __init__(self, gid: int=None, properties: object=None):  # noqa: E501
         """NeuronProperties - a model defined in Swagger
 
         :param gid: The gid of this NeuronProperties.  # noqa: E501
-        :type gid: float
+        :type gid: int
         :param properties: The properties of this NeuronProperties.  # noqa: E501
         :type properties: object
         """
         self.swagger_types = {
-            'gid': float,
+            'gid': int,
             'properties': object
         }
 
@@ -48,22 +48,22 @@ class NeuronProperties(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def gid(self) -> float:
+    def gid(self) -> int:
         """Gets the gid of this NeuronProperties.
 
 
         :return: The gid of this NeuronProperties.
-        :rtype: float
+        :rtype: int
         """
         return self._gid
 
     @gid.setter
-    def gid(self, gid: float):
+    def gid(self, gid: int):
         """Sets the gid of this NeuronProperties.
 
 
         :param gid: The gid of this NeuronProperties.
-        :type gid: float
+        :type gid: int
         """
 
         self._gid = gid

@@ -15,25 +15,25 @@ class Spikes(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_steps: List[float]=None, gids: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_times: List[float]=None, gids: List[int]=None):  # noqa: E501
         """Spikes - a model defined in Swagger
 
-        :param simulation_steps: The simulation_steps of this Spikes.  # noqa: E501
-        :type simulation_steps: List[float]
+        :param simulation_times: The simulation_times of this Spikes.  # noqa: E501
+        :type simulation_times: List[float]
         :param gids: The gids of this Spikes.  # noqa: E501
-        :type gids: List[float]
+        :type gids: List[int]
         """
         self.swagger_types = {
-            'simulation_steps': List[float],
-            'gids': List[float]
+            'simulation_times': List[float],
+            'gids': List[int]
         }
 
         self.attribute_map = {
-            'simulation_steps': 'simulation_steps',
+            'simulation_times': 'simulation_times',
             'gids': 'gids'
         }
 
-        self._simulation_steps = simulation_steps
+        self._simulation_times = simulation_times
         self._gids = gids
 
     @classmethod
@@ -48,45 +48,45 @@ class Spikes(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def simulation_steps(self) -> List[float]:
-        """Gets the simulation_steps of this Spikes.
+    def simulation_times(self) -> List[float]:
+        """Gets the simulation_times of this Spikes.
 
         This array is always sorted.  # noqa: E501
 
-        :return: The simulation_steps of this Spikes.
+        :return: The simulation_times of this Spikes.
         :rtype: List[float]
         """
-        return self._simulation_steps
+        return self._simulation_times
 
-    @simulation_steps.setter
-    def simulation_steps(self, simulation_steps: List[float]):
-        """Sets the simulation_steps of this Spikes.
+    @simulation_times.setter
+    def simulation_times(self, simulation_times: List[float]):
+        """Sets the simulation_times of this Spikes.
 
         This array is always sorted.  # noqa: E501
 
-        :param simulation_steps: The simulation_steps of this Spikes.
-        :type simulation_steps: List[float]
+        :param simulation_times: The simulation_times of this Spikes.
+        :type simulation_times: List[float]
         """
 
-        self._simulation_steps = simulation_steps
+        self._simulation_times = simulation_times
 
     @property
-    def gids(self) -> List[float]:
+    def gids(self) -> List[int]:
         """Gets the gids of this Spikes.
 
 
         :return: The gids of this Spikes.
-        :rtype: List[float]
+        :rtype: List[int]
         """
         return self._gids
 
     @gids.setter
-    def gids(self, gids: List[float]):
+    def gids(self, gids: List[int]):
         """Sets the gids of this Spikes.
 
 
         :param gids: The gids of this Spikes.
-        :type gids: List[float]
+        :type gids: List[int]
         """
 
         self._gids = gids

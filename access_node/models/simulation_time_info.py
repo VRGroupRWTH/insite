@@ -15,7 +15,7 @@ class SimulationTimeInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, start: float=None, end: float=None, current: float=None, timestep: float=None):  # noqa: E501
+    def __init__(self, start: float=None, end: float=None, current: float=None):  # noqa: E501
         """SimulationTimeInfo - a model defined in Swagger
 
         :param start: The start of this SimulationTimeInfo.  # noqa: E501
@@ -24,27 +24,22 @@ class SimulationTimeInfo(Model):
         :type end: float
         :param current: The current of this SimulationTimeInfo.  # noqa: E501
         :type current: float
-        :param timestep: The timestep of this SimulationTimeInfo.  # noqa: E501
-        :type timestep: float
         """
         self.swagger_types = {
             'start': float,
             'end': float,
-            'current': float,
-            'timestep': float
+            'current': float
         }
 
         self.attribute_map = {
             'start': 'start',
             'end': 'end',
-            'current': 'current',
-            'timestep': 'timestep'
+            'current': 'current'
         }
 
         self._start = start
         self._end = end
         self._current = current
-        self._timestep = timestep
 
     @classmethod
     def from_dict(cls, dikt) -> 'SimulationTimeInfo':
@@ -119,24 +114,3 @@ class SimulationTimeInfo(Model):
         """
 
         self._current = current
-
-    @property
-    def timestep(self) -> float:
-        """Gets the timestep of this SimulationTimeInfo.
-
-
-        :return: The timestep of this SimulationTimeInfo.
-        :rtype: float
-        """
-        return self._timestep
-
-    @timestep.setter
-    def timestep(self, timestep: float):
-        """Sets the timestep of this SimulationTimeInfo.
-
-
-        :param timestep: The timestep of this SimulationTimeInfo.
-        :type timestep: float
-        """
-
-        self._timestep = timestep
