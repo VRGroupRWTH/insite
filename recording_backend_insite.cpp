@@ -18,7 +18,7 @@ RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
       info_node_("http://info-node:8080"),
-      address_("http://localhost:" + get_port_string()) {
+      address_("*:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
   builder.append_query("address", address_, true);
