@@ -91,7 +91,7 @@ void RecordingBackendInsite::post_step_hook() {
         .then([](const web::http::http_response& response) {
           if (response.status_code() != web::http::status_codes::OK) {
             std::cerr << "Failed to send time to info node: \n"
-                      << exception.what() << "\n"
+                      << response.to_string() << "\n"
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
@@ -110,7 +110,7 @@ void RecordingBackendInsite::post_step_hook() {
         .then([](const web::http::http_response& response) {
           if (response.status_code() != web::http::status_codes::OK) {
             std::cerr << "Failed to send gids to info node: \n"
-                      << exception.what() << "\n"
+                      << response.to_string() << "\n"
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
