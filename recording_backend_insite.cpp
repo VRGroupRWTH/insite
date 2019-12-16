@@ -83,23 +83,19 @@ void RecordingBackendInsite::post_run_hook() {
 void RecordingBackendInsite::post_step_hook() {
   // Send simulation time
   {
-    web::uri_builder builder("/time");
+    web::uri_builder builder("/current_time");
     builder.append_query("time", latest_simulation_time_, false);
     builder.append_query("node_address", address_, true);
 
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          });
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to send time to info node: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send time to info node: \n"
+                      << exception.what() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          }
+        });
   }
 
   // Send new gids
@@ -107,21 +103,18 @@ void RecordingBackendInsite::post_step_hook() {
     web::uri_builder builder("/gids");
     for (auto gid : new_gids_) {
       builder.append_query("gids", gid, false);
+      builder.append_query("address", address_, true);
     }
 
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          });
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to send gids to info node: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send gids to info node: \n"
+                      << exception.what() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          }
+        });
 
     gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
     std::sort(gids_.begin(), gids_.end());
