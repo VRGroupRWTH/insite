@@ -103,8 +103,8 @@ void RecordingBackendInsite::post_step_hook() {
     web::uri_builder builder("/gids");
     for (auto gid : new_gids_) {
       builder.append_query("gids", gid, false);
-      builder.append_query("address", address_, true);
     }
+    builder.append_query("address", address_, true);
 
     info_node_.request(web::http::methods::PUT, builder.to_string())
         .then([](const web::http::http_response& response) {
