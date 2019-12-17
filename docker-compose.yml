@@ -1,13 +1,15 @@
 version: '3'
 services:
-  # access-node:
-  #   build: ./access-node
-  #   ports:
-  #     - "8079:8079"
   info-node:
     build: ./info-node
     ports:
+      - "8079:8080"
+  access-node:
+    build: ./access-node
+    ports:
       - "8080:8080"
+    depends_on:
+    - "info-node"
   insite-nest-module:
     build: ./insite-nest-module
     entrypoint:
@@ -19,7 +21,7 @@ services:
     - "/insite-build/run_brunel_simulation.sh"
     - "1000"
     depends_on:
-    # - "access-node"
+    - "access-node"
     - "info-node"
     ports:
       - "8000:8000"
