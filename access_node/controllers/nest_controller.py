@@ -98,19 +98,19 @@ def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa
             node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
-            spikes.neuron_ids.append(response['neuron_ids'][x])
+            spikes.gids.append(response['gids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
-    spikes.neuron_ids = sorted_ids
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.gids))]
+    spikes.gids = sorted_ids
     spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
          offset = 0
     if (limit is None):
-         limit = len(spikes.neuron_ids)
-    spikes.neuron_ids = spikes.neuron_ids[offset:limit]
+         limit = len(spikes.gids)
+    spikes.gids = spikes.gids[offset:limit]
     spikes.simulation_times = spikes.simulation_times[offset:limit]
 
     return spikes
@@ -140,19 +140,19 @@ def get_spikes_by_population(population_id, _from=None, to=None, offset=None, li
             node+'/population/'+population_id+'/spikes', params={"_from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
-            spikes.neuron_ids.append(response['neuron_ids'][x])
+            spikes.gids.append(response['gids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
-    spikes.neuron_ids = sorted_ids
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.gids))]
+    spikes.gids = sorted_ids
     spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
          offset = 0
     if (limit is None):
-         limit = len(spikes.neuron_ids)
-    spikes.neuron_ids = spikes.neuron_ids[offset:limit]
+         limit = len(spikes.gids)
+    spikes.gids = spikes.gids[offset:limit]
     spikes.simulation_times = spikes.simulation_times[offset:limit]
 
     return spikes
