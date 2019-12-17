@@ -59,8 +59,8 @@ def get_populations():  # noqa: E501
 
     :rtype: List[int]
     """
-    time_info = requests.get(nodes.info_node+'/simulation_time_info').json()
-    return time_info
+    populations = requests.get(nodes.info_node+'/populations').json()
+    return populations
 
 
 def get_simulation_time_info():  # noqa: E501
@@ -71,8 +71,8 @@ def get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    populations = requests.get(nodes.info_node+'/populations').json()
-    return populations
+    time_info = requests.get(nodes.info_node+'/simulation_time_info').json()
+    return time_info
 
 
 def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
