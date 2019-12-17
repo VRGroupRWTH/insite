@@ -1,133 +1,159 @@
 import connexion
 import six
 
-from access_node.models.error import Error  # noqa: E501
-from access_node.models.info import Info  # noqa: E501
-from access_node.models.multimeter import Multimeter  # noqa: E501
-from access_node.models.multimeter_info import MultimeterInfo  # noqa: E501
+from access_node.models.neuron_properties import NeuronProperties  # noqa: E501
+from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
 
+from access_node.models.nodes import nodes
 import requests
 
 
-def get_current_simulation_time():  # noqa: E501
-    """Retrieves the current simulation time.
+def get_gids():  # noqa: E501
+    """Retrieves the list of all GID.
 
      # noqa: E501
 
 
-    :rtype: float
+    :rtype: List[int]
     """
-    return 'do some magic!'
+    gids = requests.get(nodes.info_node+'/gids').json()
+    return gids
 
 
-def get_data(multimeter, attribute, _from=None, to=None, neuron_ids=None):  # noqa: E501
-    """Retrieves the per-neuron attributes for the given multimeter name, attribute name, duration (from - to) (optional) and neuron IDs (optional).
-
-     # noqa: E501
-
-    :param multimeter: Multimeter name.
-    :type multimeter: str
-    :param attribute: Attribute name.
-    :type attribute: str
-    :param _from: First timestep to retreive (leave empty for first step possible).
-    :type _from: float
-    :param to: Last timestep to retreive (leave empty for last step possible).
-    :type to: float
-    :param neuron_ids: Neuron IDs (leave empty for all neurons).
-    :type neuron_ids: List[]
-
-    :rtype: Multimeter
-    """
-    with open('access_node//distribution_nodes.json', 'r') as f:
-        dist_nodes = json.load(f)
-    addresses = dist_nodes['addresses']
-
-    if neuron_ids != None:
-        ids = neuron_ids
-    else:
-        ids = get_neuron_ids()
-
-    # TODO Query this
-    interval = 0.1
-
-    num_values_per_neuron = (to-_from)/interval
-
-
-    mult_response = Multimeter(multimeter)
-    mult_response._from = _from
-    mult_response.to = to
-    mult_response.neuron_ids = ids
-    mult_response.interval = interval
-    mult_response.values = [[None]*num_values_per_neuron for x in range(len(ids))]
-
-    for address in addresses:
-        response = requests.get(address+'/data', params={ "multimeter": multimeter,
-                                "attribute": attribute, "from": _from, "to": to, "neuron_ids": neuron_ids}).json()
-        for x in range(len(response['neuron_ids'])):
-            mult_response.values[mult_response.neuron_ids.index(
-                response['neuron_ids'][x])] = response['values'][x]
-    return mult_response
-
-
-def get_info():  # noqa: E501
-    """Retrieves general simulation information.
-
-     # noqa: E501
-
-
-    :rtype: Info
-    """
-    return 'do some magic!'
-
-
-def get_multimeters():  # noqa: E501
-    """Retrieves the details of all multimeters.
-
-     # noqa: E501
-
-
-    :rtype: List[MultimeterInfo]
-    """
-    return 'do some magic!'
-
-
-def get_neuron_ids():  # noqa: E501
+def get_gids_in_population(population_id):  # noqa: E501
     """Retrieves the list of all neuron IDs.
 
      # noqa: E501
 
+    :param population_id: The identifier of the population
+    :type population_id: int
 
-    :rtype: List[float]
+    :rtype: List[int]
     """
-    return 'do some magic!'
+    gids = requests.get(nodes.info_node+'/population/$'+str(population_id)+'/gids').json()
+    return gids
 
 
-def get_spikes(simulation_steps=None, neuron_ids=None):  # noqa: E501
-    """Retrieves the spikes for the given simulation steps (optional) and neuron IDs (optional).
+def get_neuron_properties(gids=None):  # noqa: E501
+    """Retrieves the properties of the specified neurons.
 
      # noqa: E501
 
-    :param simulation_steps: Simulation steps (leave empty for all steps).
-    :type simulation_steps: List[]
-    :param neuron_ids: Neuron IDs (leave empty for all neurons).
-    :type neuron_ids: List[]
+    :param gids: A list of GIDs queried for properties.
+    :type gids: List[int]
+
+    :rtype: List[NeuronProperties]
+    """
+    properties = requests.get(nodes.info_node+'/neuron_properties').json()
+    return properties
+
+
+def get_populations():  # noqa: E501
+    """Retrieves the list of all population IDs.
+
+     # noqa: E501
+
+
+    :rtype: List[int]
+    """
+    time_info = requests.get(nodes.info_node+'/simulation_time_info').json()
+    return time_info
+
+
+def get_simulation_time_info():  # noqa: E501
+    """Retrieves simulation time information.
+
+     # noqa: E501
+
+
+    :rtype: SimulationTimeInfo
+    """
+    populations = requests.get(nodes.info_node+'/populations').json()
+    return populations
+
+
+def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
+    """Retrieves the spikes for the given simulation steps (optional) and GIDS (optional).
+
+     # noqa: E501
+
+    :param _from: The start time (including) to be queried.
+    :type _from: float
+    :param to: The end time (excluding) to be queried.
+    :type to: float
+    :param gids: A list of GIDs queried for spike data.
+    :type gids: List[int]
+    :param offset: The offset into the result.
+    :type offset: int
+    :param limit: The maximum of entries to be result.
+    :type limit: int
 
     :rtype: Spikes
     """
-   # Replace this with request to information_node
-    with open('access_node//distribution_nodes.json', 'r') as f:
-        dist_nodes = json.load(f)
-    addresses = dist_nodes['addresses']
-
     spikes = Spikes([], [])
-    for address in addresses:
+    for node in nodes.simulation_nodes:
         response = requests.get(
-            address+'/spikes', params={"simulation_steps": simulation_steps, "neuron_ids": neuron_ids}).json()
-        for x in range(len(response['simulation_steps'])):
-            spikes.simulation_steps.append(response['simulation_steps'][x])
+            node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
+        for x in range(len(response['simulation_times'])):
+            spikes.simulation_times.append(response['simulation_times'][x])
             spikes.neuron_ids.append(response['neuron_ids'][x])
 
-    # Sort this?
+    # sort
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
+    spikes.neuron_ids = sorted_ids
+    spikes.simulation_times.sort()
+
+    # offset and limit
+    if (offset is None):
+         offset = 0
+    if (limit is None):
+         limit = len(spikes.neuron_ids)
+    spikes.neuron_ids = spikes.neuron_ids[offset:limit]
+    spikes.simulation_times = spikes.simulation_times[offset:limit]
+
     return spikes
+
+
+def get_spikes_by_population(population_id, _from=None, to=None, offset=None, limit=None):  # noqa: E501
+    """Retrieves the spikes for the given simulation steps (optional) and population.
+
+     # noqa: E501
+
+    :param population_id: The identifier of the population.
+    :type population_id: int
+    :param _from: The start time (including) to be queried.
+    :type _from: float
+    :param to: The end time (excluding) to be queried.
+    :type to: float
+    :param offset: The offset into the result.
+    :type offset: int
+    :param limit: The maximum of entries to be result.
+    :type limit: int
+
+    :rtype: Spikes
+    """
+    spikes = Spikes([], [])
+    for node in nodes.simulation_nodes:
+        response = requests.get(
+            node+'/population/'+population_id+'/spikes', params={"_from": _from, "to": to}).json()
+        for x in range(len(response['simulation_times'])):
+            spikes.simulation_times.append(response['simulation_times'][x])
+            spikes.neuron_ids.append(response['neuron_ids'][x])
+
+    # sort
+    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.neuron_ids))]
+    spikes.neuron_ids = sorted_ids
+    spikes.simulation_times.sort()
+
+    # offset and limit
+    if (offset is None):
+         offset = 0
+    if (limit is None):
+         limit = len(spikes.neuron_ids)
+    spikes.neuron_ids = spikes.neuron_ids[offset:limit]
+    spikes.simulation_times = spikes.simulation_times[offset:limit]
+
+    return spikes
+

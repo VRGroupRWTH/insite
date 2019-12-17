@@ -15,26 +15,26 @@ class Spikes(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_times: List[float]=None, neuron_ids: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_times: List[float]=None, gids: List[int]=None):  # noqa: E501
         """Spikes - a model defined in Swagger
 
         :param simulation_times: The simulation_times of this Spikes.  # noqa: E501
         :type simulation_times: List[float]
-        :param neuron_ids: The neuron_ids of this Spikes.  # noqa: E501
-        :type neuron_ids: List[float]
+        :param gids: The gids of this Spikes.  # noqa: E501
+        :type gids: List[int]
         """
         self.swagger_types = {
             'simulation_times': List[float],
-            'neuron_ids': List[float]
+            'gids': List[int]
         }
 
         self.attribute_map = {
             'simulation_times': 'simulation_times',
-            'neuron_ids': 'neuron_ids'
+            'gids': 'gids'
         }
 
         self._simulation_times = simulation_times
-        self._neuron_ids = neuron_ids
+        self._gids = gids
 
     @classmethod
     def from_dict(cls, dikt) -> 'Spikes':
@@ -51,6 +51,7 @@ class Spikes(Model):
     def simulation_times(self) -> List[float]:
         """Gets the simulation_times of this Spikes.
 
+        This array is always sorted.  # noqa: E501
 
         :return: The simulation_times of this Spikes.
         :rtype: List[float]
@@ -61,6 +62,7 @@ class Spikes(Model):
     def simulation_times(self, simulation_times: List[float]):
         """Sets the simulation_times of this Spikes.
 
+        This array is always sorted.  # noqa: E501
 
         :param simulation_times: The simulation_times of this Spikes.
         :type simulation_times: List[float]
@@ -69,22 +71,22 @@ class Spikes(Model):
         self._simulation_times = simulation_times
 
     @property
-    def neuron_ids(self) -> List[float]:
-        """Gets the neuron_ids of this Spikes.
+    def gids(self) -> List[int]:
+        """Gets the gids of this Spikes.
 
 
-        :return: The neuron_ids of this Spikes.
-        :rtype: List[float]
+        :return: The gids of this Spikes.
+        :rtype: List[int]
         """
-        return self._neuron_ids
+        return self._gids
 
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids: List[float]):
-        """Sets the neuron_ids of this Spikes.
+    @gids.setter
+    def gids(self, gids: List[int]):
+        """Sets the gids of this Spikes.
 
 
-        :param neuron_ids: The neuron_ids of this Spikes.
-        :type neuron_ids: List[float]
+        :param gids: The gids of this Spikes.
+        :type gids: List[int]
         """
 
-        self._neuron_ids = neuron_ids
+        self._gids = gids

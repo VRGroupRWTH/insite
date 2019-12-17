@@ -14,8 +14,8 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the number of simulation steps."
-      operationId: "get_simulation_step_count"
+      summary: "Retrieves simulation time information."
+      operationId: "get_simulation_time_info"
       produces:
       - "application/json"
       parameters: []
@@ -45,7 +45,7 @@ paths:
           schema:
             type: "array"
             items:
-              type: "number"
+              type: "integer"
               format: "uint64"
         400:
           description: "Operation failed."
@@ -68,7 +68,7 @@ paths:
         required: false
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
       responses:
         200:
@@ -87,7 +87,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all populations."
+      summary: "Retrieves the list of all population IDs."
       operationId: "get_populations"
       produces:
       - "application/json"
@@ -98,7 +98,8 @@ paths:
           schema:
             type: "array"
             items:
-              type: "string"
+              type: "integer"
+              format: "uint64"
         400:
           description: "Operation failed."
           schema:
@@ -109,7 +110,8 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the spikes for the given simulation steps (optional) and GIDS (optional)."
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ GIDS (optional)."
       operationId: "get_spikes"
       consumes:
       - "application/json"
@@ -121,32 +123,32 @@ paths:
         description: "The start time (including) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "to"
         in: "query"
         description: "The end time (excluding) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "gids"
         in: "query"
         description: "A list of GIDs queried for spike data."
         required: false
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
       - name: "offset"
         in: "query"
         description: "The offset into the result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       - name: "limit"
         in: "query"
         description: "The maximum of entries to be result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       responses:
         200:
@@ -158,13 +160,13 @@ paths:
           schema:
             type: "string"
             example: "Error message"
-      x-swagger-router-controller: "access_node.controllers.nest_controller"  
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
   /population/${population_id}/spikes:
     get:
       tags:
       - "nest"
       summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ neuron IDs (optional)."
+        \ population."
       operationId: "get_spikes_by_population"
       consumes:
       - "application/json"
@@ -175,30 +177,31 @@ paths:
         in: "path"
         description: "The identifier of the population."
         required: true
-        type: "string"
+        type: "integer"
+        format: "uint64"
       - name: "from"
         in: "query"
         description: "The start time (including) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "to"
         in: "query"
         description: "The end time (excluding) to be queried."
         required: false
         type: "number"
-        format: "uint64"
+        format: "double"
       - name: "offset"
         in: "query"
         description: "The offset into the result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       - name: "limit"
         in: "query"
         description: "The maximum of entries to be result."
         required: false
-        type: "number"
+        type: "integer"
         format: "uint64"
       responses:
         200:
@@ -219,19 +222,20 @@ paths:
       operationId: "get_gids_in_population"
       produces:
       - "application/json"
-      parameters: 
+      parameters:
       - name: "population_id"
         in: "path"
         description: "The identifier of the population"
         required: true
-        type: "string"
+        type: "integer"
+        format: "uint64"
       responses:
         200:
           description: "Operation successful."
           schema:
             type: "array"
             items:
-              type: "number"
+              type: "integer"
               format: "uint64"
         400:
           description: "Operation failed."
@@ -243,40 +247,52 @@ definitions:
   Spikes:
     type: "object"
     properties:
-      simulation_steps:
-        description: "This array is always sorted."
+      simulation_times:
         type: "array"
+        description: "This array is always sorted."
         items:
           type: "number"
-          format: "uint64"
+          format: "double"
       gids:
         type: "array"
         items:
-          type: "number"
+          type: "integer"
           format: "uint64"
+    example:
+      simulation_times:
+      - 0.8008281904610115
+      - 0.8008281904610115
+      gids:
+      - 6.027456183070403
+      - 6.027456183070403
   NeuronProperties:
     type: "object"
     properties:
       gid:
-        type: "number"
+        type: "integer"
         format: "uint64"
       properties:
         type: "object"
+        properties: {}
     example:
       population: "pop1"
-      position: [0.1, 0.1, 0.1]
+      position:
+      - 0.1
+      - 0.1
+      - 0.1
   SimulationTimeInfo:
     type: "object"
     properties:
       start:
         type: "number"
-        format: "uint64"
+        format: "double"
       end:
         type: "number"
-        format: "uint64"
+        format: "double"
       current:
         type: "number"
-        format: "uint64"
-      timestep:
-        type: "number"
         format: "double"
+    example:
+      current: 1.4658129805029452
+      start: 0.8008281904610115
+      end: 6.027456183070403
