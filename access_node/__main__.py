@@ -14,7 +14,7 @@ import time
 def main():
     # This is just to give the info-node some time to start the server
     # in the docker container
-    time.sleep(1)
+    time.sleep(5)
 
     # get info node
     with open('access_node//info_node.json', 'r') as f:
