@@ -34,4 +34,5 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     /insite
 RUN ninja && ninja install
+EXPOSE 8000
 ENTRYPOINT [ "/insite-build/run_brunel_simulation.sh" ]
