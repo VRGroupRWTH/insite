@@ -45,10 +45,19 @@ References
 
 import nest
 import nest.raster_plot
+import signal
 
 import time
 import sys
 from numpy import exp
+
+
+def sigint_handler(sig, frame):
+    print('Exiting...')
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 nest.Install("insitemodule")
 
@@ -304,4 +313,6 @@ print("Simulation time   : %.2f s" % sim_time)
 try:
     input("Press Enter to quit...")
 except EOFError:
-    print("")
+    print("Simulation finished, press ctrl+c to exit.")
+    while True:
+        time.sleep(1)
