@@ -32,7 +32,8 @@ def get_gids_in_population(population_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    gids = requests.get(nodes.info_node+'/population/$'+str(population_id)+'/gids').json()
+    gids = requests.get(nodes.info_node+'/population/$' +
+                        str(population_id)+'/gids').json()
     return gids
 
 
@@ -95,21 +96,22 @@ def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa
     spikes = Spikes([], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.gids))]
+    sorted_ids = [x for _, x in sorted(
+        zip(spikes.simulation_times, spikes.gids))]
     spikes.gids = sorted_ids
     spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
-         offset = 0
+        offset = 0
     if (limit is None):
-         limit = len(spikes.gids)
+        limit = len(spikes.gids)
     spikes.gids = spikes.gids[offset:limit]
     spikes.simulation_times = spikes.simulation_times[offset:limit]
 
@@ -137,23 +139,23 @@ def get_spikes_by_population(population_id, _from=None, to=None, offset=None, li
     spikes = Spikes([], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            node+'/population/'+population_id+'/spikes', params={"_from": _from, "to": to}).json()
+            node+'/population/'+population_id+'/spikes', params={"from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
 
     # sort
-    sorted_ids = [x for _,x in sorted(zip(spikes.simulation_times, spikes.gids))]
+    sorted_ids = [x for _, x in sorted(
+        zip(spikes.simulation_times, spikes.gids))]
     spikes.gids = sorted_ids
     spikes.simulation_times.sort()
 
     # offset and limit
     if (offset is None):
-         offset = 0
+        offset = 0
     if (limit is None):
-         limit = len(spikes.gids)
+        limit = len(spikes.gids)
     spikes.gids = spikes.gids[offset:limit]
     spikes.simulation_times = spikes.simulation_times[offset:limit]
 
     return spikes
-
