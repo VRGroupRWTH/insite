@@ -365,6 +365,11 @@ definitions:
           type: "array"
           items:
             type: "string"
+        gids:
+          type: "array"
+          items:
+            type: "integer"
+            format: "uint64"
     example:
     - { id: 0, attributes: ["V_m"] }
   MultimeterMeasurement:
