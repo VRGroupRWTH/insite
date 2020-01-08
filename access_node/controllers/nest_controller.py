@@ -78,11 +78,11 @@ def get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, g
     mult_gids = []
     multimeter_exists = False
     for mult in mult_info:
-        if mult.id == multimeter_id:
+        if mult['id'] == multimeter_id:
             multimeter_exists = True
-            if attribute not in mult.attributes:
+            if attribute not in mult['attributes']:
                 return Status(code=400, message="Given multimeter does not measure given attribute")
-            mult_gids = mult.gids
+            mult_gids = mult['gids']
             break
     if not multimeter_exists:
         return Status(code=400, message="Given multimeter does not exist")
