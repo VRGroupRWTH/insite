@@ -218,13 +218,13 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter (optional) and\
-        \ GIDS (optional)."
+      summary: "Retrieves the measurements for a multimeter (optional) and GIDS (optional)."
       operationId: "get_multimeter_info"
       consumes:
       - "application/json"
       produces:
       - "application/json"
+      parameters: []
       responses:
         200:
           description: "Operation successful."
@@ -240,8 +240,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter (optional) and\
-        \ GIDS (optional)."
+      summary: "Retrieves the measurements for a multimeter (optional) and GIDS (optional)."
       operationId: "get_multimeter_measurements"
       consumes:
       - "application/json"
@@ -356,22 +355,11 @@ definitions:
   MultimeterInfo:
     type: "array"
     items:
-      type: "object"
-      properties:
-        id:
-          type: "integer"
-          format: "uint64"
-        attributes:
-          type: "array"
-          items:
-            type: "string"
-        gids:
-          type: "array"
-          items:
-            type: "integer"
-            format: "uint64"
+      $ref: "#/definitions/MultimeterInfo_inner"
     example:
-    - { id: 0, attributes: ["V_m"] }
+    - id: 0
+      attributes:
+      - "V_m"
   MultimeterMeasurement:
     type: "object"
     properties:
@@ -387,8 +375,10 @@ definitions:
           type: "integer"
           format: "uint64"
       values:
-        description: "This array contains the measured values for each gid and time to get the value for gid n at time t you have to use the index n * length(simulation_times) + t"
         type: "array"
+        description: "This array contains the measured values for each gid and time\
+          \ to get the value for gid n at time t you have to use the index n * length(simulation_times)\
+          \ + t"
         items:
           type: "number"
     example:
@@ -437,3 +427,17 @@ definitions:
       current: 1.4658129805029452
       start: 0.8008281904610115
       end: 6.027456183070403
+  MultimeterInfo_inner:
+    properties:
+      id:
+        type: "integer"
+        format: "uint64"
+      attributes:
+        type: "array"
+        items:
+          type: "string"
+      gids:
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
