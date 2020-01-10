@@ -23,3 +23,10 @@ build_api_reference:
     - git status
     - git diff-index --quiet HEAD || git commit -F ../../commit_message --author="GitlabCI <${GITLAB_USER_EMAIL}>"
     - git push
+
+test:
+  tags:
+    - centos
+    - docker
+  script:
+    - docker-compose up --build
