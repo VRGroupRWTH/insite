@@ -218,7 +218,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter (optional) and GIDS (optional)."
+      summary: "Retreives the available multimeters and their properties."
       operationId: "get_multimeter_info"
       consumes:
       - "application/json"

@@ -40,7 +40,7 @@ def get_gids_in_population(population_id):  # noqa: E501
 
 
 def get_multimeter_info():  # noqa: E501
-    """Retrieves the measurements for a multimeter (optional) and GIDS (optional).
+    """Retreives the available multimeters and their properties.
 
      # noqa: E501
 
@@ -87,11 +87,12 @@ def get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, g
     if not multimeter_exists:
         return Status(code=400, message="Given multimeter does not exist")
 
-    for gid in gids:
-        if gid not in mult_gids:
-            return Status(code=400, message="Gid "+str(gid)+" is not measured by given Multimeter")
     if gids == None:
         gids = mult_gids
+    else:
+        for gid in gids:
+            if gid not in mult_gids:
+                return Status(code=400, message="Gid "+str(gid)+" is not measured by given Multimeter")
 
     init = True
     sim_times = []
@@ -103,14 +104,13 @@ def get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, g
             sim_times = response['simulation_times']
             measurement = MultimeterMeasurement(sim_times, gids, [None for x in range(0,(len(sim_times)*len(gids)))])
             init = False
-
         for x in range(len(response['gids'])):
             gid = response['gids'][x]
             index = measurement.gids.index(gid)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
                 measurement.values[index_offset+y] = response['values'][x*len(sim_times)+y]
-            
+
     # offset and limit
     if (offset is None):
         offset = 0
