@@ -11,6 +11,7 @@ api_test:
         expire_in: 1 week
         when: always
     script:
+        - rm -rf insite
         - git clone --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
         - cd insite/access-node
         - git checkout $CI_COMMIT_SHA
