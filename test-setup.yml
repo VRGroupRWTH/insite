@@ -16,16 +16,17 @@ variables:
     script:
         - rm -rf insite
         - git clone --branch feature/add-test-pipeline --single-branch --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
+        - cd insite
         - >
-            if [ ! -z "$INFO_NODE_COMMIT"]; then
+            if [ ! -z "$INFO_NODE_COMMIT" ]; then
                 cd info-node && git checkout $INFO_NODE_COMMIT && cd ..
             fi
         - >
-            if [ ! -z "$ACCESS_NODE_COMMIT"]; then
+            if [ ! -z "$ACCESS_NODE_COMMIT" ]; then
                 cd access-node && git checkout $ACCESS_NODE_COMMIT && cd ..
             fi
         - >
-            if [ ! -z "$INSITE_NEST_MODULE_COMMIT"]; then
+            if [ ! -z "$INSITE_NEST_MODULE_COMMIT" ]; then
                 cd insite-nest-module && git checkout $INSITE_NEST_MODULE_COMMIT && cd ..
             fi
         - pip3 install --user -r test-requirements.txt
