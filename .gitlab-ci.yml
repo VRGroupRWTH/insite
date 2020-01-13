@@ -32,7 +32,9 @@ api_test:
     expire_in: 1 week
     when: always
   script:
-    - pip3 install --user -r requirements.txt
+    - pip3 install --user -r test-requirements.txt
     - pip3 install --user -r access-node/requirements.txt
+    - pip3 install --user -r access-node/test-requirements.txt
     - pip3 install --user -r info-node/requirements.txt
+    - pip3 install --user -r info-node/test-requirements.txt
     - pytest
