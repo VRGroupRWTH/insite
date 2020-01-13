@@ -22,10 +22,15 @@ build_api_reference:
     - git diff-index --quiet HEAD || git commit -F ../../commit_message --author="GitlabCI <${GITLAB_USER_EMAIL}>"
     - git push
 
-test:
+api_test:
   tags:
     - centos
     - docker
+  artifacts:
+    paths:
+    - tests/docker-compose.log
+    expire_in: 1 week
+    when: always
   script:
     - cd tests
     - pip3 install --user -r requirements.txt
