@@ -37,4 +37,4 @@ api_test:
     - pip3 install --user -r access-node/test-requirements.txt
     - pip3 install --user -r info-node/requirements.txt
     - pip3 install --user -r info-node/test-requirements.txt
-    - pytest
+    - pytest --ignore=access-node/ --ignore=/info-node
