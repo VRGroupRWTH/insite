@@ -13,7 +13,7 @@ api_test:
     script:
         - git clone --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
         - cd insite/access-node
-        - git checkout CI_COMMIT_SHA
+        - git checkout $CI_COMMIT_SHA
         - cd ../tests
         - pip3 install --user -r requirements.txt
         - pytest
