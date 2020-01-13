@@ -35,5 +35,4 @@ api_test:
     - pip3 install --user -r requirements.txt
     - pip3 install --user -r access-node/requirements.txt
     - pip3 install --user -r info-node/requirements.txt
-    - pip3 install --user -r insite-nest-module/requirements.txt
     - pytest
