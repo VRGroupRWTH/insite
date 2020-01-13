@@ -1,21 +1,10 @@
+include:
+    - project: 'vr-group/in-situ-pipeline/insite'
+      ref: add-test-pipeline 
+      file: '/test-setup.yml'
+
 variables:
-    GIT_STRATEGY: none
-  
+    INSITE_NEST_MODULE_COMMIT: $CI_COMMIT_SHA
+
 api_test:
-    tags:
-        - centos
-        - docker
-    artifacts:
-        paths:
-        - insite/tests/docker-compose.log
-        expire_in: 1 week
-        when: always
-    script:
-        - rm -rf insite
-        - git clone --branch feature/add-test-pipeline --single-branch --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
-        - cd insite/insite-nest-module
-        - git checkout $CI_COMMIT_SHA
-        - cd ../tests
-        - pip3 install --user -r requirements.txt
-        - pytest
-  
+    extends: .api_test
