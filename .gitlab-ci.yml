@@ -28,7 +28,7 @@ api_test:
     - docker
   artifacts:
     paths:
-    - tests/docker-compose.log
+    - docker-compose.log
     expire_in: 1 week
     when: always
   script:
