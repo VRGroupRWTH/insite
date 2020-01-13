@@ -1,0 +1,20 @@
+variables:
+    GIT_STRATEGY: none
+  
+api_test:
+tags:
+    - centos
+    - docker
+artifacts:
+    paths:
+    - insite/tests/docker-compose.log
+    expire_in: 1 week
+    when: always
+script:
+    - git clone --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
+    - cd insite/access-node
+    - git checkout CI_COMMIT_SHA
+    - cd ../tests
+    - pip3 install --user -r requirements.txt
+    - pytest
+  
