@@ -10,7 +10,7 @@ variables:
         - docker
     artifacts:
         paths:
-        - insite/tests/docker-compose.log
+        - insite/docker-compose.log
         expire_in: 1 week
         when: always
     script:
