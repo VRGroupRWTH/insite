@@ -120,6 +120,30 @@ void RecordingBackendInsite::post_step_hook() {
     std::sort(gids_.begin(), gids_.end());
     new_gids_.clear();
   }
+
+  // Send new collections
+  for (const auto& node_collection : node_collections_to_register_) {
+    web::uri_builder builder("/population");
+    for (auto node_id_triple : *node_collection) {
+      builder.append_query("gids", node_id_triple.node_id, false);
+    }
+
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([this,
+               node_collection](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send population to info node: \n"
+                      << response.to_string() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          } else {
+            response.extract_json().then(
+                [this, node_collection](const web::json::value& population_id) {
+                  registered_node_collections_[node_collection] = population_id.as_number().to_int64();
+                });
+          }
+        });
+  }
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
@@ -137,6 +161,20 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
     new_gids_.insert(
         std::lower_bound(new_gids_.begin(), new_gids_.end(), sender_gid_),
         sender_gid_);
+
+    // Check if the node collection (population) is already sent to the
+    // info-node
+    const auto sender_node_collection = event.get_sender().get_nc();
+    if (registered_node_collections_.count(sender_node_collection) == 0 &&
+        !binary_search(node_collections_to_register_.begin(),
+                       node_collections_to_register_.end(),
+                       sender_node_collection)) {
+        node_collections_to_register_.insert(
+            std::lower_bound(node_collections_to_register_.begin(),
+                             node_collections_to_register_.end(),
+                             sender_node_collection),
+            sender_node_collection);
+      }
   }
 }
 

@@ -1,12 +1,14 @@
 #ifndef RECORDING_BACKEND_INSITE_H
 #define RECORDING_BACKEND_INSITE_H
 
+#include <unordered_map>
 #include <cpprest/http_client.h>
 
 #include "data_storage.hpp"
 #include "http_server.hpp"
 #include "recording_backend.h"
 #include "nest_types.h"
+#include "node_collection.h"
 
 namespace insite {
 
@@ -62,6 +64,8 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::string address_;
   std::vector<nest::index> gids_;
   std::vector<nest::index> new_gids_;
+  std::unordered_map<nest::NodeCollectionPTR, int64_t> registered_node_collections_;  
+  std::vector<nest::NodeCollectionPTR> node_collections_to_register_;
   nest::delay latest_simulation_time_ = 0;
 };
 
