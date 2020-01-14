@@ -1,6 +1,6 @@
 include:
     - project: 'vr-group/in-situ-pipeline/insite'
-      ref: feature/add-test-pipeline 
+      ref: develop 
       file: '/test-setup.yml'
 
 variables:
