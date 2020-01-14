@@ -7,7 +7,7 @@ import time
 @pytest.fixture(scope="session")
 def nest_simulation(request):
     logfile = open("docker-compose.log", "w")
-    process = subprocess.Popen(["docker-compose", "up"], stdout=logfile, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(["docker-compose", "up", "--build"], stdout=logfile, stderr=subprocess.STDOUT)
 
     def finalize():
         process.send_signal(signal.SIGINT)
