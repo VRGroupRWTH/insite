@@ -64,6 +64,16 @@ void RecordingBackendInsite::set_value_names(
     const std::vector<Name>& double_value_names,
     const std::vector<Name>& long_value_names) {
   std::cout << "RecordingBackendInsite::set_value_names()\n";
+
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto id = device.get_node_id();
+    auto properties = std::vector<std::string>();
+    for (auto& prop : double_value_names)
+      properties.push_back(prop.toString());
+    for (auto& prop : long_value_names)
+      properties.push_back(prop.toString());
+    new_multimeter_infos_[id] = MultimeterInfo{id, properties};
+  }
 }
 
 void RecordingBackendInsite::prepare() {}
@@ -120,6 +130,34 @@ void RecordingBackendInsite::post_step_hook() {
     std::sort(gids_.begin(), gids_.end());
     new_gids_.clear();
   }
+
+  for (auto& info : new_multimeter_infos_) {
+    if (info.second.gids.empty()) // GIDs not yet available. Pass.
+      continue;
+
+    web::uri_builder builder("/multimeter_info");
+    builder.append_query("id", info.second.device_id, true);
+    for (auto property : info.second.properties)
+      builder.append_query("properties", property, true);
+    for (auto gid : info.second.gids)
+      builder.append_query("gids", gid, true);
+    try {
+      info_node_.request(web::http::methods::PUT, builder.to_string())
+          .then([](const web::http::http_response& response) {
+            if (response.status_code() != web::http::status_codes::OK) {
+              throw std::runtime_error(response.to_string());
+            }
+          })
+          .wait();
+      multimeter_infos_.emplace(info);
+      new_multimeter_infos_.erase(info.first);
+    } catch (const std::exception& exception) {
+      std::cerr << "Failed to put multimeter info: \n"
+                << exception.what() << "\n"
+                << std::endl;
+      throw;
+    }
+  }
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
@@ -130,6 +168,11 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
   const auto time_stamp = event.get_stamp().get_steps();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
     data_storage_.AddSpike(time_stamp, sender_gid_);
+  }
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto device_id = device.get_node_id();
+    if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
+      new_multimeter_infos_.at(device_id).gids.push_back(sender_gid_);
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
   if (!binary_search(gids_.begin(), gids_.end(), sender_gid_) &&
