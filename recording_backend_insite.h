@@ -62,7 +62,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::string address_;
   std::vector<nest::index> gids_;
   std::vector<nest::index> new_gids_;
-  nest::delay latest_simulation_time_ = 0;
+  double latest_simulation_time_ = 0;
 };
 
 }  // namespace insite
