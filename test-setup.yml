@@ -15,7 +15,7 @@ variables:
         when: always
     script:
         - rm -rf insite
-        - git clone --branch feature/add-test-pipeline --single-branch --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
+        - git clone --branch develop --single-branch --recurse-submodules https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite.git
         - cd insite
         - >
             if [ ! -z "$INFO_NODE_COMMIT" ]; then
