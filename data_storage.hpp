@@ -17,7 +17,7 @@ static_assert(sizeof(Spike) == 2 * 8);
 
 struct MultimeterInfo {
   std::uint64_t device_id;
-  std::vector<std::string> properties;
+  std::vector<std::string> attributes;
   std::vector<std::uint64_t> gids;
 };
 

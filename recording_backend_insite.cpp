@@ -67,12 +67,12 @@ void RecordingBackendInsite::set_value_names(
 
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto id = device.get_node_id();
-    auto properties = std::vector<std::string>();
-    for (auto& prop : double_value_names)
-      properties.push_back(prop.toString());
-    for (auto& prop : long_value_names)
-      properties.push_back(prop.toString());
-    new_multimeter_infos_[id] = MultimeterInfo{id, properties};
+    auto attributes = std::vector<std::string>();
+    for (auto& attr : double_value_names)
+      attributes.push_back(attr.toString());
+    for (auto& attr : long_value_names)
+      attributes.push_back(attr.toString());
+    new_multimeter_infos_.emplace(id, MultimeterInfo{id, attributes});
   }
 }
 
@@ -131,16 +131,18 @@ void RecordingBackendInsite::post_step_hook() {
     new_gids_.clear();
   }
 
-  for (auto& info : new_multimeter_infos_) {
-    if (info.second.gids.empty()) // GIDs not yet available. Pass.
+  for (auto it = new_multimeter_infos_.cbegin(); it != new_multimeter_infos_.cend(); ) {
+    if (it->second.gids.empty()) { // GIDs not yet available. Pass.
+      ++it;
       continue;
+    }
 
     web::uri_builder builder("/multimeter_info");
-    builder.append_query("id", info.second.device_id, true);
-    for (auto property : info.second.properties)
-      builder.append_query("properties", property, true);
-    for (auto gid : info.second.gids)
-      builder.append_query("gids", gid, true);
+    builder.append_query("id", it->second.device_id, true);
+    for (auto attribute : it->second.attributes)
+      builder.append_query("attributes", attribute, true);
+    for (auto gid : it->second.gids)
+      builder.append_query("gids", gid, false);
     try {
       info_node_.request(web::http::methods::PUT, builder.to_string())
           .then([](const web::http::http_response& response) {
@@ -149,8 +151,8 @@ void RecordingBackendInsite::post_step_hook() {
             }
           })
           .wait();
-      multimeter_infos_.emplace(info);
-      new_multimeter_infos_.erase(info.first);
+      multimeter_infos_.emplace(*it);
+      new_multimeter_infos_.erase(it++);
     } catch (const std::exception& exception) {
       std::cerr << "Failed to put multimeter info: \n"
                 << exception.what() << "\n"
