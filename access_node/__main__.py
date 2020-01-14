@@ -3,6 +3,7 @@
 import connexion
 
 from access_node import encoder
+from flask_cors import CORS
 
 from access_node.models.nodes import nodes
 import json
@@ -31,6 +32,7 @@ def main():
     app.app.json_encoder = encoder.JSONEncoder
     app.add_api('swagger.yaml', arguments={
                 'title': 'In-Situ Pipeline REST API'})
+    CORS(app.app)
     app.run(port=8080)
 
 
