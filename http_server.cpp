@@ -9,6 +9,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/spikes") {
       request.reply(GetSpikes(request));
+    } else if (request.method() == "GET" &&
+        request.relative_uri().path() == "/multimeter_measurement") {
+      request.reply(GetMultimeterMeasurement(request));
     } else {
       std::cerr << "Invalid request: " << request.to_string() << "\n";
       request.reply(web::http::status_codes::NotFound);
@@ -65,4 +68,10 @@ web::http::http_response HttpServer::GetSpikes(
   return response;
 }
 
+web::http::http_response HttpServer::GetMultimeterMeasurement(
+    const web::http::http_request& request) {
+  std::cout << "Sending multimeter measurement." << std::endl;
+  // TODO
+  return web::http::http_response();
+}
 }  // namespace insite

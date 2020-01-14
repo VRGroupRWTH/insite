@@ -93,4 +93,22 @@ void DataStorage::Flush() {
   // buffered_spikes_.clear();
 }
 
+void DataStorage::AddMeasurement(std::uint64_t device_id, 
+  std::uint64_t attribute_index, const MultimeterMeasurement& measurement) {
+  std::unique_lock<std::mutex> lock(measurement_mutex_);
+  if (buffered_measurements_.find(device_id) == buffered_measurements_.end())
+    buffered_measurements_.emplace(device_id, std::vector<
+    std::vector<MultimeterMeasurement>>{});
+  if (attribute_index >= buffered_measurements_[device_id].size())
+    buffered_measurements_.at(device_id).resize(attribute_index + 1);
+  buffered_measurements_.at(device_id).at(attribute_index).push_back(measurement);
+}
+
+std::unordered_map<std::uint64_t, std::vector<
+    std::vector<MultimeterMeasurement>>> DataStorage::GetMeasurements() {
+  std::unique_lock<std::mutex> lock(measurement_mutex_);
+  auto measurements = buffered_measurements_;
+  return measurements;
+}
+
 }  // namespace insite
