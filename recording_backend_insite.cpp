@@ -114,7 +114,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        });
+        }).wait(); // TODO: remove this wait (this is needed so that gids are registered before populations)
 
     gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
     std::sort(gids_.begin(), gids_.end());
@@ -123,11 +123,13 @@ void RecordingBackendInsite::post_step_hook() {
 
   // Send new collections
   for (const auto& node_collection : node_collections_to_register_) {
-    web::uri_builder builder("/population");
+    web::uri_builder builder("/populations");
     for (auto node_id_triple : *node_collection) {
       builder.append_query("gids", node_id_triple.node_id, false);
     }
 
+    // Initialize to "invalid" state
+    registered_node_collections_[node_collection] = -1;
     info_node_.request(web::http::methods::PUT, builder.to_string())
         .then([this,
                node_collection](const web::http::http_response& response) {
@@ -139,11 +141,15 @@ void RecordingBackendInsite::post_step_hook() {
           } else {
             response.extract_json().then(
                 [this, node_collection](const web::json::value& population_id) {
-                  registered_node_collections_[node_collection] = population_id.as_number().to_int64();
+                  std::cout << "Got id for node collection " << node_collection
+                            << ": " << population_id << std::endl;
+                  registered_node_collections_[node_collection] =
+                      population_id.as_number().to_int64();
                 });
           }
         });
   }
+  node_collections_to_register_.clear();
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
@@ -169,12 +175,12 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
         !binary_search(node_collections_to_register_.begin(),
                        node_collections_to_register_.end(),
                        sender_node_collection)) {
-        node_collections_to_register_.insert(
-            std::lower_bound(node_collections_to_register_.begin(),
-                             node_collections_to_register_.end(),
-                             sender_node_collection),
-            sender_node_collection);
-      }
+      node_collections_to_register_.insert(
+          std::lower_bound(node_collections_to_register_.begin(),
+                           node_collections_to_register_.end(),
+                           sender_node_collection),
+          sender_node_collection);
+    }
   }
 }
 
