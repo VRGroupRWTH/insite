@@ -24,7 +24,7 @@ def nest_get_gids():  # noqa: E501
 
 
 def nest_get_gids_in_population(population_id):  # noqa: E501
-    """Retrieves the list of all neuron IDs.
+    """Retrieves the list of all neuron IDs within the population.
 
      # noqa: E501
 
@@ -40,7 +40,7 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
 def nest_get_multimeter_info():  # noqa: E501
     """Retreives the available multimeters and their properties.
-
+    
      # noqa: E501
 
 
@@ -51,7 +51,7 @@ def nest_get_multimeter_info():  # noqa: E501
 
 
 def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the measurements for a multimeter (optional) and GIDS (optional).
+    """Retrieves the measurements for a multimeter, attribute and GIDS (optional).
 
      # noqa: E501
 
@@ -95,20 +95,22 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
 
     init = True
     sim_times = []
-    measurement = MultimeterMeasurement([],[],[])
+    measurement = MultimeterMeasurement([], [], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
             'http://'+node+'/multimeter_measurement', params={"multimeter_id": multimeter_id, "attribute": attribute, "_from": _from, "to": to, "gids": gids}).json()
         if init:
             sim_times = response['simulation_times']
-            measurement = MultimeterMeasurement(sim_times, gids, [None for x in range(0,(len(sim_times)*len(gids)))])
+            measurement = MultimeterMeasurement(
+                sim_times, gids, [None for x in range(0, (len(sim_times)*len(gids)))])
             init = False
         for x in range(len(response['gids'])):
             gid = response['gids'][x]
             index = measurement.gids.index(gid)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
-                measurement.values[index_offset+y] = response['values'][x*len(sim_times)+y]
+                measurement.values[index_offset +
+                                   y] = response['values'][x*len(sim_times)+y]
 
     # offset and limit
     if (offset is None):
@@ -116,7 +118,8 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
     if (limit is None or (limit + offset) > len(measurement.gids)):
         limit = len(measurement.gids) - offset
     measurement.gids = measurement.gids[offset:offset+limit]
-    measurement.values = measurement.values[offset*len(sim_times):(offset+limit)*len(sim_times)]
+    measurement.values = measurement.values[offset *
+                                            len(sim_times):(offset+limit)*len(sim_times)]
 
     return measurement
 

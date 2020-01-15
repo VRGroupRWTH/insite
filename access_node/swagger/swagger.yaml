@@ -15,7 +15,7 @@ paths:
       tags:
       - "arbor"
       summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ GIDS (optional)."
+        \ cells (optional)."
       operationId: "arbor_get_spikes"
       consumes:
       - "application/json"
@@ -36,7 +36,7 @@ paths:
         format: "double"
       - name: "gids"
         in: "query"
-        description: "A list of GIDs queried for spike data."
+        description: "A list of cells queried for spike data."
         required: false
         type: "array"
         items:
@@ -65,12 +65,12 @@ paths:
             type: "string"
             example: "Error message"
       x-swagger-router-controller: "access_node.controllers.arbor_controller"
-  /arbor/neuron_ids:
+  /arbor/cell_ids:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the list of all neuron ids."
-      operationId: "arbor_get_neuron_ids"
+      summary: "Retrieves the list of all cell ids."
+      operationId: "arbor_get_cell_ids"
       produces:
       - "application/json"
       parameters: []
@@ -92,7 +92,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the measurements for given attribute and neuron_ids (optional)."
+      summary: "Retrieves the measurements for given measurement points (optional)."
       operationId: "arbor_get_measurements"
       consumes:
       - "application/json"
@@ -104,6 +104,14 @@ paths:
         description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
         required: true
         type: "string"
+      - name: "measurement_point_id"
+        in: "query"
+        description: "A list of measurement point ids queried for data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
       - name: "from"
         in: "query"
         description: "The start time (including) to be queried."
@@ -116,14 +124,6 @@ paths:
         required: false
         type: "number"
         format: "double"
-      - name: "neuron_ids"
-        in: "query"
-        description: "A list of GIDs queried for spike data."
-        required: false
-        type: "array"
-        items:
-          type: "integer"
-          format: "uint64"
       - name: "offset"
         in: "query"
         description: "The offset into the result."
@@ -167,18 +167,18 @@ paths:
             type: "string"
             example: "Error message"
       x-swagger-router-controller: "access_node.controllers.arbor_controller"
-  /arbor/neuron_properties:
+  /arbor/cell_properties:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the properties of the specified neurons."
-      operationId: "arbor_get_neuron_properties"
+      summary: "Retrieves the properties of the specified cells."
+      operationId: "arbor_get_cell_properties"
       produces:
       - "application/json"
       parameters:
       - name: "neuron_ids"
         in: "query"
-        description: "A list of neuron IDs queried for properties."
+        description: "A list of cell IDs queried for properties."
         required: false
         type: "array"
         items:
@@ -190,32 +190,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/ArborNeuronProperties"
-        400:
-          description: "Operation failed."
-          schema:
-            type: "string"
-            example: "Error message"
-      x-swagger-router-controller: "access_node.controllers.arbor_controller"
-  /arbor/attributes:
-    get:
-      tags:
-      - "arbor"
-      summary: "Retrieves a list of measurable attributes"
-      operationId: "arbor_get_attributes"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Operation successful."
-          schema:
-            type: "array"
-            items:
-              type: "string"
-            example:
-            - "Voltage"
-            - "Resistance"
+              $ref: "#/definitions/ArborCellProperties"
         400:
           description: "Operation failed."
           schema:
@@ -430,7 +405,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter (optional) and GIDS (optional)."
+      summary: "Retreives the available multimeters and their properties."
       operationId: "nest_get_multimeter_info"
       consumes:
       - "application/json"
@@ -452,7 +427,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter (optional) and GIDS (optional)."
+      summary: "Retrieves the measurements for a multimeter, attribute and GIDS (optional)."
       operationId: "nest_get_multimeter_measurements"
       consumes:
       - "application/json"
@@ -517,7 +492,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all neuron IDs."
+      summary: "Retrieves the list of all neuron IDs within the population."
       operationId: "nest_get_gids_in_population"
       produces:
       - "application/json"
@@ -644,7 +619,19 @@ definitions:
       - 0.123
       - 0.123
       - 0.123
-  ArborNeuronProperties:
+  MeasurementPoint:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "uint64"
+      cell_id:
+        type: "integer"
+        format: "uint64"
+      position:
+        type: "number"
+        format: "double"
+  ArborCellProperties:
     type: "object"
     properties:
       neuron_id:

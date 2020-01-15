@@ -3,8 +3,9 @@
 # flake8: noqa
 from __future__ import absolute_import
 # import models into model package
+from access_node.models.arbor_cell_properties import ArborCellProperties
 from access_node.models.arbor_measurement import ArborMeasurement
-from access_node.models.arbor_neuron_properties import ArborNeuronProperties
+from access_node.models.measurement_point import MeasurementPoint
 from access_node.models.multimeter_info import MultimeterInfo
 from access_node.models.multimeter_info_inner import MultimeterInfoInner
 from access_node.models.multimeter_measurement import MultimeterMeasurement
