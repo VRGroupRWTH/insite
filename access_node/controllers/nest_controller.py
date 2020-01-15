@@ -1,7 +1,9 @@
 import connexion
 import six
 
-from access_node.models.neuron_properties import NeuronProperties  # noqa: E501
+from access_node.models.multimeter_info import MultimeterInfo  # noqa: E501
+from access_node.models.multimeter_measurement import MultimeterMeasurement  # noqa: E501
+from access_node.models.nest_neuron_properties import NestNeuronProperties  # noqa: E501
 from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
@@ -9,8 +11,7 @@ from access_node import util
 from access_node.models.nodes import nodes
 import requests
 
-
-def get_gids():  # noqa: E501
+def nest_get_gids():  # noqa: E501
     """Retrieves the list of all GID.
 
      # noqa: E501
@@ -22,7 +23,7 @@ def get_gids():  # noqa: E501
     return gids
 
 
-def get_gids_in_population(population_id):  # noqa: E501
+def nest_get_gids_in_population(population_id):  # noqa: E501
     """Retrieves the list of all neuron IDs.
 
      # noqa: E501
@@ -37,7 +38,43 @@ def get_gids_in_population(population_id):  # noqa: E501
     return gids
 
 
-def get_neuron_properties(gids=None):  # noqa: E501
+def nest_get_multimeter_info():  # noqa: E501
+    """Retrieves the measurements for a multimeter (optional) and GIDS (optional).
+
+     # noqa: E501
+
+
+    :rtype: MultimeterInfo
+    """
+    return 'do some magic!'
+
+
+def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
+    """Retrieves the measurements for a multimeter (optional) and GIDS (optional).
+
+     # noqa: E501
+
+    :param multimeter_id: The multimeter to query
+    :type multimeter_id: 
+    :param attribute: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
+    :type attribute: str
+    :param _from: The start time (including) to be queried.
+    :type _from: float
+    :param to: The end time (excluding) to be queried.
+    :type to: float
+    :param gids: A list of GIDs queried for spike data.
+    :type gids: List[int]
+    :param offset: The offset into the result.
+    :type offset: int
+    :param limit: The maximum of entries to be result.
+    :type limit: int
+
+    :rtype: MultimeterMeasurement
+    """
+    return 'do some magic!'
+
+
+def nest_get_neuron_properties(gids=None):  # noqa: E501
     """Retrieves the properties of the specified neurons.
 
      # noqa: E501
@@ -45,13 +82,13 @@ def get_neuron_properties(gids=None):  # noqa: E501
     :param gids: A list of GIDs queried for properties.
     :type gids: List[int]
 
-    :rtype: List[NeuronProperties]
+    :rtype: List[NestNeuronProperties]
     """
     properties = requests.get(nodes.info_node+'/neuron_properties').json()
     return properties
 
 
-def get_populations():  # noqa: E501
+def nest_get_populations():  # noqa: E501
     """Retrieves the list of all population IDs.
 
      # noqa: E501
@@ -63,7 +100,7 @@ def get_populations():  # noqa: E501
     return populations
 
 
-def get_simulation_time_info():  # noqa: E501
+def nest_get_simulation_time_info():  # noqa: E501
     """Retrieves simulation time information.
 
      # noqa: E501
@@ -75,7 +112,7 @@ def get_simulation_time_info():  # noqa: E501
     return time_info
 
 
-def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
+def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
     """Retrieves the spikes for the given simulation steps (optional) and GIDS (optional).
 
      # noqa: E501
@@ -118,7 +155,7 @@ def get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa
     return spikes
 
 
-def get_spikes_by_population(population_id, _from=None, to=None, offset=None, limit=None):  # noqa: E501
+def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=None, limit=None):  # noqa: E501
     """Retrieves the spikes for the given simulation steps (optional) and population.
 
      # noqa: E501
