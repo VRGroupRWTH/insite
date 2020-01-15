@@ -180,7 +180,7 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
     spikes = Spikes([], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            'http://'+node+'/spikes', params={"_from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/spikes', params={"from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
