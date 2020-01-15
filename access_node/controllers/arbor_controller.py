@@ -17,7 +17,8 @@ def arbor_get_cell_ids():  # noqa: E501
 
     :rtype: List[int]
     """
-    return 'do some magic!'
+    cell_ids = requests.get(nodes.info_node+'/arbor/cell_ids').json()
+    return cell_ids
 
 
 def arbor_get_cell_properties(neuron_ids=None):  # noqa: E501
@@ -30,7 +31,8 @@ def arbor_get_cell_properties(neuron_ids=None):  # noqa: E501
 
     :rtype: List[ArborCellProperties]
     """
-    return 'do some magic!'
+    cell_properties = requests.get(nodes.info_node+'/arbor/cell_properties').json()
+    return cell_properties
 
 
 def arbor_get_measurement_points():  # noqa: E501
@@ -41,7 +43,8 @@ def arbor_get_measurement_points():  # noqa: E501
 
     :rtype: List[MeasurementPoint]
     """
-    return 'do some magic!'
+    measurement_points = requests.get(nodes.info_node+'/arbor/measurement_points').json()
+    return measurement_points
 
 
 def arbor_get_measurements(attribute, measurement_point_id=None, _from=None, to=None, offset=None, limit=None):  # noqa: E501
@@ -75,7 +78,8 @@ def arbor_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    return 'do some magic!'
+    simulation_time_info = requests.get(nodes.info_node+'/arbor/simulation_time_info').json()
+    return simulation_time_info
 
 
 def arbor_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
@@ -96,4 +100,26 @@ def arbor_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  
 
     :rtype: Spikes
     """
-    return 'do some magic!'
+    spikes = Spikes([], [])
+    for node in nodes.simulation_nodes:
+        response = requests.get(
+            'http://'+node+'/arbor/spikes', params={"from": _from, "to": to, "gids": gids}).json()
+        for x in range(len(response['simulation_times'])):
+            spikes.simulation_times.append(response['simulation_times'][x])
+            spikes.gids.append(response['gids'][x])
+
+    # sort
+    sorted_ids = [x for _, x in sorted(
+        zip(spikes.simulation_times, spikes.gids))]
+    spikes.gids = sorted_ids
+    spikes.simulation_times.sort()
+
+    # offset and limit
+    if (offset is None):
+        offset = 0
+    if (limit is None or (limit + offset) > len(spikes.gids)):
+        limit = len(spikes.gids) - offset
+    spikes.gids = spikes.gids[offset:offset+limit]
+    spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
+
+    return spikes

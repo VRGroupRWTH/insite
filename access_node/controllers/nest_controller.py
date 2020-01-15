@@ -19,7 +19,7 @@ def nest_get_gids():  # noqa: E501
 
     :rtype: List[int]
     """
-    gids = requests.get(nodes.info_node+'/gids').json()
+    gids = requests.get(nodes.info_node+'/nest/gids').json()
     return gids
 
 
@@ -33,7 +33,7 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    gids = requests.get(nodes.info_node+'/population/$' +
+    gids = requests.get(nodes.info_node+'/nest/population/$' +
                         str(population_id)+'/gids').json()
     return gids
 
@@ -46,7 +46,7 @@ def nest_get_multimeter_info():  # noqa: E501
 
     :rtype: MultimeterInfo
     """
-    multimeter_info = requests.get(nodes.info_node+'/multimeter_info').json()
+    multimeter_info = requests.get(nodes.info_node+'/nest/multimeter_info').json()
     return multimeter_info
 
 
@@ -98,7 +98,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
     measurement = MultimeterMeasurement([], [], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            'http://'+node+'/multimeter_measurement', params={"multimeter_id": multimeter_id, "attribute": attribute, "_from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/nest/multimeter_measurement', params={"multimeter_id": multimeter_id, "attribute": attribute, "_from": _from, "to": to, "gids": gids}).json()
         if init:
             sim_times = response['simulation_times']
             measurement = MultimeterMeasurement(
@@ -134,7 +134,7 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
 
     :rtype: List[NestNeuronProperties]
     """
-    properties = requests.get(nodes.info_node+'/neuron_properties').json()
+    properties = requests.get(nodes.info_node+'/nest/neuron_properties').json()
     return properties
 
 
@@ -146,7 +146,7 @@ def nest_get_populations():  # noqa: E501
 
     :rtype: List[int]
     """
-    populations = requests.get(nodes.info_node+'/populations').json()
+    populations = requests.get(nodes.info_node+'/nest/populations').json()
     return populations
 
 
@@ -158,7 +158,7 @@ def nest_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    time_info = requests.get(nodes.info_node+'/simulation_time_info').json()
+    time_info = requests.get(nodes.info_node+'/nest/simulation_time_info').json()
     return time_info
 
 
@@ -183,7 +183,7 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
     spikes = Spikes([], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            'http://'+node+'/spikes', params={"from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/nest/spikes', params={"from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
@@ -226,7 +226,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes = Spikes([], [])
     for node in nodes.simulation_nodes:
         response = requests.get(
-            node+'/population/'+population_id+'/spikes', params={"from": _from, "to": to}).json()
+            node+'/population/'+population_id+'/nest/spikes', params={"from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
