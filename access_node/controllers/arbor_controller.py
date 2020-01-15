@@ -3,6 +3,7 @@ import six
 
 from access_node.models.arbor_cell_properties import ArborCellProperties  # noqa: E501
 from access_node.models.arbor_measurement import ArborMeasurement  # noqa: E501
+from access_node.models.measurement_point import MeasurementPoint  # noqa: E501
 from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
@@ -28,6 +29,17 @@ def arbor_get_cell_properties(neuron_ids=None):  # noqa: E501
     :type neuron_ids: List[int]
 
     :rtype: List[ArborCellProperties]
+    """
+    return 'do some magic!'
+
+
+def arbor_get_measurement_points():  # noqa: E501
+    """Retrieves the list of all measurement points.
+
+     # noqa: E501
+
+
+    :rtype: List[MeasurementPoint]
     """
     return 'do some magic!'
 

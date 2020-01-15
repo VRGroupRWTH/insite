@@ -88,6 +88,28 @@ paths:
             type: "string"
             example: "Error message"
       x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/measurement_points:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves the list of all measurement points."
+      operationId: "arbor_get_measurement_points"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/MeasurementPoint"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
   /arbor/measurements:
     get:
       tags:
@@ -631,6 +653,10 @@ definitions:
       position:
         type: "number"
         format: "double"
+    example:
+      id: 1
+      cell_id: 2
+      position: 0.4
   ArborCellProperties:
     type: "object"
     properties:
