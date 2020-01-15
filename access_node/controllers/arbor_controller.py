@@ -101,7 +101,7 @@ def arbor_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  
     :rtype: Spikes
     """
     spikes = Spikes([], [])
-    for node in nodes.simulation_nodes:
+    for node in nodes.arbor_simulation_nodes:
         response = requests.get(
             'http://'+node+'/arbor/spikes', params={"from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):

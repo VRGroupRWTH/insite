@@ -24,7 +24,10 @@ def main():
 
     # get simulation nodes
     node_type = 'nest_simulation'
-    nodes.simulation_nodes = requests.get(
+    nodes.nest_simulation_nodes = requests.get(
+        nodes.info_node+'/nodes', params={"node_type": node_type}).json()
+    node_type = 'arbor_simulation'
+    nodes.arbor_simulation_nodes = requests.get(
         nodes.info_node+'/nodes', params={"node_type": node_type}).json()
 
     # run acces_node

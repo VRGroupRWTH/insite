@@ -96,7 +96,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
     init = True
     sim_times = []
     measurement = MultimeterMeasurement([], [], [])
-    for node in nodes.simulation_nodes:
+    for node in nodes.nest_simulation_nodes:
         response = requests.get(
             'http://'+node+'/nest/multimeter_measurement', params={"multimeter_id": multimeter_id, "attribute": attribute, "_from": _from, "to": to, "gids": gids}).json()
         if init:
@@ -181,7 +181,7 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
     :rtype: Spikes
     """
     spikes = Spikes([], [])
-    for node in nodes.simulation_nodes:
+    for node in nodes.nest_simulation_nodes:
         response = requests.get(
             'http://'+node+'/nest/spikes', params={"from": _from, "to": to, "gids": gids}).json()
         for x in range(len(response['simulation_times'])):
@@ -224,7 +224,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     :rtype: Spikes
     """
     spikes = Spikes([], [])
-    for node in nodes.simulation_nodes:
+    for node in nodes.nest_simulation_nodes:
         response = requests.get(
             node+'/population/'+population_id+'/nest/spikes', params={"from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
