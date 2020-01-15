@@ -126,7 +126,7 @@ paths:
         description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
         required: true
         type: "string"
-      - name: "measurement_point_id"
+      - name: "measurement_point_ids"
         in: "query"
         description: "A list of measurement point ids queried for data."
         required: false
@@ -578,15 +578,15 @@ definitions:
         items:
           type: "number"
           format: "double"
-      gids:
+      measurement_poin_ids:
         type: "array"
         items:
           type: "integer"
           format: "uint64"
       values:
         type: "array"
-        description: "This array contains the measured values for each gid and time\
-          \ to get the value for gid n at time t you have to use the index n * length(simulation_times)\
+        description: "This array contains the measured values for each measurement_poin_ids and time\
+          \ to get the value for measurement_poin_ids n at time t you have to use the index n * length(simulation_times)\
           \ + t"
         items:
           type: "number"

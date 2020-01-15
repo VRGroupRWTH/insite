@@ -47,15 +47,15 @@ def arbor_get_measurement_points():  # noqa: E501
     return measurement_points
 
 
-def arbor_get_measurements(attribute, measurement_point_id=None, _from=None, to=None, offset=None, limit=None):  # noqa: E501
+def arbor_get_measurements(attribute, measurement_point_ids=None, _from=None, to=None, offset=None, limit=None):  # noqa: E501
     """Retrieves the measurements for given measurement points (optional).
 
      # noqa: E501
 
     :param attribute: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
     :type attribute: str
-    :param measurement_point_id: A list of measurement point ids queried for data.
-    :type measurement_point_id: List[int]
+    :param measurement_point_ids: A list of measurement point ids queried for data.
+    :type measurement_point_ids: List[int]
     :param _from: The start time (including) to be queried.
     :type _from: float
     :param to: The end time (excluding) to be queried.
@@ -67,7 +67,41 @@ def arbor_get_measurements(attribute, measurement_point_id=None, _from=None, to=
 
     :rtype: ArborMeasurement
     """
-    return 'do some magic!'
+    if measurement_point_ids == None:
+        measurement_points = arbor_get_measurement_points()
+        measurement_point_ids = []
+        for point in measurement_points:
+               measurement_point_ids.append(point.id)
+
+    init = True
+    sim_times = []
+    measurement = ArborMeasurement([], [], [])
+    for node in nodes.arbor_simulation_nodes:
+        response = requests.get(
+            'http://'+node+'/arbor/measurements', params={"attribute": attribute, "measurement_point_ids": measurement_point_ids, "_from": _from, "to": to, "gids": gids}).json()
+        if init:
+            sim_times = response['simulation_times']
+            measurement = ArborMeasurement(
+                sim_times, measurement_point_ids, [None for x in range(0, (len(sim_times)*len(measurement_point_ids)))])
+            init = False
+        for x in range(len(response['measurement_point_ids'])):
+            m_id = response['measurement_point_ids'][x]
+            index = measurement.measurement_point_ids.index(m_id)
+            index_offset = index * len(sim_times)
+            for y in range(len(sim_times)):
+                measurement.values[index_offset +
+                                   y] = response['values'][x*len(sim_times)+y]
+
+    # offset and limit
+    if (offset is None):
+        offset = 0
+    if (limit is None or (limit + offset) > len(measurement.measurement_point_ids)):
+        limit = len(measurement.measurement_point_ids) - offset
+    measurement.measurement_point_ids = measurement.measurement_point_ids[offset:offset+limit]
+    measurement.values = measurement.values[offset *
+                                            len(sim_times):(offset+limit)*len(sim_times)]
+
+    return measurement
 
 
 def arbor_get_simulation_time_info():  # noqa: E501

@@ -72,7 +72,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
 
     :rtype: MultimeterMeasurement
     """
-    mult_info = get_multimeter_info()
+    mult_info = nest_get_multimeter_info()
 
     mult_gids = []
     multimeter_exists = False
