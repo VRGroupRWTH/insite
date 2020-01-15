@@ -1,0 +1,10 @@
+include:
+    - project: 'vr-group/in-situ-pipeline/insite'
+      ref: develop 
+      file: '/test-setup.yml'
+
+variables:
+    ACCESS_NODE_COMMIT: $CI_COMMIT_SHA
+
+api_test:
+    extends: .api_test
