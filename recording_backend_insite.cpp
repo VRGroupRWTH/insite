@@ -130,20 +130,16 @@ void RecordingBackendInsite::post_step_hook() {
       request_body[i]["position"][2] = neuron_info.position[2];
     }
 
-    try {
-      info_node_
-          .request(web::http::methods::PUT, builder.to_string(), request_body)
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          });
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to send neuron properties to info node: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    info_node_
+        .request(web::http::methods::PUT, builder.to_string(), request_body)
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send neuron properties to info node: \n"
+                      << response.to_string() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          }
+        });
 
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
