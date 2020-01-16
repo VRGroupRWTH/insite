@@ -148,8 +148,8 @@ nest.SetDefaults("poisson_generator", {"rate": p_rate})
 # as the poisson generator and two spike detectors. The spike detectors will
 # later be used to record excitatory and inhibitory spikes.
 
-nodes_ex = nest.Create("iaf_psc_delta", NE)
-nodes_in = nest.Create("iaf_psc_delta", NI)
+nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([math.sqrt(NE), math.sqrt(NE)]))
+nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([math.sqrt(NI), math.sqrt(NI)]))
 noise = nest.Create("poisson_generator")
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
@@ -227,7 +227,8 @@ print("Excitatory connections")
 # suffices to insert a string.
 
 conn_params_ex = {'rule': 'fixed_indegree', 'indegree': CE}
-nest.Connect(nodes_ex, nodes_ex + nodes_in, conn_params_ex, "excitatory")
+nest.Connect(nodes_ex, nodes_ex, conn_params_ex, "excitatory")
+nest.Connect(nodes_ex, nodes_in, conn_params_ex, "excitatory")
 
 print("Inhibitory connections")
 
@@ -238,7 +239,8 @@ print("Inhibitory connections")
 # population defined above.
 
 conn_params_in = {'rule': 'fixed_indegree', 'indegree': CI}
-nest.Connect(nodes_in, nodes_ex + nodes_in, conn_params_in, "inhibitory")
+nest.Connect(nodes_in, nodes_ex, conn_params_in, "inhibitory")
+nest.Connect(nodes_in, nodes_in, conn_params_in, "inhibitory")
 
 ###############################################################################
 # Storage of the time point after the buildup of the network in a variable.
