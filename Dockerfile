@@ -2,10 +2,11 @@ FROM ubuntu:latest
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     cmake g++ make ninja-build python3 python3-dev python3-pip python3-numpy python3-scipy python3-matplotlib \
-    git gsl-bin libgsl0-dev libltdl-dev libtool \
+    git gsl-bin libgsl0-dev libltdl-dev libtool netcat \
     libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
-    libwebsocketpp-dev openssl libssl-dev ninja-build
+    libwebsocketpp-dev openssl libssl-dev ninja-build \
+    openmpi-bin libopenmpi-dev
 RUN pip3 install Cython
 RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
     cd nest && \
@@ -14,6 +15,7 @@ RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simul
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \
+    -Dwith-mpi=ON \
     -DCMAKE_INSTALL_PREFIX=/nest-install \
     -DCMAKE_BUILD_TYPE=Release \
     /nest
@@ -34,4 +36,5 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     /insite
 RUN ninja && ninja install
+EXPOSE 8000
 ENTRYPOINT [ "/insite-build/run_brunel_simulation.sh" ]

@@ -45,10 +45,20 @@ References
 
 import nest
 import nest.raster_plot
+import signal
+import math
 
 import time
 import sys
 from numpy import exp
+
+
+def sigint_handler(sig, frame):
+    print('Exiting...')
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 nest.Install("insitemodule")
 
@@ -81,7 +91,7 @@ epsilon = 0.1  # connection probability
 # Definition of the number of neurons in the network and the number of neuron
 # recorded from
 
-order = 2500
+order = 25
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
@@ -148,8 +158,8 @@ nest.SetDefaults("poisson_generator", {"rate": p_rate})
 # as the poisson generator and two spike detectors. The spike detectors will
 # later be used to record excitatory and inhibitory spikes.
 
-nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([math.sqrt(NE), math.sqrt(NE)]))
-nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([math.sqrt(NI), math.sqrt(NI)]))
+nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NE)), int(math.sqrt(NE))]))
+nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NI)), int(math.sqrt(NI))]))
 noise = nest.Create("poisson_generator")
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
@@ -306,4 +316,6 @@ print("Simulation time   : %.2f s" % sim_time)
 try:
     input("Press Enter to quit...")
 except EOFError:
-    print("")
+    print("Simulation finished, press ctrl+c to exit.")
+    while True:
+        time.sleep(1)

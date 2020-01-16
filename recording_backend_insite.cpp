@@ -21,7 +21,7 @@ RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
       info_node_("http://info-node:8080"),
-      address_("http://localhost:" + get_port_string()) {
+      address_("insite-nest-module:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
   builder.append_query("address", address_, true);
@@ -86,23 +86,19 @@ void RecordingBackendInsite::post_run_hook() {
 void RecordingBackendInsite::post_step_hook() {
   // Send simulation time
   {
-    web::uri_builder builder("/time");
+    web::uri_builder builder("/current_time");
     builder.append_query("time", latest_simulation_time_, false);
     builder.append_query("node_address", address_, true);
 
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          });
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to send time to info node: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send time to info node: \n"
+                      << response.to_string() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          }
+        });
   }
 
   if (new_neuron_infos_.size() > 0) {
@@ -111,20 +107,17 @@ void RecordingBackendInsite::post_step_hook() {
     for (auto& neuron_info : new_neuron_infos_) {
       builder.append_query("gids", neuron_info.gid, false);
     }
+    builder.append_query("address", address_, true);
 
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          });
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to send gids to info node: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send gids to info node: \n"
+                      << response.to_string() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          }
+        });
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
@@ -163,28 +156,26 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
                                    const nest::Event& event,
                                    const std::vector<double>& double_values,
                                    const std::vector<long>& long_values) {
-  const auto sender_node_id = event.get_sender_node_id();
-  const auto sender_nc = event.get_sender().get_nc();
-  const auto sender_metadata = sender_nc->get_metadata();
-
-  const auto time_stamp = event.get_stamp().get_steps();
-
-  auto sender_position = std::vector<double>();
-  auto layer = nest::get_layer(sender_nc);
-  if (layer.get()) {
-    sender_position =
-        layer->get_position_vector(sender_nc->find(sender_node_id));
-  }
-
-  NeuronInfo neuron_info{sender_node_id, sender_nc, sender_position};
-
+  const auto sender_gid = event.get_sender_node_id();
+  const auto time_stamp = event.get_stamp().get_ms();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
-    data_storage_.AddSpike(time_stamp, sender_node_id);
+    data_storage_.AddSpike(time_stamp, sender_gid);
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
+
+  NeuronInfo neuron_info;
+  neuron_info.gid = sender_gid;
   if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&
       !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(),
                      neuron_info)) {
+    neuron_info.gid_collection = event.get_sender().get_nc();
+
+    const auto layer = nest::get_layer(neuron_info.gid_collection);
+    if (layer.get()) {
+      neuron_info.position = layer->get_position_vector(
+          neuron_info.gid_collection->find(sender_gid));
+    }
+
     new_neuron_infos_.insert(
         std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
                          neuron_info),

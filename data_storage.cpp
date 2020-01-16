@@ -39,12 +39,12 @@ DataStorage::DataStorage(
   //                             spikes_data_space, spikes_set_properties_);
 }
 
-void DataStorage::AddSpike(std::uint64_t simulation_step, std::uint64_t gid) {
+void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
   std::unique_lock<std::mutex> lock(spike_mutex_);
-  const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
-    return lhs.simulation_step < rhs.simulation_step;
+  constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
+    return lhs.simulation_time < rhs.simulation_time;
   };
-  const Spike spike{simulation_step, gid};
+  const Spike spike{simulation_time, gid};
   const auto equal_range =
       std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike,
                        spike_occured_before);

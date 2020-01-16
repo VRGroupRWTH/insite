@@ -64,7 +64,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::string address_;
   std::vector<NeuronInfo> neuron_infos_;
   std::vector<NeuronInfo> new_neuron_infos_;
-  nest::delay latest_simulation_time_ = 0;
+  double latest_simulation_time_ = 0;
 };
 
 }  // namespace insite

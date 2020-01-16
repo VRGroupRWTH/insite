@@ -3,14 +3,14 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
 
 namespace insite {
 
 struct Spike {
-  std::uint64_t simulation_step;
+  double simulation_time;
   std::uint64_t gid;
 };
 static_assert(sizeof(Spike) == 2 * 8);
@@ -20,7 +20,7 @@ class DataStorage {
   DataStorage(const std::string& filename
               /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/);
 
-  void AddSpike(std::uint64_t simulation_step, std::uint64_t gid);
+  void AddSpike(double simulation_time, std::uint64_t gid);
   std::vector<Spike> GetSpikes();
   void Flush();
 

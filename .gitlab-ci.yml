@@ -1,22 +1,10 @@
-stages:
-  - build
-  - run
+include:
+    - project: 'vr-group/in-situ-pipeline/insite'
+      ref: develop
+      file: '/test-setup.yml'
 
-docker:build:
-  stage: build
-  tags:
-    - centos
-    - docker
-  script:
-    - docker build -t insite-nest-module .
+variables:
+    INSITE_NEST_MODULE_COMMIT: $CI_COMMIT_SHA
 
-docker:run:
-  stage: run
-  tags:
-    - centos
-    - docker
-  dependencies:
-    - docker:build
-  script:
-    - docker run --publish 8000:8000 insite-nest-module 20
-
+api_test:
+    extends: .api_test

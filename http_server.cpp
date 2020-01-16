@@ -32,8 +32,8 @@ web::http::http_response HttpServer::GetSpikes(
   const auto to = parameters.find("to");
 
   const auto spike_happened_before = [](const Spike& spike,
-                                        std::uint64_t simulation_step) {
-    return spike.simulation_step < simulation_step;
+                                        double simulation_time) {
+    return spike.simulation_time < simulation_time;
   };
 
   if (from != parameters.end()) {
@@ -50,18 +50,18 @@ web::http::http_response HttpServer::GetSpikes(
 
   const auto element_count = spikes_end - spikes_begin;
   web::json::value gids = web::json::value::array(element_count);
-  web::json::value simulation_steps = web::json::value::array(element_count);
+  web::json::value simulation_times = web::json::value::array(element_count);
 
   {
     size_t index = 0;
     for (auto spike = spikes_begin; spike != spikes_end; ++spike, ++index) {
       gids[index] = spike->gid;
-      simulation_steps[index] = spike->simulation_step;
+      simulation_times[index] = spike->simulation_time;
     }
   }
 
   response.set_body(web::json::value::object(
-      {{"simulation_steps", simulation_steps}, {"neuron_ids", gids}}));
+      {{"simulation_times", simulation_times}, {"gids", gids}}));
   return response;
 }
 
