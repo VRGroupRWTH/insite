@@ -121,15 +121,16 @@ void RecordingBackendInsite::post_step_hook() {
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
-    auto request_body = web::json::value::array();
-    for (std::size_t i = 0; i < neuron_infos_.size(); ++i) {
-      auto& neuron_info = neuron_infos_[i];
+    web::json::value request_body = web::json::value::array(new_neuron_infos_.size());
+    for (std::size_t i = 0; i < new_neuron_infos_.size(); ++i) {
+      auto& neuron_info = new_neuron_infos_[i];
       request_body[i]["gid"] = neuron_info.gid;
       request_body[i]["properties"] = web::json::value();
-      request_body[i]["properties"]["position"] = web::json::value::array();
-      request_body[i]["properties"]["position"][0] = neuron_info.position[0];
-      request_body[i]["properties"]["position"][1] = neuron_info.position[1];
-      request_body[i]["properties"]["position"][2] = neuron_info.position[2];
+      if (!neuron_info.position.empty())
+        request_body[i]["properties"]["position"] = web::json::value::array(
+          std::vector<web::json::value>(
+            neuron_info.position.begin(), 
+            neuron_info.position.end  ()));
     }
 
     info_node_
