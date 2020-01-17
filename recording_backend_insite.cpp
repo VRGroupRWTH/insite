@@ -98,7 +98,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        });
+        }).wait(); // TODO: this wait definitely needs to go!
   }
 
   if (new_neuron_infos_.size() > 0) {
