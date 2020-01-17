@@ -147,7 +147,7 @@ void RecordingBackendInsite::post_step_hook() {
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
     std::sort(neuron_infos_.begin(), neuron_infos_.end());
-    neuron_infos_.clear();
+    new_neuron_infos_.clear();
   }
 
   // Send new collections
