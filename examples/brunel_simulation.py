@@ -164,14 +164,6 @@ espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
 multimeter = nest.Create("multimeter")
 multimeter2 = nest.Create("multimeter")
-ascii_multimeter = nest.Create("multimeter")
-
-###############################################################################
-# Configuration of the spike detectors recording excitatory and inhibitory
-# spikes using ``SetStatus``, which expects a list of node handles and a list
-# of parameter dictionaries. Setting the property `record_to` to *"ascii"*
-# ensures that the spikes will be recorded to a file, whose name starts with
-# the string assigned to label.
 
 nest.SetStatus(espikes, [{"label": "brunel-py-ex",
                           "record_to": "insite"}])
@@ -181,8 +173,6 @@ nest.SetStatus(ispikes, [{"label": "brunel-py-in",
 
 nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
 nest.SetStatus(multimeter2, {"record_from": ["V_m"], "record_to": "insite", })
-nest.SetStatus(ascii_multimeter, {"record_from": [
-               "V_m"], "record_to": "ascii", })
 
 print("Connecting devices")
 
