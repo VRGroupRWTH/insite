@@ -117,7 +117,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        });
+        }).wait();
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
@@ -142,7 +142,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        });
+        }).wait();
 
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
