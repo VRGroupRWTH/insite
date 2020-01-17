@@ -147,7 +147,8 @@ void RecordingBackendInsite::post_step_hook() {
                       population_id.as_number().to_int64();
                 });
           }
-        });
+        })
+        .wait();  // Wait because it may cause a race condition
   }
   node_collections_to_register_.clear();
 }
