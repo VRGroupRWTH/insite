@@ -14,8 +14,8 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ cells (optional)."
+      summary: "Retrieves the spikes for the given simulation times (optional), \
+        \ cell and segment (optional)."
       operationId: "arbor_get_spikes"
       consumes:
       - "application/json"
@@ -34,9 +34,17 @@ paths:
         required: false
         type: "number"
         format: "double"
-      - name: "gids"
+      - name: "cell_ids"
         in: "query"
-        description: "A list of cells queried for spike data."
+        description: "A list of cell ids queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "segment_ids"
+        in: "query"
+        description: "A list of segment ids queried for spike data."
         required: false
         type: "array"
         items:
@@ -88,12 +96,39 @@ paths:
             type: "string"
             example: "Error message"
       x-swagger-router-controller: "access_node.controllers.arbor_controller"
-  /arbor/measurement_points:
+  /arbor/probes:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the list of all measurement points."
-      operationId: "arbor_get_measurement_points"
+      summary: "Retrieves the list of all probes for a given attribute (optional)."
+      operationId: "arbor_get_probes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "attribute"
+        in: "query"
+        description: "The attribute measured for which existing probes will be returned."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Probe"
+        400:
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/attributes:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves the list of all attributes."
+      operationId: "arbor_get_attributes"
       produces:
       - "application/json"
       parameters: []
@@ -103,7 +138,10 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/MeasurementPoint"
+              type: "string"
+            example:
+              - "Voltage"
+              - "Current"
         400:
           description: "Operation failed."
           schema:
@@ -114,7 +152,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the measurements for given measurement points (optional)."
+      summary: "Retrieves the measurements for given probes (optional)."
       operationId: "arbor_get_measurements"
       consumes:
       - "application/json"
@@ -126,9 +164,9 @@ paths:
         description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
         required: true
         type: "string"
-      - name: "measurement_point_ids"
+      - name: "probe_ids"
         in: "query"
-        description: "A list of measurement point ids queried for data."
+        description: "A list of probes ids queried for data."
         required: false
         type: "array"
         items:
@@ -198,7 +236,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "neuron_ids"
+      - name: "celln_ids"
         in: "query"
         description: "A list of cell IDs queried for properties."
         required: false
@@ -578,15 +616,15 @@ definitions:
         items:
           type: "number"
           format: "double"
-      measurement_poin_ids:
+      probe_ids:
         type: "array"
         items:
           type: "integer"
           format: "uint64"
       values:
         type: "array"
-        description: "This array contains the measured values for each measurement_poin_ids and time\
-          \ to get the value for measurement_poin_ids n at time t you have to use the index n * length(simulation_times)\
+        description: "This array contains the measured values for each probe and time\
+          \ to get the value for probe n at time t you have to use the index n * length(simulation_times)\
           \ + t"
         items:
           type: "number"
@@ -641,7 +679,7 @@ definitions:
       - 0.123
       - 0.123
       - 0.123
-  MeasurementPoint:
+  Probe:
     type: "object"
     properties:
       id:
@@ -650,12 +688,16 @@ definitions:
       cell_id:
         type: "integer"
         format: "uint64"
+      segment_id:
+        type: "integer"
+        format: "uint64"
       position:
         type: "number"
         format: "double"
     example:
       id: 1
       cell_id: 2
+      segment_id: 1
       position: 0.4
   ArborCellProperties:
     type: "object"
