@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y \
     git gsl-bin libgsl0-dev libltdl-dev libtool netcat \
     libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
-    libwebsocketpp-dev openssl libssl-dev ninja-build
+    libwebsocketpp-dev openssl libssl-dev ninja-build \
+    openmpi-bin libopenmpi-dev
 RUN pip3 install Cython
 RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
     cd nest && \
@@ -14,6 +15,7 @@ RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simul
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \
+    -Dwith-mpi=ON \
     -DCMAKE_INSTALL_PREFIX=/nest-install \
     -DCMAKE_BUILD_TYPE=Release \
     /nest

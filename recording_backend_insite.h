@@ -66,7 +66,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::vector<nest::index> new_gids_;
   std::unordered_map<nest::NodeCollectionPTR, int64_t> registered_node_collections_;  
   std::vector<nest::NodeCollectionPTR> node_collections_to_register_;
-  nest::delay latest_simulation_time_ = 0;
+  double latest_simulation_time_ = 0;
 };
 
 }  // namespace insite
