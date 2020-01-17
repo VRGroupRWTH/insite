@@ -46,6 +46,7 @@ References
 import nest
 import nest.raster_plot
 import signal
+import math
 
 import time
 import sys
@@ -90,11 +91,10 @@ epsilon = 0.1  # connection probability
 # Definition of the number of neurons in the network and the number of neuron
 # recorded from
 
-order = 2500
+order = 25
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
-N_rec = 4  # record from 50 neurons
 
 ###############################################################################
 # Definition of connectivity parameter
@@ -157,8 +157,8 @@ nest.SetDefaults("poisson_generator", {"rate": p_rate})
 # as the poisson generator and two spike detectors. The spike detectors will
 # later be used to record excitatory and inhibitory spikes.
 
-nodes_ex = nest.Create("iaf_psc_delta", NE)
-nodes_in = nest.Create("iaf_psc_delta", NI)
+nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NE)), int(math.sqrt(NE))]))
+nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NI)), int(math.sqrt(NI))]))
 noise = nest.Create("poisson_generator")
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
@@ -216,12 +216,10 @@ nest.Connect(noise, nodes_in, syn_spec="excitatory")
 # Here the same shortcut for the specification of the synapse as defined
 # above is used.
 
-nest.Connect(nodes_ex[:N_rec], espikes, syn_spec="excitatory")
-nest.Connect(nodes_in[:N_rec], ispikes, syn_spec="excitatory")
-nest.Connect(multimeter, nodes_ex[:N_rec], syn_spec="excitatory")
-nest.Connect(multimeter, nodes_in[:N_rec], syn_spec="excitatory")
-nest.Connect(ascii_multimeter, nodes_ex[:N_rec], syn_spec="excitatory")
-nest.Connect(ascii_multimeter, nodes_in[:N_rec], syn_spec="excitatory")
+nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
+nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
+nest.Connect(multimeter, nodes_ex, syn_spec="excitatory")
+nest.Connect(multimeter, nodes_in, syn_spec="excitatory")
 
 print("Connecting network")
 
@@ -236,7 +234,8 @@ print("Excitatory connections")
 # suffices to insert a string.
 
 conn_params_ex = {'rule': 'fixed_indegree', 'indegree': CE}
-nest.Connect(nodes_ex, nodes_ex + nodes_in, conn_params_ex, "excitatory")
+nest.Connect(nodes_ex, nodes_ex, conn_params_ex, "excitatory")
+nest.Connect(nodes_ex, nodes_in, conn_params_ex, "excitatory")
 
 print("Inhibitory connections")
 
@@ -247,7 +246,8 @@ print("Inhibitory connections")
 # population defined above.
 
 conn_params_in = {'rule': 'fixed_indegree', 'indegree': CI}
-nest.Connect(nodes_in, nodes_ex + nodes_in, conn_params_in, "inhibitory")
+nest.Connect(nodes_in, nodes_ex, conn_params_in, "inhibitory")
+nest.Connect(nodes_in, nodes_in, conn_params_in, "inhibitory")
 
 ###############################################################################
 # Storage of the time point after the buildup of the network in a variable.
