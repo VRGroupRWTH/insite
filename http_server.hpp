@@ -13,8 +13,8 @@ class HttpServer {
   HttpServer(web::http::uri address, DataStorage* storage);
 
  private:
-  DataStorage* storage_;
   web::http::experimental::listener::http_listener http_listener_;
+  DataStorage* storage_;
 
   web::http::http_response GetSpikes(const web::http::http_request& request);
 };

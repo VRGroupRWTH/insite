@@ -91,11 +91,10 @@ epsilon = 0.1  # connection probability
 # Definition of the number of neurons in the network and the number of neuron
 # recorded from
 
-order = 25
+order = 625 # Should be square, otherwise the position grid becomes invalid
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
-N_rec = 4  # record from 50 neurons
 
 ###############################################################################
 # Definition of connectivity parameter
@@ -165,14 +164,6 @@ espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
 multimeter = nest.Create("multimeter")
 multimeter2 = nest.Create("multimeter")
-ascii_multimeter = nest.Create("multimeter")
-
-###############################################################################
-# Configuration of the spike detectors recording excitatory and inhibitory
-# spikes using ``SetStatus``, which expects a list of node handles and a list
-# of parameter dictionaries. Setting the property `record_to` to *"ascii"*
-# ensures that the spikes will be recorded to a file, whose name starts with
-# the string assigned to label.
 
 nest.SetStatus(espikes, [{"label": "brunel-py-ex",
                           "record_to": "insite"}])
@@ -182,8 +173,6 @@ nest.SetStatus(ispikes, [{"label": "brunel-py-in",
 
 nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
 nest.SetStatus(multimeter2, {"record_from": ["V_m"], "record_to": "insite", })
-nest.SetStatus(ascii_multimeter, {"record_from": [
-               "V_m"], "record_to": "ascii", })
 
 print("Connecting devices")
 
@@ -217,12 +206,10 @@ nest.Connect(noise, nodes_in, syn_spec="excitatory")
 # Here the same shortcut for the specification of the synapse as defined
 # above is used.
 
-nest.Connect(nodes_ex[:N_rec], espikes, syn_spec="excitatory")
-nest.Connect(nodes_in[:N_rec], ispikes, syn_spec="excitatory")
-nest.Connect(multimeter, nodes_ex[:N_rec], syn_spec="excitatory")
-nest.Connect(multimeter, nodes_in[:N_rec], syn_spec="excitatory")
-nest.Connect(ascii_multimeter, nodes_ex[:N_rec], syn_spec="excitatory")
-nest.Connect(ascii_multimeter, nodes_in[:N_rec], syn_spec="excitatory")
+nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
+nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
+nest.Connect(multimeter, nodes_ex, syn_spec="excitatory")
+nest.Connect(multimeter, nodes_in, syn_spec="excitatory")
 
 print("Connecting network")
 
@@ -282,8 +269,8 @@ events_in = nest.GetStatus(ispikes, "n_events")[0]
 # neurons recorded from and the simulation time. The multiplication by 1000.0
 # converts the unit 1/ms to 1/s=Hz.
 
-rate_ex = events_ex / simtime * 1000.0 / N_rec
-rate_in = events_in / simtime * 1000.0 / N_rec
+rate_ex = events_ex / simtime * 1000.0 / NE
+rate_in = events_in / simtime * 1000.0 / NI
 
 ###############################################################################
 # Reading out the number of connections established using the excitatory and

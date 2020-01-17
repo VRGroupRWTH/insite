@@ -98,7 +98,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        });
+        }).wait(); // TODO: this wait definitely needs to go!
   }
 
   if (new_neuron_infos_.size() > 0) {
@@ -121,16 +121,16 @@ void RecordingBackendInsite::post_step_hook() {
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
-    web::json::value request_body = web::json::value::array(new_neuron_infos_.size());
+    web::json::value request_body =
+        web::json::value::array(new_neuron_infos_.size());
     for (std::size_t i = 0; i < new_neuron_infos_.size(); ++i) {
       auto& neuron_info = new_neuron_infos_[i];
       request_body[i]["gid"] = neuron_info.gid;
       request_body[i]["properties"] = web::json::value();
       if (!neuron_info.position.empty())
-        request_body[i]["properties"]["position"] = web::json::value::array(
-          std::vector<web::json::value>(
-            neuron_info.position.begin(), 
-            neuron_info.position.end  ()));
+        request_body[i]["properties"]["position"] =
+            web::json::value::array(std::vector<web::json::value>(
+                neuron_info.position.begin(), neuron_info.position.end()));
     }
 
     info_node_
@@ -147,8 +147,39 @@ void RecordingBackendInsite::post_step_hook() {
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
     std::sort(neuron_infos_.begin(), neuron_infos_.end());
-    neuron_infos_.clear();
+    new_neuron_infos_.clear();
   }
+
+  // Send new collections
+  for (const auto& node_collection : node_collections_to_register_) {
+    web::uri_builder builder("/populations");
+    for (auto node_id_triple : *node_collection) {
+      builder.append_query("gids", node_id_triple.node_id, false);
+    }
+
+    // Initialize to "invalid" state
+    registered_node_collections_[node_collection] = -1;
+    info_node_.request(web::http::methods::PUT, builder.to_string())
+        .then([this,
+               node_collection](const web::http::http_response& response) {
+          if (response.status_code() != web::http::status_codes::OK) {
+            std::cerr << "Failed to send population to info node: \n"
+                      << response.to_string() << "\n"
+                      << std::endl;
+            throw std::runtime_error(response.to_string());
+          } else {
+            response.extract_json().then(
+                [this, node_collection](const web::json::value& population_id) {
+                  std::cout << "Got id for node collection " << node_collection
+                            << ": " << population_id << std::endl;
+                  registered_node_collections_[node_collection] =
+                      population_id.as_number().to_int64();
+                });
+          }
+        })
+        .wait();  // Wait because it may cause a race condition
+  }
+  node_collections_to_register_.clear();
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
@@ -179,6 +210,20 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
         std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
                          neuron_info),
         neuron_info);
+
+    // Check if the node collection (population) is already sent to the
+    // info-node
+    const auto sender_node_collection = event.get_sender().get_nc();
+    if (registered_node_collections_.count(sender_node_collection) == 0 &&
+        !binary_search(node_collections_to_register_.begin(),
+                       node_collections_to_register_.end(),
+                       sender_node_collection)) {
+      node_collections_to_register_.insert(
+          std::lower_bound(node_collections_to_register_.begin(),
+                           node_collections_to_register_.end(),
+                           sender_node_collection),
+          sender_node_collection);
+    }
   }
 }
 
