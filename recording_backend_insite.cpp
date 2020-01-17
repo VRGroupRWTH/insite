@@ -67,12 +67,13 @@ void RecordingBackendInsite::set_value_names(
 
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto id = device.get_node_id();
-    auto attributes = std::vector<std::string>();
+    auto double_attributes = std::vector<std::string>();
+    auto long_attributes = std::vector<std::string>();
     for (auto& attr : double_value_names)
-      attributes.push_back(attr.toString());
+      double_attributes.push_back(attr.toString());
     for (auto& attr : long_value_names)
-      attributes.push_back(attr.toString());
-    new_multimeter_infos_.emplace(id, MultimeterInfo{id, attributes});
+      long_attributes.push_back(attr.toString());
+    new_multimeter_infos_[id] = MultimeterInfo{id, double_attributes, long_attributes};
   }
 }
 
@@ -133,16 +134,19 @@ void RecordingBackendInsite::post_step_hook() {
 
   for (auto it = new_multimeter_infos_.cbegin(); it != new_multimeter_infos_.cend(); ) {
     if (it->second.gids.empty()) { // GIDs not yet available. Pass.
-      ++it;
+      it++;
       continue;
     }
 
     web::uri_builder builder("/multimeter_info");
     builder.append_query("id", it->second.device_id, true);
-    for (auto attribute : it->second.attributes)
+    for (auto attribute : it->second.double_attributes)
+      builder.append_query("attributes", attribute, true);
+    for (auto attribute : it->second.long_attributes)
       builder.append_query("attributes", attribute, true);
     for (auto gid : it->second.gids)
       builder.append_query("gids", gid, false);
+    
     try {
       info_node_.request(web::http::methods::PUT, builder.to_string())
           .then([](const web::http::http_response& response) {
@@ -151,14 +155,15 @@ void RecordingBackendInsite::post_step_hook() {
             }
           })
           .wait();
-      multimeter_infos_.emplace(*it);
-      new_multimeter_infos_.erase(it++);
     } catch (const std::exception& exception) {
       std::cerr << "Failed to put multimeter info: \n"
                 << exception.what() << "\n"
                 << std::endl;
       throw;
     }
+  
+    multimeter_infos_.emplace(*it);
+    new_multimeter_infos_.erase(it++);
   }
 }
 
@@ -173,15 +178,33 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
   }
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto device_id = device.get_node_id();
-    if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
-      new_multimeter_infos_.at(device_id).gids.push_back(sender_gid_);
 
-    for (auto i = 0; i < double_values.size(); ++i)
-      data_storage_.AddMultimeterMeasurement(device_id, i, 
-        MultimeterMeasurement {time_stamp, sender_gid_, double_values[i]});
-    for (auto i = 0; i < long_values.size(); ++i)
-      data_storage_.AddMultimeterMeasurement(device_id, i, 
-        MultimeterMeasurement {time_stamp, sender_gid_, double(long_values[i])});
+    auto& multimeter_gids = new_multimeter_infos_[device_id].gids;
+    if (std::find(multimeter_gids.begin(), multimeter_gids.end(), sender_gid_) == multimeter_gids.end())
+      multimeter_gids.push_back(sender_gid_);
+    
+    for (std::size_t i = 0; i < double_values.size(); ++i)
+    {
+      std::string attribute;
+      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
+        attribute = new_multimeter_infos_[device_id].double_attributes[i];
+      if (multimeter_infos_.find(device_id) != multimeter_infos_.end())
+        attribute = multimeter_infos_[device_id].double_attributes[i];
+      if (!attribute.empty())
+        data_storage_.AddMultimeterMeasurement(device_id, attribute,
+          time_stamp, sender_gid_, double_values[i]);
+    }
+    for (std::size_t i = 0; i < long_values.size(); ++i)
+    {
+      std::string attribute;
+      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
+        attribute = new_multimeter_infos_[device_id].long_attributes[i];
+      if (multimeter_infos_.find(device_id) != multimeter_infos_.end())
+        attribute = multimeter_infos_[device_id].long_attributes[i];
+      if (!attribute.empty())
+        data_storage_.AddMultimeterMeasurement(device_id, attribute,
+          time_stamp, sender_gid_, double(long_values[i]));
+    }
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
   if (!binary_search(gids_.begin(), gids_.end(), sender_gid_) &&

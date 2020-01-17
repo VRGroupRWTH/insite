@@ -18,14 +18,15 @@ static_assert(sizeof(Spike) == 2 * 8);
 
 struct MultimeterInfo {
   std::uint64_t device_id;
-  std::vector<std::string> attributes;
+  std::vector<std::string> double_attributes;
+  std::vector<std::string> long_attributes;
   std::vector<std::uint64_t> gids;
 };
 
-struct MultimeterMeasurement {
-  double simulation_time;
-  std::uint64_t gid;
-  double value;
+struct MultimeterMeasurements {
+  std::vector<double> simulation_times;
+  std::vector<std::uint64_t> gids;
+  std::vector<double> values;
 };
 
 class DataStorage {
@@ -38,10 +39,10 @@ class DataStorage {
   void Flush();
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
-    std::uint64_t attribute_index,
-    const MultimeterMeasurement& measurement);
-  std::unordered_map<std::uint64_t, std::vector<
-    std::vector<MultimeterMeasurement>>> GetMultimeterMeasurements();
+    const std::string& attribute_name, const double simulation_time,
+    const std::uint64_t gid, const double value);
+  std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
+    MultimeterMeasurements>> GetMultimeterMeasurements();
 
  private:
   // std::unique_ptr<H5::H5File> h5_file_;
@@ -53,8 +54,8 @@ class DataStorage {
   std::mutex spike_mutex_;
 
   // Device ID to attribute index to measurement map.
-  std::unordered_map<std::uint64_t, std::vector<
-    std::vector<MultimeterMeasurement>>> buffered_measurements_;
+  std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
+    MultimeterMeasurements>> buffered_measurements_;
 
   std::mutex measurement_mutex_;
 };

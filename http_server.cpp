@@ -71,6 +71,7 @@ web::http::http_response HttpServer::GetSpikes(
 web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
+  web::json::value body = web::json::value::object();
   
   const auto parameters = web::uri::split_query(request.request_uri().query());
   const auto parameter_multimeter_id = parameters.find("multimeter_id");
@@ -81,19 +82,50 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   const auto parameter_offset = parameters.find("offset");
   const auto parameter_limit = parameters.find("limit");
 
-  const auto measurements = storage_->GetMultimeterMeasurements();
   const auto multimeter_id = std::stoll(parameter_multimeter_id->second);
-  if (measurements.find(multimeter_id) != measurements.end())
-  {
-    auto& multimeter_measurement = measurements.at(multimeter_id);
-    
-    // TODO: Get RecordingBackendInsite.multimeter_infos_.
-    // TODO: Find index of the parameter_attribute->second in multimeter infos.
-    // TODO: Index into multimeter_measurement to obtain attribute_measurement.
-    // TODO: Filter attribute_measurement by from, to, gids, offset, limit.
-    // TODO: Set body to attribute_measurement.
+  const auto attribute = parameter_attribute->second;
+  const auto from = parameter_from != parameters.end() 
+    ? std::stoll(parameter_from->second) 
+    : 0ull;
+  const auto to = parameter_to != parameters.end() 
+    ? std::stoll(parameter_to->second) 
+    : 0ull;
+  const auto filter_gids = parameter_gids != parameters.end() 
+    ? std::vector<std::size_t>(
+        parameter_gids->second.begin(), 
+        parameter_gids->second.end()) 
+    : std::vector<std::size_t>();
+  const auto offset = parameter_offset != parameters.end() 
+    ? std::stoll(parameter_offset->second) 
+    : 0ull;
+  const auto limit = parameter_limit != parameters.end() 
+    ? std::stoll(parameter_limit->second) 
+    : 0ull;
+
+  const auto measurements = storage_->GetMultimeterMeasurements();
+  if (measurements.find(multimeter_id) != measurements.end() &&
+      measurements.at(multimeter_id).find(attribute) 
+      != measurements.at(multimeter_id).end()) {
+    auto& measurement = measurements.at(multimeter_id).at(attribute);
+    auto& simulation_times = measurement.simulation_times;
+    auto& gids = measurement.gids; // TODO: Shouldn't hide.
+    auto& values = measurement.values;
+
+    auto simulation_times_begin = from == 0 ? simulation_times.begin() 
+      : std::lower_bound(simulation_times.begin(), simulation_times.end(), from);
+    auto simulation_times_end = from == 0 ? simulation_times.end() 
+      : std::lower_bound(simulation_times.begin(), simulation_times.end(), to);
+    auto simulation_times_subset = std::vector<web::json::value>(
+      simulation_times_begin, simulation_times_end);
+
+    // TODO: Filter measurement by from/to/filter_gids/offset/limit.
+
+    body["simulation_times"] = web::json::value::array(simulation_times_subset);
+    //body["gids"] = web::json::value::array(gids_subset);
+    //body["values"] = web::json::value::array(values_subset);
   }
 
+  response.set_body(body);
   return response;
 }
 }  // namespace insite

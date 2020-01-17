@@ -94,18 +94,44 @@ void DataStorage::Flush() {
 }
 
 void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id, 
-  std::uint64_t attribute_index, const MultimeterMeasurement& measurement) {
+    const std::string& attribute_name, const double simulation_time,
+    const std::uint64_t gid, const double value) {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
-  if (buffered_measurements_.find(device_id) == buffered_measurements_.end())
-    buffered_measurements_.emplace(device_id, std::vector<
-    std::vector<MultimeterMeasurement>>{});
-  if (attribute_index >= buffered_measurements_[device_id].size())
-    buffered_measurements_.at(device_id).resize(attribute_index + 1);
-  buffered_measurements_.at(device_id).at(attribute_index).push_back(measurement);
+  auto& measurement = buffered_measurements_[device_id][attribute_name];
+  auto& simulation_times = measurement.simulation_times;
+  auto& gids = measurement.gids;
+  auto& values = measurement.values;
+
+  auto time_iterator = std::find(simulation_times.begin(), 
+      simulation_times.end(), simulation_time);
+  auto time_index = std::size_t();
+  if (time_iterator != simulation_times.end())
+    time_index = std::distance(simulation_times.begin(), time_iterator);
+  else
+  {
+    simulation_times.push_back(simulation_time);
+    time_index = simulation_times.size() - 1;
+  }
+  
+  auto gid_iterator = std::find(gids.begin(), gids.end(), gid);
+  auto gid_index = std::size_t();
+  if (gid_iterator != gids.end())
+    gid_index = std::distance(gids.begin(), gid_iterator);
+  else
+  {
+    auto ordered_iterator = std::lower_bound(gids.begin(), gids.end(), gid);
+    gids.insert(ordered_iterator, gid);
+    gid_index = std::distance(gids.begin(), std::find(gids.begin(), gids.end(), gid));
+  }
+  
+  if (values.size() != simulation_times.size() * gids.size())
+    values.resize(simulation_times.size() * gids.size());
+
+  measurement.values[time_index * measurement.gids.size() + gid_index] = value;
 }
 
-std::unordered_map<std::uint64_t, std::vector<
-    std::vector<MultimeterMeasurement>>> DataStorage::GetMultimeterMeasurements() {
+std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
+    MultimeterMeasurements>> DataStorage::GetMultimeterMeasurements() {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   auto measurements = buffered_measurements_;
   return measurements;
