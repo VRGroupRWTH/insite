@@ -114,7 +114,7 @@ void RecordingBackendInsite::post_step_hook() {
                       << std::endl;
             throw std::runtime_error(response.to_string());
           }
-        }).wait(); // TODO: remove this wait (this is needed so that gids are registered before populations)
+        });
 
     gids_.insert(gids_.end(), new_gids_.begin(), new_gids_.end());
     std::sort(gids_.begin(), gids_.end());
