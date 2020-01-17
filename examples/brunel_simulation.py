@@ -91,7 +91,7 @@ epsilon = 0.1  # connection probability
 # Definition of the number of neurons in the network and the number of neuron
 # recorded from
 
-order = 25
+order = 625 # Should be square, otherwise the position grid becomes invalid
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
