@@ -269,8 +269,8 @@ events_in = nest.GetStatus(ispikes, "n_events")[0]
 # neurons recorded from and the simulation time. The multiplication by 1000.0
 # converts the unit 1/ms to 1/s=Hz.
 
-rate_ex = events_ex / simtime * 1000.0 / N_rec
-rate_in = events_in / simtime * 1000.0 / N_rec
+rate_ex = events_ex / simtime * 1000.0 / NE
+rate_in = events_in / simtime * 1000.0 / NI
 
 ###############################################################################
 # Reading out the number of connections established using the excitatory and
