@@ -93,7 +93,7 @@ void DataStorage::Flush() {
   // buffered_spikes_.clear();
 }
 
-void DataStorage::AddMeasurement(std::uint64_t device_id, 
+void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id, 
   std::uint64_t attribute_index, const MultimeterMeasurement& measurement) {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   if (buffered_measurements_.find(device_id) == buffered_measurements_.end())
@@ -105,7 +105,7 @@ void DataStorage::AddMeasurement(std::uint64_t device_id,
 }
 
 std::unordered_map<std::uint64_t, std::vector<
-    std::vector<MultimeterMeasurement>>> DataStorage::GetMeasurements() {
+    std::vector<MultimeterMeasurement>>> DataStorage::GetMultimeterMeasurements() {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   auto measurements = buffered_measurements_;
   return measurements;

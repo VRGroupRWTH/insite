@@ -177,10 +177,10 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
       new_multimeter_infos_.at(device_id).gids.push_back(sender_gid_);
 
     for (auto i = 0; i < double_values.size(); ++i)
-      data_storage_.AddMeasurement(device_id, i, 
+      data_storage_.AddMultimeterMeasurement(device_id, i, 
         MultimeterMeasurement {time_stamp, sender_gid_, double_values[i]});
     for (auto i = 0; i < long_values.size(); ++i)
-      data_storage_.AddMeasurement(device_id, i, 
+      data_storage_.AddMultimeterMeasurement(device_id, i, 
         MultimeterMeasurement {time_stamp, sender_gid_, double(long_values[i])});
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);

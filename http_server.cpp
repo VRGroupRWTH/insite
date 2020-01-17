@@ -70,8 +70,30 @@ web::http::http_response HttpServer::GetSpikes(
 
 web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
-  std::cout << "Sending multimeter measurement." << std::endl;
-  // TODO
-  return web::http::http_response();
+  web::http::http_response response(web::http::status_codes::OK);
+  
+  const auto parameters = web::uri::split_query(request.request_uri().query());
+  const auto parameter_multimeter_id = parameters.find("multimeter_id");
+  const auto parameter_attribute = parameters.find("attribute");
+  const auto parameter_from = parameters.find("from");
+  const auto parameter_to = parameters.find("to");
+  const auto parameter_gids = parameters.find("gids");
+  const auto parameter_offset = parameters.find("offset");
+  const auto parameter_limit = parameters.find("limit");
+
+  const auto measurements = storage_->GetMultimeterMeasurements();
+  const auto multimeter_id = std::stoll(parameter_multimeter_id->second);
+  if (measurements.find(multimeter_id) != measurements.end())
+  {
+    auto& multimeter_measurement = measurements.at(multimeter_id);
+    
+    // TODO: Get RecordingBackendInsite.multimeter_infos_.
+    // TODO: Find index of the parameter_attribute->second in multimeter infos.
+    // TODO: Index into multimeter_measurement to obtain attribute_measurement.
+    // TODO: Filter attribute_measurement by from, to, gids, offset, limit.
+    // TODO: Set body to attribute_measurement.
+  }
+
+  return response;
 }
 }  // namespace insite

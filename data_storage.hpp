@@ -37,10 +37,11 @@ class DataStorage {
   std::vector<Spike> GetSpikes();
   void Flush();
 
-  void AddMeasurement(std::uint64_t device_id, std::uint64_t attribute_index,
+  void AddMultimeterMeasurement(std::uint64_t device_id, 
+    std::uint64_t attribute_index,
     const MultimeterMeasurement& measurement);
   std::unordered_map<std::uint64_t, std::vector<
-    std::vector<MultimeterMeasurement>>> GetMeasurements();
+    std::vector<MultimeterMeasurement>>> GetMultimeterMeasurements();
 
  private:
   // std::unique_ptr<H5::H5File> h5_file_;
