@@ -133,8 +133,8 @@ void RecordingBackendInsite::post_step_hook() {
   }
 
   for (auto it = new_multimeter_infos_.cbegin(); it != new_multimeter_infos_.cend(); ) {
-    if (it->second.gids.empty()) { // GIDs not yet available. Pass.
-      it++;
+    if (it->second.gids.empty() || (it->second.double_attributes.empty() && it->second.long_attributes.empty())) {
+      ++it;
       continue;
     }
 
@@ -183,23 +183,25 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
     if (std::find(multimeter_gids.begin(), multimeter_gids.end(), sender_gid_) == multimeter_gids.end())
       multimeter_gids.push_back(sender_gid_);
     
-    for (std::size_t i = 0; i < double_values.size(); ++i)
-    {
+    for (std::size_t i = 0; i < double_values.size(); ++i) {
       std::string attribute;
-      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
+      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end() &&
+          new_multimeter_infos_[device_id].double_attributes.size() > i)
         attribute = new_multimeter_infos_[device_id].double_attributes[i];
-      if (multimeter_infos_.find(device_id) != multimeter_infos_.end())
+      if (multimeter_infos_.find(device_id) != multimeter_infos_.end() &&
+          multimeter_infos_[device_id].double_attributes.size() > i)
         attribute = multimeter_infos_[device_id].double_attributes[i];
       if (!attribute.empty())
         data_storage_.AddMultimeterMeasurement(device_id, attribute,
           time_stamp, sender_gid_, double_values[i]);
     }
-    for (std::size_t i = 0; i < long_values.size(); ++i)
-    {
+    for (std::size_t i = 0; i < long_values.size(); ++i) {
       std::string attribute;
-      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end())
+      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end() &&
+          new_multimeter_infos_[device_id].long_attributes.size() > i)
         attribute = new_multimeter_infos_[device_id].long_attributes[i];
-      if (multimeter_infos_.find(device_id) != multimeter_infos_.end())
+      if (multimeter_infos_.find(device_id) != multimeter_infos_.end() &&
+          multimeter_infos_[device_id].long_attributes.size() > i)
         attribute = multimeter_infos_[device_id].long_attributes[i];
       if (!attribute.empty())
         data_storage_.AddMultimeterMeasurement(device_id, attribute,

@@ -102,32 +102,30 @@ void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,
   auto& gids = measurement.gids;
   auto& values = measurement.values;
 
+  std::size_t time_index, gid_index;
+
   auto time_iterator = std::find(simulation_times.begin(), 
       simulation_times.end(), simulation_time);
-  auto time_index = std::size_t();
   if (time_iterator != simulation_times.end())
     time_index = std::distance(simulation_times.begin(), time_iterator);
-  else
-  {
-    simulation_times.push_back(simulation_time);
-    time_index = simulation_times.size() - 1;
+  else {
+    simulation_times.insert(std::lower_bound(simulation_times.begin(), simulation_times.end(), simulation_time), simulation_time);
+    time_index = std::distance(simulation_times.begin(), std::find(simulation_times.begin(), simulation_times.end(), simulation_time));
   }
   
   auto gid_iterator = std::find(gids.begin(), gids.end(), gid);
-  auto gid_index = std::size_t();
   if (gid_iterator != gids.end())
     gid_index = std::distance(gids.begin(), gid_iterator);
-  else
-  {
-    auto ordered_iterator = std::lower_bound(gids.begin(), gids.end(), gid);
-    gids.insert(ordered_iterator, gid);
+  else {
+    gids.insert(std::lower_bound(gids.begin(), gids.end(), gid), gid);
     gid_index = std::distance(gids.begin(), std::find(gids.begin(), gids.end(), gid));
   }
   
-  if (values.size() != simulation_times.size() * gids.size())
-    values.resize(simulation_times.size() * gids.size());
+  auto values_size = simulation_times.size() * gids.size();
+  if (values.size() != values_size)
+    values.resize(values_size);
 
-  measurement.values[time_index * measurement.gids.size() + gid_index] = value;
+  values[time_index * gids.size() + gid_index] = value;
 }
 
 std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
