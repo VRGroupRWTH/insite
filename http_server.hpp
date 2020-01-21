@@ -18,7 +18,8 @@ class HttpServer {
 
   web::http::http_response GetSpikes(const web::http::http_request& request);
   
-  web::http::http_response GetMultimeterMeasurement(const web::http::http_request& request);
+  web::http::http_response GetMultimeterMeasurement(
+    const web::http::http_request& request);
 };
 
 }  // namespace insite

@@ -65,7 +65,6 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::vector<nest::index> gids_;
   std::vector<nest::index> new_gids_;
   std::unordered_map<nest::index, MultimeterInfo> multimeter_infos_;
-  std::unordered_map<nest::index, MultimeterInfo> new_multimeter_infos_;
   nest::delay latest_simulation_time_ = 0;
 };
 

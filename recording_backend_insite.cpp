@@ -52,6 +52,11 @@ void RecordingBackendInsite::finalize() {
 void RecordingBackendInsite::enroll(const nest::RecordingDevice& device,
                                     const DictionaryDatum& params) {
   std::cout << "RecordingBackendInsite::enroll(" << device.get_label() << ")\n";
+  
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto id = device.get_node_id();
+    multimeter_infos_.emplace(std::make_pair(id, MultimeterInfo{id, true}));
+  }
 }
 
 void RecordingBackendInsite::disenroll(const nest::RecordingDevice& device) {
@@ -66,14 +71,14 @@ void RecordingBackendInsite::set_value_names(
   std::cout << "RecordingBackendInsite::set_value_names()\n";
 
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
-    auto id = device.get_node_id();
-    auto double_attributes = std::vector<std::string>();
-    auto long_attributes = std::vector<std::string>();
-    for (auto& attr : double_value_names)
-      double_attributes.push_back(attr.toString());
-    for (auto& attr : long_value_names)
-      long_attributes.push_back(attr.toString());
-    new_multimeter_infos_[id] = MultimeterInfo{id, double_attributes, long_attributes};
+    auto& multimeter = multimeter_infos_.at(device.get_node_id());
+    
+    for (auto& name : double_value_names)
+      multimeter.double_attributes.push_back(name.toString());
+    for (auto& name : long_value_names)
+      multimeter.long_attributes.push_back(name.toString());
+
+    multimeter.needs_update = true;    
   }
 }
 
@@ -132,19 +137,20 @@ void RecordingBackendInsite::post_step_hook() {
     new_gids_.clear();
   }
 
-  for (auto it = new_multimeter_infos_.cbegin(); it != new_multimeter_infos_.cend(); ) {
-    if (it->second.gids.empty() || (it->second.double_attributes.empty() && it->second.long_attributes.empty())) {
-      ++it;
+  // Send multimeter info
+  for (auto& kvp : multimeter_infos_) {
+    auto& multimeter = kvp.second;
+    if (!multimeter.needs_update)
       continue;
-    }
-
+    multimeter.needs_update = false;
+    
     web::uri_builder builder("/multimeter_info");
-    builder.append_query("id", it->second.device_id, true);
-    for (auto attribute : it->second.double_attributes)
+    builder.append_query("id", multimeter.device_id, true);
+    for (auto attribute : multimeter.double_attributes)
       builder.append_query("attributes", attribute, true);
-    for (auto attribute : it->second.long_attributes)
+    for (auto attribute : multimeter.long_attributes)
       builder.append_query("attributes", attribute, true);
-    for (auto gid : it->second.gids)
+    for (auto gid : multimeter.gids)
       builder.append_query("gids", gid, false);
     
     try {
@@ -161,9 +167,6 @@ void RecordingBackendInsite::post_step_hook() {
                 << std::endl;
       throw;
     }
-  
-    multimeter_infos_.emplace(*it);
-    new_multimeter_infos_.erase(it++);
   }
 }
 
@@ -178,35 +181,24 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
   }
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto device_id = device.get_node_id();
+    auto& multimeter = multimeter_infos_.at(device_id);
+    auto& gids = multimeter.gids;
 
-    auto& multimeter_gids = new_multimeter_infos_[device_id].gids;
-    if (std::find(multimeter_gids.begin(), multimeter_gids.end(), sender_gid_) == multimeter_gids.end())
-      multimeter_gids.push_back(sender_gid_);
-    
-    for (std::size_t i = 0; i < double_values.size(); ++i) {
-      std::string attribute;
-      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end() &&
-          new_multimeter_infos_[device_id].double_attributes.size() > i)
-        attribute = new_multimeter_infos_[device_id].double_attributes[i];
-      if (multimeter_infos_.find(device_id) != multimeter_infos_.end() &&
-          multimeter_infos_[device_id].double_attributes.size() > i)
-        attribute = multimeter_infos_[device_id].double_attributes[i];
-      if (!attribute.empty())
-        data_storage_.AddMultimeterMeasurement(device_id, attribute,
-          time_stamp, sender_gid_, double_values[i]);
+    // If the measurement is from a GID we previously do not know, add.
+    if (!binary_search(gids.begin(), gids.end(), sender_gid_)) {
+      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid_), 
+        sender_gid_);
+      multimeter.needs_update = true;
     }
-    for (std::size_t i = 0; i < long_values.size(); ++i) {
-      std::string attribute;
-      if (new_multimeter_infos_.find(device_id) != new_multimeter_infos_.end() &&
-          new_multimeter_infos_[device_id].long_attributes.size() > i)
-        attribute = new_multimeter_infos_[device_id].long_attributes[i];
-      if (multimeter_infos_.find(device_id) != multimeter_infos_.end() &&
-          multimeter_infos_[device_id].long_attributes.size() > i)
-        attribute = multimeter_infos_[device_id].long_attributes[i];
-      if (!attribute.empty())
-        data_storage_.AddMultimeterMeasurement(device_id, attribute,
-          time_stamp, sender_gid_, double(long_values[i]));
-    }
+
+    for (std::size_t i = 0; i < double_values.size(); ++i)
+      data_storage_.AddMultimeterMeasurement(device_id, 
+        multimeter.double_attributes[i], time_stamp, sender_gid_, 
+        double_values[i]);
+    for (std::size_t i = 0; i < long_values.size(); ++i)
+      data_storage_.AddMultimeterMeasurement(device_id, 
+        multimeter.long_attributes[i], time_stamp, sender_gid_, 
+        double(long_values[i]));
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
   if (!binary_search(gids_.begin(), gids_.end(), sender_gid_) &&
