@@ -15,30 +15,30 @@ class ArborMeasurement(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_times: List[float]=None, measurement_poin_ids: List[int]=None, values: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_times: List[float]=None, gids: List[int]=None, values: List[float]=None):  # noqa: E501
         """ArborMeasurement - a model defined in Swagger
 
         :param simulation_times: The simulation_times of this ArborMeasurement.  # noqa: E501
         :type simulation_times: List[float]
-        :param measurement_poin_ids: The measurement_poin_ids of this ArborMeasurement.  # noqa: E501
-        :type measurement_poin_ids: List[int]
+        :param gids: The gids of this ArborMeasurement.  # noqa: E501
+        :type gids: List[int]
         :param values: The values of this ArborMeasurement.  # noqa: E501
         :type values: List[float]
         """
         self.swagger_types = {
             'simulation_times': List[float],
-            'measurement_poin_ids': List[int],
+            'gids': List[int],
             'values': List[float]
         }
 
         self.attribute_map = {
             'simulation_times': 'simulation_times',
-            'measurement_poin_ids': 'measurement_poin_ids',
+            'gids': 'gids',
             'values': 'values'
         }
 
         self._simulation_times = simulation_times
-        self._measurement_poin_ids = measurement_poin_ids
+        self._gids = gids
         self._values = values
 
     @classmethod
@@ -76,25 +76,25 @@ class ArborMeasurement(Model):
         self._simulation_times = simulation_times
 
     @property
-    def measurement_poin_ids(self) -> List[int]:
-        """Gets the measurement_poin_ids of this ArborMeasurement.
+    def gids(self) -> List[int]:
+        """Gets the gids of this ArborMeasurement.
 
 
-        :return: The measurement_poin_ids of this ArborMeasurement.
+        :return: The gids of this ArborMeasurement.
         :rtype: List[int]
         """
-        return self._measurement_poin_ids
+        return self._gids
 
-    @measurement_poin_ids.setter
-    def measurement_poin_ids(self, measurement_poin_ids: List[int]):
-        """Sets the measurement_poin_ids of this ArborMeasurement.
+    @gids.setter
+    def gids(self, gids: List[int]):
+        """Sets the gids of this ArborMeasurement.
 
 
-        :param measurement_poin_ids: The measurement_poin_ids of this ArborMeasurement.
-        :type measurement_poin_ids: List[int]
+        :param gids: The gids of this ArborMeasurement.
+        :type gids: List[int]
         """
 
-        self._measurement_poin_ids = measurement_poin_ids
+        self._gids = gids
 
     @property
     def values(self) -> List[float]:

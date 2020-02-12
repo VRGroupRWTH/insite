@@ -246,3 +246,4 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
 
     return spikes
+    

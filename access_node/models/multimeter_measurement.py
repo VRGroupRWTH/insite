@@ -15,30 +15,30 @@ class MultimeterMeasurement(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_times: List[float]=None, gids: List[int]=None, values: List[float]=None):  # noqa: E501
+    def __init__(self, simulation_times: List[float]=None, probe_ids: List[int]=None, values: List[float]=None):  # noqa: E501
         """MultimeterMeasurement - a model defined in Swagger
 
         :param simulation_times: The simulation_times of this MultimeterMeasurement.  # noqa: E501
         :type simulation_times: List[float]
-        :param gids: The gids of this MultimeterMeasurement.  # noqa: E501
-        :type gids: List[int]
+        :param probe_ids: The probe_ids of this MultimeterMeasurement.  # noqa: E501
+        :type probe_ids: List[int]
         :param values: The values of this MultimeterMeasurement.  # noqa: E501
         :type values: List[float]
         """
         self.swagger_types = {
             'simulation_times': List[float],
-            'gids': List[int],
+            'probe_ids': List[int],
             'values': List[float]
         }
 
         self.attribute_map = {
             'simulation_times': 'simulation_times',
-            'gids': 'gids',
+            'probe_ids': 'probe_ids',
             'values': 'values'
         }
 
         self._simulation_times = simulation_times
-        self._gids = gids
+        self._probe_ids = probe_ids
         self._values = values
 
     @classmethod
@@ -76,31 +76,31 @@ class MultimeterMeasurement(Model):
         self._simulation_times = simulation_times
 
     @property
-    def gids(self) -> List[int]:
-        """Gets the gids of this MultimeterMeasurement.
+    def probe_ids(self) -> List[int]:
+        """Gets the probe_ids of this MultimeterMeasurement.
 
 
-        :return: The gids of this MultimeterMeasurement.
+        :return: The probe_ids of this MultimeterMeasurement.
         :rtype: List[int]
         """
-        return self._gids
+        return self._probe_ids
 
-    @gids.setter
-    def gids(self, gids: List[int]):
-        """Sets the gids of this MultimeterMeasurement.
+    @probe_ids.setter
+    def probe_ids(self, probe_ids: List[int]):
+        """Sets the probe_ids of this MultimeterMeasurement.
 
 
-        :param gids: The gids of this MultimeterMeasurement.
-        :type gids: List[int]
+        :param probe_ids: The probe_ids of this MultimeterMeasurement.
+        :type probe_ids: List[int]
         """
 
-        self._gids = gids
+        self._probe_ids = probe_ids
 
     @property
     def values(self) -> List[float]:
         """Gets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each gid and time to get the value for gid n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
+        This array contains the measured values for each probe and time to get the value for probe n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
 
         :return: The values of this MultimeterMeasurement.
         :rtype: List[float]
@@ -111,7 +111,7 @@ class MultimeterMeasurement(Model):
     def values(self, values: List[float]):
         """Sets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each gid and time to get the value for gid n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
+        This array contains the measured values for each probe and time to get the value for probe n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
 
         :param values: The values of this MultimeterMeasurement.
         :type values: List[float]

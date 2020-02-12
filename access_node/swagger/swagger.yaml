@@ -14,8 +14,8 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the spikes for the given simulation times (optional), \
-        \ cell and segment (optional)."
+      summary: "Retrieves the spikes for the given simulation times (optional),  cell\
+        \ and segment (optional)."
       operationId: "arbor_get_spikes"
       consumes:
       - "application/json"
@@ -140,8 +140,8 @@ paths:
             items:
               type: "string"
             example:
-              - "Voltage"
-              - "Current"
+            - "Voltage"
+            - "Current"
         400:
           description: "Operation failed."
           schema:
@@ -236,7 +236,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "celln_ids"
+      - name: "cell_ids"
         in: "query"
         description: "A list of cell IDs queried for properties."
         required: false
