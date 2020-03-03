@@ -9,34 +9,67 @@ from access_node.models.nodes import nodes
 import json
 
 import requests
-import time
+import psycopg2
+
+
+def SetupDB(postgres_username, postgres_password, port):
+	con = psycopg2.connect(database="postgres", user=postgres_username,
+                       password=postgres_password, host="database", port=str(port))
+	print("Database connection opened successfully!")
+
+	cur = con.cursor()
+	cur.execute('''CREATE TABLE IF NOT EXISTS SIMULATION_NODES (
+      NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
+      ADDRESS           VARCHAR(25),
+      CURRENT_SIM_TIME  FLOAT);''')
+
+	cur.execute('''CREATE TABLE IF NOT EXISTS MULTIMETERS (
+      MULTIMETER_ID   INT PRIMARY KEY NOT NULL UNIQUE,
+      ATTRIBUTE       CHAR(50) );''')
+
+	cur.execute('''CREATE TABLE IF NOT EXISTS GIDS (
+      GID             INT PRIMARY KEY NOT NULL UNIQUE,
+      NODE_ID         INT,  
+      POPULATION_ID   INT,
+      FOREIGN KEY (NODE_ID) REFERENCES SIMULATION_NODES (NODE_ID));''')
+
+	cur.execute('''CREATE TABLE IF NOT EXISTS MULT_PER_GID(
+      GID             INT NOT NULL,
+      MULTIMETER_ID   INT NOT NULL,
+      PRIMARY KEY (GID,MULTIMETER_ID),
+      FOREIGN KEY (GID) REFERENCES GIDS (GID),
+      FOREIGN KEY (MULTIMETER_ID) REFERENCES MULTIMETERS (MULTIMETER_ID));''')
+
+	con.commit()
+	print("Tables created successfully!\n")
+
+	con.close()
 
 
 def main():
-    # This is just to give the info-node some time to start the server
-    # in the docker container
-    time.sleep(5)
+	# Connect to the Database and initalize basic Table structure
+	SetupDB('postgres', 'docker', 5432)
 
-    # get info node
-    with open('access_node//info_node.json', 'r') as f:
-        info = json.load(f)
-    nodes.info_node = info['address']
+	# get info node
+	with open('access_node//info_node.json', 'r') as f:
+		info = json.load(f)
+	nodes.info_node = info['address']
 
-    # get simulation nodes
-    node_type = 'nest_simulation'
-    nodes.nest_simulation_nodes = requests.get(
-        nodes.info_node+'/nodes', params={"node_type": node_type}).json()
-    node_type = 'arbor_simulation'
-    nodes.arbor_simulation_nodes = requests.get(
-        nodes.info_node+'/nodes', params={"node_type": node_type}).json()
+	# get simulation nodes
+	node_type = 'nest_simulation'
+	nodes.nest_simulation_nodes = requests.get(
+		nodes.info_node+'/nodes', params={"node_type": node_type}).json()
+	node_type = 'arbor_simulation'
+	nodes.arbor_simulation_nodes = requests.get(
+		nodes.info_node+'/nodes', params={"node_type": node_type}).json()
 
-    # run acces_node
-    app = connexion.App(__name__, specification_dir='./swagger/')
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api('swagger.yaml', arguments={
-                'title': 'In-Situ Pipeline REST API'})
-    CORS(app.app)
-    app.run(port=8080)
+	# run acces_node
+	app = connexion.App(__name__, specification_dir='./swagger/')
+	app.app.json_encoder = encoder.JSONEncoder
+	app.add_api('swagger.yaml', arguments={
+				'title': 'In-Situ Pipeline REST API'})
+	CORS(app.app)
+	app.run(port=8080)
 
 
 if __name__ == '__main__':
