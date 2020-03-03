@@ -10,6 +10,8 @@ from access_node import util
 
 from access_node.models.nodes import nodes
 import requests
+import psycopg2
+import numpy as np
 
 def nest_get_gids():  # noqa: E501
     """Retrieves the list of all GID.
@@ -19,7 +21,13 @@ def nest_get_gids():  # noqa: E501
 
     :rtype: List[int]
     """
-    gids = requests.get(nodes.info_node+'/nest/gids').json()
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    
+    cur = con.cursor()
+    cur.execute("SELECT GID FROM GIDS")
+    gids = [i[0] for i in cur.fetchall()]
+    con.close()
     return gids
 
 
@@ -33,8 +41,13 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    gids = requests.get(nodes.info_node+'/nest/population/$' +
-                        str(population_id)+'/gids').json()
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    
+    cur = con.cursor()
+    cur.execute("SELECT GID FROM GIDS WHERE GIDS.POPULATION_ID ="+str(population_id))
+    gids = [i[0] for i in cur.fetchall()]
+    con.close()
     return gids
 
 
@@ -46,8 +59,24 @@ def nest_get_multimeter_info():  # noqa: E501
 
     :rtype: MultimeterInfo
     """
-    multimeter_info = requests.get(nodes.info_node+'/nest/multimeter_info').json()
-    return multimeter_info
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    cur = con.cursor()
+    cur.execute("SELECT MULTIMETER_ID FROM MULTIMETERS")
+    ids = cur.fetchall()
+    cur.execute("SELECT regexp_replace(ATTRIBUTE, '\s+$', '') FROM (SELECT * FROM MULTIMETERS) AS MULT_INFO;")
+    attributes = cur.fetchall()
+    mult_info = np.hstack((ids, attributes)).tolist()
+    gids = []
+    for id in ids:
+        cur.execute("SELECT GID FROM MULT_PER_GID WHERE MULTIMETER_ID = %s", (id,))
+        gids.append([i[0] for i in cur.fetchall()])
+
+    for i in range(len(gids)):
+        mult_info[i].append(gids[i])
+
+    con.close()
+    return mult_info.tolist()
 
 
 def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
@@ -134,8 +163,16 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
 
     :rtype: List[NestNeuronProperties]
     """
-    properties = requests.get(nodes.info_node+'/nest/neuron_properties').json()
-    return properties
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    
+    cur = con.cursor()
+    # TODO HANDLE gids=None
+
+
+
+    con.close()
+    return "Not Implemented yet"
 
 
 def nest_get_populations():  # noqa: E501
@@ -146,7 +183,12 @@ def nest_get_populations():  # noqa: E501
 
     :rtype: List[int]
     """
-    populations = requests.get(nodes.info_node+'/nest/populations').json()
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    
+    cur = con.cursor()
+    cur.execute("SELECT DISTINCT (POPULATION_ID) FROM GIDS")
+    populations = populations = [i[0] for i in cur.fetchall()]
     return populations
 
 
@@ -158,8 +200,13 @@ def nest_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    time_info = requests.get(nodes.info_node+'/nest/simulation_time_info').json()
-    return time_info
+    con = psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+    
+    cur = con.cursor()
+    cur.execute("SELECT MAX(CURRENT_SIM_TIME) FROM SIMULATION_NODES")
+    time = cur.fetchall()[0][0]
+    return time
 
 
 def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501

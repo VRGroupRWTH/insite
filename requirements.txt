@@ -4,3 +4,4 @@ setuptools >= 21.0.0
 requests
 flask_cors
 psycopg2-binary
+numpy

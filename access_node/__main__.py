@@ -18,22 +18,28 @@ def SetupDB(postgres_username, postgres_password, port):
 	print("Database connection opened successfully!")
 
 	cur = con.cursor()
-	cur.execute('''CREATE TABLE IF NOT EXISTS SIMULATION_NODES (
+	cur.execute("DROP TABLE IF EXISTS SIMULATION_NODES CASCADE")
+	cur.execute("DROP TABLE IF EXISTS MULTIMETERS CASCADE")
+	cur.execute("DROP TABLE IF EXISTS GIDS CASCADE")
+	cur.execute("DROP TABLE IF EXISTS MULT_PER_GID CASCADE")
+
+
+	cur.execute('''CREATE TABLE SIMULATION_NODES (
       NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
       ADDRESS           VARCHAR(25),
       CURRENT_SIM_TIME  FLOAT);''')
 
-	cur.execute('''CREATE TABLE IF NOT EXISTS MULTIMETERS (
+	cur.execute('''CREATE TABLE MULTIMETERS (
       MULTIMETER_ID   INT PRIMARY KEY NOT NULL UNIQUE,
       ATTRIBUTE       CHAR(50) );''')
 
-	cur.execute('''CREATE TABLE IF NOT EXISTS GIDS (
+	cur.execute('''CREATE TABLE GIDS (
       GID             INT PRIMARY KEY NOT NULL UNIQUE,
       NODE_ID         INT,  
       POPULATION_ID   INT,
       FOREIGN KEY (NODE_ID) REFERENCES SIMULATION_NODES (NODE_ID));''')
 
-	cur.execute('''CREATE TABLE IF NOT EXISTS MULT_PER_GID(
+	cur.execute('''CREATE TABLE MULT_PER_GID(
       GID             INT NOT NULL,
       MULTIMETER_ID   INT NOT NULL,
       PRIMARY KEY (GID,MULTIMETER_ID),
