@@ -188,15 +188,15 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
     properties = np.array(cur.fetchall())
     properties = np.delete(properties, [1,2], 1)
 
-    NestProps = []
+    nest_properties = []
     for k in range(len(properties[:,0])):
         props = {}
         id = properties[k,0]
         for i in range(1, len(colnames)):
             props.update({colnames[i]: properties[k,i]})
-        NestProps.extend(NestNeuronProperties(id, props))
+        nest_properties.extend(NestNeuronProperties(id, props))
 
-    return NestProps
+    return nest_properties
 
 
 def nest_get_populations():  # noqa: E501
