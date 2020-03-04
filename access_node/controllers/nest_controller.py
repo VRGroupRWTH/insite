@@ -167,12 +167,30 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
                        password="docker", host="database", port="5432")
     
     cur = con.cursor()
-    # TODO HANDLE gids=None
 
+    cur.execute("Select * FROM GIDS LIMIT 0")
+    colnames = np.array([desc[0] for desc in cur.description])
+    # column 1 and 2 contain the Node_id/Population_id and thus are removed
+    colnames = np.delete(colnames, [1,2])
 
-
+    if gids == None:
+        cur.execute("Select * FROM GIDS")
+    else:
+        cur.execute("Select * FROM GIDS WHERE GID IN %s", (tuple(gids),))
     con.close()
-    return "Not Implemented yet"
+
+    properties = np.array(cur.fetchall())
+    properties = np.delete(properties, [1,2], 1)
+
+    NestProps = []
+    for k in range(len(properties[:,0])):
+        props = {}
+        id = properties[k,0]
+        for i in range(1, len(colnames)):
+            props.update({colnames[i]: properties[k,i]})
+        NestProps.extend(NestNeuronProperties(id, props))
+
+    return NestProps
 
 
 def nest_get_populations():  # noqa: E501
