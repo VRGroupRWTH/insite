@@ -62,21 +62,27 @@ def nest_get_multimeter_info():  # noqa: E501
     con = psycopg2.connect(database="postgres", user="postgres",
                        password="docker", host="database", port="5432")
     cur = con.cursor()
+
     cur.execute("SELECT MULTIMETER_ID FROM MULTIMETERS")
-    ids = cur.fetchall()
+    mult_ids = cur.fetchall()
+
     cur.execute("SELECT regexp_replace(ATTRIBUTE, '\s+$', '') FROM (SELECT * FROM MULTIMETERS) AS MULT_INFO;")
     attributes = cur.fetchall()
-    mult_info = np.hstack((ids, attributes)).tolist()
+    
     gids = []
-    for id in ids:
+    for id in mult_ids:
         cur.execute("SELECT GID FROM MULT_PER_GID WHERE MULTIMETER_ID = %s", (id,))
         gids.append([i[0] for i in cur.fetchall()])
 
-    for i in range(len(gids)):
-        mult_info[i].append(gids[i])
+    mult_info = []
+    for i in range(len(mult_ids)):
+        mult_info.append({"id": mult_ids[i][0],
+                    "attributes": attributes[i][0],
+                    "gids": gids[i]})
 
     con.close()
-    return mult_info.tolist()
+
+    return mult_info
 
 
 def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
@@ -206,7 +212,7 @@ def nest_get_populations():  # noqa: E501
     
     cur = con.cursor()
     cur.execute("SELECT DISTINCT (POPULATION_ID) FROM GIDS")
-    populations = populations = [i[0] for i in cur.fetchall()]
+    populations = [i[0] for i in cur.fetchall()]
     return populations
 
 
