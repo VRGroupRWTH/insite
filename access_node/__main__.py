@@ -12,7 +12,7 @@ import requests
 import psycopg2
 
 
-def SetupDB(postgres_username, postgres_password, port):
+def SetupNestDB(postgres_username, postgres_password, port):
 	con = psycopg2.connect(database="postgres", user=postgres_username,
                        password=postgres_password, host="database", port=str(port))
 	print("Database connection opened successfully!")
@@ -54,7 +54,7 @@ def SetupDB(postgres_username, postgres_password, port):
 
 def main():
 	# Connect to the Database and initalize basic Table structure
-	SetupDB('postgres', 'docker', 5432)
+	SetupNestDB('postgres', 'docker', 5432)
 
 	# get info node
 	with open('access_node//info_node.json', 'r') as f:

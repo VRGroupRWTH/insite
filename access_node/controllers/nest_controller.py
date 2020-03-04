@@ -228,9 +228,12 @@ def nest_get_simulation_time_info():  # noqa: E501
                        password="docker", host="database", port="5432")
     
     cur = con.cursor()
-    cur.execute("SELECT MAX(CURRENT_SIM_TIME) FROM SIMULATION_NODES")
-    time = cur.fetchall()[0][0]
-    return time
+    cur.execute("SELECT MIN(CURRENT_SIM_TIME) FROM SIMULATION_NODES")
+    current_time = cur.fetchall()[0][0]
+
+    # TODO Add Start and End time when available
+    time_info = SimulationTimeInfo(current=current_time)
+    return time_info
 
 
 def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
