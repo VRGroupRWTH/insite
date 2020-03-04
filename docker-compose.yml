@@ -1,5 +1,14 @@
 version: '3'
 services:
+  database:
+    image: postgres:12.1
+    environment:
+      - POSTGRES_USER:'postgres'
+      - POSTGRES_PASSWORD:'docker'
+      - POSTGRES_DB:'postgres'
+    container_name: "insite_pg-database"
+    ports:
+      - "5432:5432"
   info-node:
     build: ./info-node
     ports:
@@ -10,6 +19,7 @@ services:
       - "8080:8080"
     depends_on:
     - "info-node"
+    - "database"
   insite-nest-module:
     build: ./insite-nest-module
     entrypoint:
