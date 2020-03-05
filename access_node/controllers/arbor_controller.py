@@ -10,6 +10,14 @@ from access_node import util
 
 from access_node.models.nodes import nodes
 import requests
+import psycopg2
+import numpy as np
+
+
+def connect_to_database():
+    return psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+
 
 def arbor_get_attributes():  # noqa: E501
     """Retrieves the list of all attributes.
@@ -19,7 +27,14 @@ def arbor_get_attributes():  # noqa: E501
 
     :rtype: List[str]
     """
-    return 'do some magic!'
+    con = connect_to_database()
+    cur = con.cursor()
+
+    cur.execute("SELECT NAME FROM ATTRIBUTES")
+    attributes = [i[0] for i in cur.fetchall()]
+
+    con.close()
+    return attributes
 
 
 def arbor_get_cell_ids():  # noqa: E501
@@ -30,7 +45,13 @@ def arbor_get_cell_ids():  # noqa: E501
 
     :rtype: List[int]
     """
-    cell_ids = requests.get(nodes.info_node+'/arbor/cell_ids').json()
+    con = connect_to_database()
+    cur = con.cursor()
+
+    cur.execute("SELECT CELL_ID FROM CELLS")
+    cell_ids = [i[0] for i in cur.fetchall()]
+
+    con.close()
     return cell_ids
 
 
@@ -44,7 +65,25 @@ def arbor_get_cell_properties(cell_ids=None):  # noqa: E501
 
     :rtype: List[ArborCellProperties]
     """
-    cell_properties = requests.get(nodes.info_node+'/arbor/cell_properties').json()
+    con = connect_to_database()
+    cur = con.cursor()
+
+    if cell_ids == None:
+        cur.execute("SELECT CELL_ID, PROPERTY FROM CELL_PROPERTIES")
+    else: 
+        cur.execute("SELECT CELL_ID, PROPERTY FROM CELL_PROPERTIES WHERE CELL_PROPERTIES.CELL_ID IN %s", (tuple(cell_ids),))
+
+    properties = np.array(cur.fetchall())
+    cell_ids = np.unique(properties[:,0])
+    cell_properties = []
+    for i in range(len(cell_ids)):
+        per_cell_properties = []
+        for prop in properties:
+            if prop[0] == cell_ids[i]:
+                per_cell_properties.append(prop)
+        cell_properties.append(ArborCellProperties(cell_ids[i], per_cell_properties))
+
+    con.close()
     return cell_properties
 
 
@@ -68,26 +107,26 @@ def arbor_get_measurements(attribute, probe_ids=None, _from=None, to=None, offse
 
     :rtype: ArborMeasurement
     """
-    if measurement_point_ids == None:
-        measurement_points = arbor_get_measurement_points()
-        measurement_point_ids = []
-        for point in measurement_points:
-               measurement_point_ids.append(point.id)
+    if probe_ids == None:
+        probes = arbor_get_probes()
+        probe_ids = []
+        for probe in probes:
+               probe_ids.append(probe.id)
 
     init = True
     sim_times = []
     measurement = ArborMeasurement([], [], [])
     for node in nodes.arbor_simulation_nodes:
         response = requests.get(
-            'http://'+node+'/arbor/measurements', params={"attribute": attribute, "measurement_point_ids": measurement_point_ids, "_from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/arbor/measurements', params={"attribute": attribute, "probe_ids": probe_ids, "_from": _from, "to": to}).json()
         if init:
             sim_times = response['simulation_times']
             measurement = ArborMeasurement(
-                sim_times, measurement_point_ids, [None for x in range(0, (len(sim_times)*len(measurement_point_ids)))])
+                sim_times, probe_ids, [None for x in range(0, (len(sim_times)*len(probe_ids)))])
             init = False
-        for x in range(len(response['measurement_point_ids'])):
-            m_id = response['measurement_point_ids'][x]
-            index = measurement.measurement_point_ids.index(m_id)
+        for x in range(len(response['probe_ids'])):
+            m_id = response['probe_ids'][x]
+            index = measurement.probe_ids.index(m_id)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
                 measurement.values[index_offset +
@@ -96,9 +135,9 @@ def arbor_get_measurements(attribute, probe_ids=None, _from=None, to=None, offse
     # offset and limit
     if (offset is None):
         offset = 0
-    if (limit is None or (limit + offset) > len(measurement.measurement_point_ids)):
-        limit = len(measurement.measurement_point_ids) - offset
-    measurement.measurement_point_ids = measurement.measurement_point_ids[offset:offset+limit]
+    if (limit is None or (limit + offset) > len(measurement.probe_ids)):
+        limit = len(measurement.probe_ids) - offset
+    measurement.probe_ids = measurement.probe_ids[offset:offset+limit]
     measurement.values = measurement.values[offset *
                                             len(sim_times):(offset+limit)*len(sim_times)]
 
@@ -115,8 +154,18 @@ def arbor_get_probes(attribute=None):  # noqa: E501
 
     :rtype: List[Probe]
     """
-    probes = requests.get(nodes.info_node+'/arbor/probes').json()
-    return probes
+    con = connect_to_database()
+    cur = con.cursor()
+
+    # TODO Multiple Attributes per Probe possible? -  Complete this
+
+    if attribute == None:
+         cur.execute("SELECT PROBE_ID, CELL_ID, SEGMENT_ID, POSITION FROM PROBES")
+
+
+
+    con.close()
+    return 
 
 
 def arbor_get_simulation_time_info():  # noqa: E501
@@ -127,8 +176,17 @@ def arbor_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    simulation_time_info = requests.get(nodes.info_node+'/arbor/simulation_time_info').json()
-    return simulation_time_info
+    con = connect_to_database()
+    cur = con.cursor()
+
+    cur.execute("SELECT MIN(CURRENT_SIM_TIME) FROM ARBOR_SIMULATION_NODES")
+    current_time = cur.fetchall()[0][0]
+
+    con.close()
+
+    # TODO Add Start and End time when available
+    time_info = SimulationTimeInfo(current=current_time)
+    return time_info
 
 
 def arbor_get_spikes(_from=None, to=None, cell_ids=None, segment_ids=None, offset=None, limit=None):  # noqa: E501
@@ -154,7 +212,7 @@ def arbor_get_spikes(_from=None, to=None, cell_ids=None, segment_ids=None, offse
     spikes = Spikes([], [])
     for node in nodes.arbor_simulation_nodes:
         response = requests.get(
-            'http://'+node+'/arbor/spikes', params={"from": _from, "to": to, "gids": gids}).json()
+            'http://'+node+'/arbor/spikes', params={"from": _from, "to": to, "cell_ids": cell_ids, "segment_ids": segment_ids}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
