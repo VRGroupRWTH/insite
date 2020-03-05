@@ -115,18 +115,18 @@ def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=No
         if mult['id'] == multimeter_id:
             multimeter_exists = True
             if attribute not in mult['attributes']:
-                return Status(code=400, message="Given multimeter does not measure given attribute")
+                return "Given multimeter does not measure given attribute", 400
             mult_gids = mult['gids']
             break
     if not multimeter_exists:
-        return Status(code=400, message="Given multimeter does not exist")
+        return "Given multimeter does not exist", 400
 
     if gids == None:
         gids = mult_gids
     else:
         for gid in gids:
             if gid not in mult_gids:
-                return Status(code=400, message="Gid "+str(gid)+" is not measured by given Multimeter")
+                return "Gid "+str(gid)+" is not measured by given Multimeter", 400
 
     init = True
     sim_times = []
