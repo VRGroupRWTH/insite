@@ -57,33 +57,39 @@ def SetupArborTables(postgres_username, postgres_password, port):
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS PROBES CASCADE")
 	cur.execute("DROP TABLE IF EXISTS CELLS CASCADE")
-	cur.execute("DROP TABLE IF EXISTS SIMULATION_NODES CASCADE")
+	cur.execute("DROP TABLE IF EXISTS ARBOR_SIMULATION_NODES CASCADE")
 	cur.execute("DROP TABLE IF EXISTS ATTRIBUTES CASCADE")
-	cur.execute('''CREATE TABLE SIMULATION_NODES (
-      NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
+
+	cur.execute('''CREATE TABLE ARBOR_SIMULATION_NODES (
+      NODE_ID           INT PRIMARY KEY NOT NULL UNIQUE,
       ADDRESS           VARCHAR(25),
       CURRENT_SIM_TIME  FLOAT);''')
+
 	cur.execute('''CREATE TABLE CELLS (
       CELL_ID   			INT PRIMARY KEY NOT NULL UNIQUE
 			);''')
+
 	cur.execute('''CREATE TABLE CELL_PROPERTIES (
       CELL_ID   			INT NOT NULL,
-			PROPERTY				VARCHAR(50),
+			PROPERTY				VARCHAR(50) NOT NULL,
 			PRIMARY KEY (CELL_ID, PROPERTY),
 			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID),
 			);''')
+
 	cur.execute('''CREATE TABLE PROBES (
       PROBE_ID      INT PRIMARY KEY NOT NULL UNIQUE,
-      CELL_ID       INT,  
-      SEGMENT_ID 		INT,
+      CELL_ID       INT NOT NULL,  
+      SEGMENT_ID 		INT NOT NULL,
 			POSITION   		FLOAT,
 			NODE_ID       INT,  
-      FOREIGN KEY (NODE_ID) REFERENCES SIMULATION_NODES (NODE_ID),
+      FOREIGN KEY (NODE_ID) REFERENCES ARBOR_SIMULATION_NODES (NODE_ID),
 			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID));''')
+
 	cur.execute('''CREATE TABLE ATTRIBUTES (
       ATTRIBUTE_ID		INT PRIMARY KEY NOT NULL UNIQUE,
-      NAME   					INT NOT NULL,
+      NAME   					VARCHAR(50) NOT NULL,
     	);''')
+
 	con.commit()
 	con.close()
 	print("Arbor tables created successfully!\n")

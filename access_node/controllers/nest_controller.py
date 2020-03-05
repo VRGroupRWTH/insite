@@ -13,6 +13,12 @@ import requests
 import psycopg2
 import numpy as np
 
+
+def connect_to_database():
+    return psycopg2.connect(database="postgres", user="postgres",
+                       password="docker", host="database", port="5432")
+
+
 def nest_get_gids():  # noqa: E501
     """Retrieves the list of all GID.
 
@@ -21,12 +27,12 @@ def nest_get_gids():  # noqa: E501
 
     :rtype: List[int]
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
-    
+    con = connect_to_database()
     cur = con.cursor()
+
     cur.execute("SELECT GID FROM GIDS")
     gids = [i[0] for i in cur.fetchall()]
+
     con.close()
     return gids
 
@@ -41,12 +47,12 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
+    con = connect_to_database()
     
     cur = con.cursor()
     cur.execute("SELECT GID FROM GIDS WHERE GIDS.POPULATION_ID ="+str(population_id))
     gids = [i[0] for i in cur.fetchall()]
+
     con.close()
     return gids
 
@@ -59,8 +65,7 @@ def nest_get_multimeter_info():  # noqa: E501
 
     :rtype: MultimeterInfo
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
+    con = connect_to_database()
     cur = con.cursor()
 
     cur.execute("SELECT MULTIMETER_ID FROM MULTIMETERS")
@@ -80,8 +85,8 @@ def nest_get_multimeter_info():  # noqa: E501
                     "attributes": attributes[i][0],
                     "gids": gids[i]})
 
+   
     con.close()
-
     return mult_info
 
 
@@ -169,9 +174,7 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
 
     :rtype: List[NestNeuronProperties]
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
-    
+    con = connect_to_database()
     cur = con.cursor()
 
     cur.execute("Select * FROM GIDS LIMIT 0")
@@ -183,6 +186,7 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
         cur.execute("Select * FROM GIDS")
     else:
         cur.execute("Select * FROM GIDS WHERE GID IN %s", (tuple(gids),))
+    
     con.close()
 
     properties = np.array(cur.fetchall())
@@ -207,12 +211,13 @@ def nest_get_populations():  # noqa: E501
 
     :rtype: List[int]
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
-    
+    con = connect_to_database()
     cur = con.cursor()
+
     cur.execute("SELECT DISTINCT (POPULATION_ID) FROM GIDS")
     populations = [i[0] for i in cur.fetchall()]
+
+    con.close()
     return populations
 
 
@@ -224,12 +229,13 @@ def nest_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    con = psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
-    
+    con = connect_to_database()
     cur = con.cursor()
+
     cur.execute("SELECT MIN(CURRENT_SIM_TIME) FROM SIMULATION_NODES")
     current_time = cur.fetchall()[0][0]
+
+    con.close()
 
     # TODO Add Start and End time when available
     time_info = SimulationTimeInfo(current=current_time)
