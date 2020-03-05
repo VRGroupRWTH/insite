@@ -157,15 +157,27 @@ def arbor_get_probes(attribute=None):  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    # TODO Multiple Attributes per Probe possible? -  Complete this
-
     if attribute == None:
-         cur.execute("SELECT PROBE_ID, CELL_ID, SEGMENT_ID, POSITION FROM PROBES")
+        cur.execute('''SELECT 
+                        PROBES.PROBE_ID, 
+                        PROBES.CELL_ID, 
+                        PROBES.SEGMENT_ID,  
+                        PROBES.POSITION,
+                        FROM PROBES''')
+    else:
+        cur.execute('''SELECT 
+                        PROBES.PROBE_ID, 
+                        PROBES.CELL_ID, 
+                        PROBES.SEGMENT_ID,  
+                        PROBES.POSITION,
+                        FROM PROBES INNER JOIN ATTRIBUTES
+                        ON PROBES.ATTRIBUTE_ID = ATTRIBUTES.ATTRIBUTE_ID
+                        WHERE ATTRIBUTES.NAME = %s''', (attribute,))
 
-
-
+    probes = np.array(cur.fetchall())
     con.close()
-    return 
+
+    return  [Probe(*probe) for probe in probes]
 
 
 def arbor_get_simulation_time_info():  # noqa: E501
