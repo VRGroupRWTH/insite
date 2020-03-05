@@ -47,9 +47,46 @@ def SetupNestTables(postgres_username, postgres_password, port):
       FOREIGN KEY (MULTIMETER_ID) REFERENCES MULTIMETERS (MULTIMETER_ID));''')
 
 	con.commit()
-	print("Tables created successfully!\n")
-
 	con.close()
+	print("Nest tables created successfully!\n")
+
+def SetupArborTables(postgres_username, postgres_password, port):
+	con = psycopg2.connect(database="postgres", user=postgres_username,
+                      password=postgres_password, host="database", port=str(port))
+	print("Database connection opened successfully!")
+	cur = con.cursor()
+	cur.execute("DROP TABLE IF EXISTS PROBES CASCADE")
+	cur.execute("DROP TABLE IF EXISTS CELLS CASCADE")
+	cur.execute("DROP TABLE IF EXISTS SIMULATION_NODES CASCADE")
+	cur.execute("DROP TABLE IF EXISTS ATTRIBUTES CASCADE")
+	cur.execute('''CREATE TABLE SIMULATION_NODES (
+      NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
+      ADDRESS           VARCHAR(25),
+      CURRENT_SIM_TIME  FLOAT);''')
+	cur.execute('''CREATE TABLE CELLS (
+      CELL_ID   			INT PRIMARY KEY NOT NULL UNIQUE
+			);''')
+	cur.execute('''CREATE TABLE CELL_PROPERTIES (
+      CELL_ID   			INT NOT NULL,
+			PROPERTY				VARCHAR(50),
+			PRIMARY KEY (CELL_ID, PROPERTY),
+			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID),
+			);''')
+	cur.execute('''CREATE TABLE PROBES (
+      PROBE_ID      INT PRIMARY KEY NOT NULL UNIQUE,
+      CELL_ID       INT,  
+      SEGMENT_ID 		INT,
+			POSITION   		FLOAT,
+			NODE_ID       INT,  
+      FOREIGN KEY (NODE_ID) REFERENCES SIMULATION_NODES (NODE_ID),
+			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID));''')
+	cur.execute('''CREATE TABLE ATTRIBUTES (
+      ATTRIBUTE_ID		INT PRIMARY KEY NOT NULL UNIQUE,
+      NAME   					INT NOT NULL,
+    	);''')
+	con.commit()
+	con.close()
+	print("Arbor tables created successfully!\n")
 
 
 def main():
