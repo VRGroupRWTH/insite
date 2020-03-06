@@ -244,19 +244,19 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
     auto& gids = multimeter.gids;
 
     // If the measurement is from a GID we previously do not know, add.
-    if (!binary_search(gids.begin(), gids.end(), sender_gid_)) {
-      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid_), 
-        sender_gid_);
+    if (!binary_search(gids.begin(), gids.end(), sender_gid)) {
+      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid), 
+        sender_gid);
       multimeter.needs_update = true;
     }
 
     for (std::size_t i = 0; i < double_values.size(); ++i)
       data_storage_.AddMultimeterMeasurement(device_id, 
-        multimeter.double_attributes[i], time_stamp, sender_gid_, 
+        multimeter.double_attributes[i], time_stamp, sender_gid, 
         double_values[i]);
     for (std::size_t i = 0; i < long_values.size(); ++i)
       data_storage_.AddMultimeterMeasurement(device_id, 
-        multimeter.long_attributes[i], time_stamp, sender_gid_, 
+        multimeter.long_attributes[i], time_stamp, sender_gid, 
         double(long_values[i]));
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
