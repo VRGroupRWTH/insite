@@ -9,16 +9,11 @@ services:
     container_name: "insite_pg-database"
     ports:
       - "5432:5432"
-  info-node:
-    build: ./info-node
-    ports:
-      - "8079:8080"
   access-node:
     build: ./access-node
     ports:
       - "8080:8080"
     depends_on:
-    - "info-node"
     - "database"
   insite-nest-module:
     build: ./insite-nest-module
@@ -26,12 +21,11 @@ services:
     - "/insite/wait-for.sh"
     - "-t"
     - "5"
-    - "info-node:8080"
+    - "database:5432"
     - "--"
     - "/insite-build/run_brunel_simulation.sh"
     - "1000"
     depends_on:
     - "access-node"
-    - "info-node"
     ports:
       - "8000:8000"
