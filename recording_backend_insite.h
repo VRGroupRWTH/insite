@@ -2,13 +2,15 @@
 #define RECORDING_BACKEND_INSITE_H
 
 #include <unordered_map>
-
 #include <cpprest/http_client.h>
 
 #include "data_storage.hpp"
 #include "http_server.hpp"
 #include "recording_backend.h"
 #include "nest_types.h"
+#include "node_collection.h"
+
+#include "neuron_info.hpp"
 
 namespace insite {
 
@@ -62,8 +64,10 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   HttpServer http_server_;
   web::http::client::http_client info_node_;
   std::string address_;
-  std::vector<nest::index> gids_;
-  std::vector<nest::index> new_gids_;
+  std::vector<NeuronInfo> neuron_infos_;
+  std::vector<NeuronInfo> new_neuron_infos_;
+  std::unordered_map<nest::NodeCollectionPTR, int64_t> registered_node_collections_;  
+  std::vector<nest::NodeCollectionPTR> node_collections_to_register_;
   std::unordered_map<nest::index, MultimeterInfo> multimeter_infos_;
   nest::delay latest_simulation_time_ = 0;
 };
