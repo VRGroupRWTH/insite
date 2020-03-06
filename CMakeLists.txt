@@ -105,6 +105,7 @@ project( ${MODULE_NAME} CXX )
 
 # Add cpprestsdk
 find_package(cpprestsdk REQUIRED)
+find_package(libpqxx REQUIRED)
 
 # Get the Python executable (for help generation).
 execute_process(
@@ -283,7 +284,7 @@ if ( BUILD_SHARED_LIBS )
   install( TARGETS ${MODULE_NAME}_module
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
-  target_link_libraries(${MODULE_NAME}_module PRIVATE cpprestsdk::cpprest)
+  target_link_libraries(${MODULE_NAME}_module PRIVATE cpprestsdk::cpprest pqxx)
 endif ()
 
 # Build dynamic/static library for standard linking from NEST.
