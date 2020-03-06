@@ -8,13 +8,16 @@ from flask_cors import CORS
 from access_node.models.nodes import nodes
 import json
 
+import time
 import requests
 import psycopg2
 
+def ConnectToDatabase():
+	return psycopg2.connect(database="postgres", user=postgres_username,
+                       password=postgres_password, host="database", port=str(port))
 
 def SetupNestTables(postgres_username, postgres_password, port):
-	con = psycopg2.connect(database="postgres", user=postgres_username,
-                       password=postgres_password, host="database", port=str(port))
+	con = ConnectToDatabase()
 	print("Database connection opened successfully!")
 
 	cur = con.cursor()
@@ -26,7 +29,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
 
 	cur.execute('''CREATE TABLE SIMULATION_NODES (
       NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
-      ADDRESS           VARCHAR(25),
+      ADDRESS           VARCHAR(50),
       CURRENT_SIM_TIME  FLOAT);''')
 
 	cur.execute('''CREATE TABLE MULTIMETERS (
@@ -51,8 +54,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
 	print("Nest tables created successfully!\n")
 
 def SetupArborTables(postgres_username, postgres_password, port):
-	con = psycopg2.connect(database="postgres", user=postgres_username,
-                      password=postgres_password, host="database", port=str(port))
+	con = ConnectToDatabase()
 	print("Database connection opened successfully!")
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS PROBES CASCADE")
@@ -62,7 +64,7 @@ def SetupArborTables(postgres_username, postgres_password, port):
 
 	cur.execute('''CREATE TABLE ARBOR_SIMULATION_NODES (
       NODE_ID           INT PRIMARY KEY NOT NULL UNIQUE,
-      ADDRESS           VARCHAR(25),
+      ADDRESS           VARCHAR(50),
       CURRENT_SIM_TIME  FLOAT);''')
 
 	cur.execute('''CREATE TABLE CELLS (
@@ -102,19 +104,23 @@ def SetupArborTables(postgres_username, postgres_password, port):
 def main():
 	# Connect to the Database and initalize basic Table structure
 	SetupNestTables('postgres', 'docker', 5432)
+	#SetupArborTables('postgres', 'docker', 5432)
 
-	# get info node
-	with open('access_node//info_node.json', 'r') as f:
-		info = json.load(f)
-	nodes.info_node = info['address']
+	# Wait for simulation nodes to post to database
+	time.sleep(10)
+
 
 	# get simulation nodes
-	node_type = 'nest_simulation'
-	nodes.nest_simulation_nodes = requests.get(
-		nodes.info_node+'/nodes', params={"node_type": node_type}).json()
-	node_type = 'arbor_simulation'
-	nodes.arbor_simulation_nodes = requests.get(
-		nodes.info_node+'/nodes', params={"node_type": node_type}).json()
+	con = ConnectToDatabase()
+	cur = con.cursor()
+	# NEST
+	cur.execute("SELECT ADDRESS FROM SIMULATION_NODES")
+	nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+	# Arbor
+	#cur.execute("SELECT ADDRESS FROM SIMULATION_NODES")
+	#nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+	con.close()
+
 
 	# run acces_node
 	app = connexion.App(__name__, specification_dir='./swagger/')
