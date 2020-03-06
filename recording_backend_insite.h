@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <cpprest/http_client.h>
+#include <pqxx/pqxx>
 
 #include "data_storage.hpp"
 #include "http_server.hpp"
@@ -62,7 +63,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
 
   DataStorage data_storage_;
   HttpServer http_server_;
-  web::http::client::http_client info_node_;
+  pqxx::connection database_connection_;
   std::string address_;
   std::vector<NeuronInfo> neuron_infos_;
   std::vector<NeuronInfo> new_neuron_infos_;

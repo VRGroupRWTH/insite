@@ -20,26 +20,26 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      info_node_("http://info-node:8080"),
+      database_connection_("postgresql://postgres@database"),
       address_("insite-nest-module:" + get_port_string()) {
   web::uri_builder builder("/node");
   builder.append_query("node_type", "nest_simulation", true);
   builder.append_query("address", address_, true);
 
-  try {
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            throw std::runtime_error(response.to_string());
-          }
-        })
-        .wait();
-  } catch (const std::exception& exception) {
-    std::cerr << "Failed to register to info node: \n"
-              << exception.what() << "\n"
-              << std::endl;
-    throw;
-  }
+  // try {
+  //   info_node_.request(web::http::methods::PUT, builder.to_string())
+  //       .then([](const web::http::http_response& response) {
+  //         if (response.status_code() != web::http::status_codes::OK) {
+  //           throw std::runtime_error(response.to_string());
+  //         }
+  //       })
+  //       .wait();
+  // } catch (const std::exception& exception) {
+  //   std::cerr << "Failed to register to info node: \n"
+  //             << exception.what() << "\n"
+  //             << std::endl;
+  //   throw;
+  // }
 }
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
@@ -106,15 +106,15 @@ void RecordingBackendInsite::post_step_hook() {
     builder.append_query("time", latest_simulation_time_, false);
     builder.append_query("node_address", address_, true);
 
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send time to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          }
-        }).wait(); // TODO: this wait definitely needs to go!
+    // info_node_.request(web::http::methods::PUT, builder.to_string())
+    //     .then([](const web::http::http_response& response) {
+    //       if (response.status_code() != web::http::status_codes::OK) {
+    //         std::cerr << "Failed to send time to info node: \n"
+    //                   << response.to_string() << "\n"
+    //                   << std::endl;
+    //         throw std::runtime_error(response.to_string());
+    //       }
+    //     }).wait(); // TODO: this wait definitely needs to go!
   }
 
   if (new_neuron_infos_.size() > 0) {
@@ -125,15 +125,15 @@ void RecordingBackendInsite::post_step_hook() {
     }
     builder.append_query("address", address_, true);
 
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send gids to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          }
-        }).wait();
+    // info_node_.request(web::http::methods::PUT, builder.to_string())
+    //     .then([](const web::http::http_response& response) {
+    //       if (response.status_code() != web::http::status_codes::OK) {
+    //         std::cerr << "Failed to send gids to info node: \n"
+    //                   << response.to_string() << "\n"
+    //                   << std::endl;
+    //         throw std::runtime_error(response.to_string());
+    //       }
+    //     }).wait();
 
     // Send new properties
     builder = web::uri_builder("/neuron_properties");
@@ -149,16 +149,16 @@ void RecordingBackendInsite::post_step_hook() {
                 neuron_info.position.begin(), neuron_info.position.end()));
     }
 
-    info_node_
-        .request(web::http::methods::PUT, builder.to_string(), request_body)
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send neuron properties to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          }
-        }).wait();
+    // info_node_
+    //     .request(web::http::methods::PUT, builder.to_string(), request_body)
+    //     .then([](const web::http::http_response& response) {
+    //       if (response.status_code() != web::http::status_codes::OK) {
+    //         std::cerr << "Failed to send neuron properties to info node: \n"
+    //                   << response.to_string() << "\n"
+    //                   << std::endl;
+    //         throw std::runtime_error(response.to_string());
+    //       }
+    //     }).wait();
 
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
@@ -182,20 +182,20 @@ void RecordingBackendInsite::post_step_hook() {
     for (auto gid : multimeter.gids)
       builder.append_query("gids", gid, false);
     
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          })
-          .wait();
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to put multimeter info: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
+    // try {
+    //   info_node_.request(web::http::methods::PUT, builder.to_string())
+    //       .then([](const web::http::http_response& response) {
+    //         if (response.status_code() != web::http::status_codes::OK) {
+    //           throw std::runtime_error(response.to_string());
+    //         }
+    //       })
+    //       .wait();
+    // } catch (const std::exception& exception) {
+    //   std::cerr << "Failed to put multimeter info: \n"
+    //             << exception.what() << "\n"
+    //             << std::endl;
+    //   throw;
+    // }
   }
   // Send new collections
   for (const auto& node_collection : node_collections_to_register_) {
@@ -206,25 +206,25 @@ void RecordingBackendInsite::post_step_hook() {
 
     // Initialize to "invalid" state
     registered_node_collections_[node_collection] = -1;
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([this,
-               node_collection](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send population to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          } else {
-            response.extract_json().then(
-                [this, node_collection](const web::json::value& population_id) {
-                  std::cout << "Got id for node collection " << node_collection
-                            << ": " << population_id << std::endl;
-                  registered_node_collections_[node_collection] =
-                      population_id.as_number().to_int64();
-                });
-          }
-        })
-        .wait();  // Wait because it may cause a race condition
+    // info_node_.request(web::http::methods::PUT, builder.to_string())
+    //     .then([this,
+    //            node_collection](const web::http::http_response& response) {
+    //       if (response.status_code() != web::http::status_codes::OK) {
+    //         std::cerr << "Failed to send population to info node: \n"
+    //                   << response.to_string() << "\n"
+    //                   << std::endl;
+    //         throw std::runtime_error(response.to_string());
+    //       } else {
+    //         response.extract_json().then(
+    //             [this, node_collection](const web::json::value& population_id) {
+    //               std::cout << "Got id for node collection " << node_collection
+    //                         << ": " << population_id << std::endl;
+    //               registered_node_collections_[node_collection] =
+    //                   population_id.as_number().to_int64();
+    //             });
+    //       }
+    //     })
+    //     .wait();  // Wait because it may cause a race condition
   }
   node_collections_to_register_.clear();
 }
