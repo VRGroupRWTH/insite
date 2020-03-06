@@ -12,12 +12,12 @@ import time
 import requests
 import psycopg2
 
-def ConnectToDatabase():
+def ConnectToDatabase(postgres_username, postgres_password, port):
 	return psycopg2.connect(database="postgres", user=postgres_username,
                        password=postgres_password, host="database", port=str(port))
 
 def SetupNestTables(postgres_username, postgres_password, port):
-	con = ConnectToDatabase()
+	con = ConnectToDatabase(postgres_username, postgres_password, port)
 	print("Database connection opened successfully!")
 
 	cur = con.cursor()
@@ -54,7 +54,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
 	print("Nest tables created successfully!\n")
 
 def SetupArborTables(postgres_username, postgres_password, port):
-	con = ConnectToDatabase()
+	con = ConnectToDatabase(postgres_username, postgres_password, port)
 	print("Database connection opened successfully!")
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS PROBES CASCADE")
@@ -107,11 +107,11 @@ def main():
 	#SetupArborTables('postgres', 'docker', 5432)
 
 	# Wait for simulation nodes to post to database
-	time.sleep(10)
+	time.sleep(5)
 
 
 	# get simulation nodes
-	con = ConnectToDatabase()
+	con = ConnectToDatabase('postgres', 'docker', 5432)
 	cur = con.cursor()
 	# NEST
 	cur.execute("SELECT ADDRESS FROM SIMULATION_NODES")
