@@ -68,6 +68,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::vector<NeuronInfo> new_neuron_infos_;
   std::unordered_map<nest::NodeCollectionPTR, int64_t> registered_node_collections_;  
   std::vector<nest::NodeCollectionPTR> node_collections_to_register_;
+  std::unordered_map<nest::index, MultimeterInfo> multimeter_infos_;
   double latest_simulation_time_ = 0;
 };
 

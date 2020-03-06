@@ -55,6 +55,11 @@ void RecordingBackendInsite::finalize() {
 void RecordingBackendInsite::enroll(const nest::RecordingDevice& device,
                                     const DictionaryDatum& params) {
   std::cout << "RecordingBackendInsite::enroll(" << device.get_label() << ")\n";
+  
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto id = device.get_node_id();
+    multimeter_infos_.emplace(std::make_pair(id, MultimeterInfo{id, true}));
+  }
 }
 
 void RecordingBackendInsite::disenroll(const nest::RecordingDevice& device) {
@@ -67,6 +72,17 @@ void RecordingBackendInsite::set_value_names(
     const std::vector<Name>& double_value_names,
     const std::vector<Name>& long_value_names) {
   std::cout << "RecordingBackendInsite::set_value_names()\n";
+
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto& multimeter = multimeter_infos_.at(device.get_node_id());
+    
+    for (auto& name : double_value_names)
+      multimeter.double_attributes.push_back(name.toString());
+    for (auto& name : long_value_names)
+      multimeter.long_attributes.push_back(name.toString());
+
+    multimeter.needs_update = true;    
+  }
 }
 
 void RecordingBackendInsite::prepare() {}
@@ -150,6 +166,37 @@ void RecordingBackendInsite::post_step_hook() {
     new_neuron_infos_.clear();
   }
 
+  // Send multimeter info
+  for (auto& kvp : multimeter_infos_) {
+    auto& multimeter = kvp.second;
+    if (!multimeter.needs_update)
+      continue;
+    multimeter.needs_update = false;
+    
+    web::uri_builder builder("/multimeter_info");
+    builder.append_query("id", multimeter.device_id, true);
+    for (auto attribute : multimeter.double_attributes)
+      builder.append_query("attributes", attribute, true);
+    for (auto attribute : multimeter.long_attributes)
+      builder.append_query("attributes", attribute, true);
+    for (auto gid : multimeter.gids)
+      builder.append_query("gids", gid, false);
+    
+    try {
+      info_node_.request(web::http::methods::PUT, builder.to_string())
+          .then([](const web::http::http_response& response) {
+            if (response.status_code() != web::http::status_codes::OK) {
+              throw std::runtime_error(response.to_string());
+            }
+          })
+          .wait();
+    } catch (const std::exception& exception) {
+      std::cerr << "Failed to put multimeter info: \n"
+                << exception.what() << "\n"
+                << std::endl;
+      throw;
+    }
+  }
   // Send new collections
   for (const auto& node_collection : node_collections_to_register_) {
     web::uri_builder builder("/populations");
@@ -190,6 +237,27 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
   const auto time_stamp = event.get_stamp().get_ms();
   if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
     data_storage_.AddSpike(time_stamp, sender_gid);
+  }
+  if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
+    auto device_id = device.get_node_id();
+    auto& multimeter = multimeter_infos_.at(device_id);
+    auto& gids = multimeter.gids;
+
+    // If the measurement is from a GID we previously do not know, add.
+    if (!binary_search(gids.begin(), gids.end(), sender_gid)) {
+      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid), 
+        sender_gid);
+      multimeter.needs_update = true;
+    }
+
+    for (std::size_t i = 0; i < double_values.size(); ++i)
+      data_storage_.AddMultimeterMeasurement(device_id, 
+        multimeter.double_attributes[i], time_stamp, sender_gid, 
+        double_values[i]);
+    for (std::size_t i = 0; i < long_values.size(); ++i)
+      data_storage_.AddMultimeterMeasurement(device_id, 
+        multimeter.long_attributes[i], time_stamp, sender_gid, 
+        double(long_values[i]));
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
 
