@@ -48,8 +48,8 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
     :rtype: List[int]
     """
     con = connect_to_database()
-    
     cur = con.cursor()
+
     cur.execute("SELECT GID FROM GIDS WHERE GIDS.POPULATION_ID ="+str(population_id))
     gids = [i[0] for i in cur.fetchall()]
 
@@ -68,21 +68,19 @@ def nest_get_multimeter_info():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT MULTIMETER_ID FROM MULTIMETERS")
-    mult_ids = cur.fetchall()
+    ur.execute("SELECT * FROM MULTIMETERS;")
+    attributes = np.array(cur.fetchall())
 
-    cur.execute("SELECT regexp_replace(ATTRIBUTE, '\s+$', '') FROM (SELECT * FROM MULTIMETERS) AS MULT_INFO;")
-    attributes = cur.fetchall()
-    
+
     gids = []
-    for id in mult_ids:
+    for id in attributes[:,0]:
         cur.execute("SELECT GID FROM MULT_PER_GID WHERE MULTIMETER_ID = %s", (id,))
         gids.append([i[0] for i in cur.fetchall()])
 
     mult_info = []
-    for i in range(len(mult_ids)):
-        mult_info.append({"id": mult_ids[i][0],
-                    "attributes": attributes[i][0],
+    for i in range(len(attributes)):
+        mult_info.append({"id": attributes[i][0],
+                    "attributes": attributes[i][1],
                     "gids": gids[i]})
 
    

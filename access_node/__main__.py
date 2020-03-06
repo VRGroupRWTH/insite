@@ -31,7 +31,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
 
 	cur.execute('''CREATE TABLE MULTIMETERS (
       MULTIMETER_ID   INT PRIMARY KEY NOT NULL UNIQUE,
-      ATTRIBUTE       CHAR(50) );''')
+      ATTRIBUTE       VARCHAR(50) );''')
 
 	cur.execute('''CREATE TABLE GIDS (
       GID             INT PRIMARY KEY NOT NULL UNIQUE,
