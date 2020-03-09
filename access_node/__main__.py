@@ -28,7 +28,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
 
 
 	cur.execute('''CREATE TABLE SIMULATION_NODES (
-      NODE_ID           INT       PRIMARY KEY NOT NULL UNIQUE,
+      NODE_ID           SERIAL PRIMARY KEY NOT NULL UNIQUE,
       ADDRESS           VARCHAR(50),
       CURRENT_SIM_TIME  FLOAT);''')
 
