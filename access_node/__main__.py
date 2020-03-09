@@ -36,8 +36,8 @@ def SetupNestTables(postgres_username, postgres_password, port):
 
 	cur.execute('''
 	  CREATE TABLE nest_multimeter (
-        id        INT PRIMARY KEY NOT NULL UNIQUE,
-        attribute VARCHAR(50)
+        id         INT PRIMARY KEY NOT NULL UNIQUE,
+        attributes VARCHAR(50) ARRAY
 	  );''')
 
 	cur.execute('''
@@ -45,6 +45,9 @@ def SetupNestTables(postgres_username, postgres_password, port):
         id                 INT PRIMARY KEY NOT NULL UNIQUE,
         simulation_node_id INT,  
         population_id      INT,
+		position_x         FLOAT,
+		position_y         FLOAT,
+		position_z         FLOAT,
         FOREIGN KEY (simulation_node_id) REFERENCES nest_simulation_node (id)
 	  );''')
 
