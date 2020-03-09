@@ -65,6 +65,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   HttpServer http_server_;
   pqxx::connection database_connection_;
   std::string address_;
+  int simulation_node_id_;
   std::vector<NeuronInfo> neuron_infos_;
   std::vector<NeuronInfo> new_neuron_infos_;
   std::unordered_map<nest::NodeCollectionPTR, int64_t> registered_node_collections_;  

@@ -26,20 +26,14 @@ RecordingBackendInsite::RecordingBackendInsite()
   builder.append_query("node_type", "nest_simulation", true);
   builder.append_query("address", address_, true);
 
-  // try {
-  //   info_node_.request(web::http::methods::PUT, builder.to_string())
-  //       .then([](const web::http::http_response& response) {
-  //         if (response.status_code() != web::http::status_codes::OK) {
-  //           throw std::runtime_error(response.to_string());
-  //         }
-  //       })
-  //       .wait();
-  // } catch (const std::exception& exception) {
-  //   std::cerr << "Failed to register to info node: \n"
-  //             << exception.what() << "\n"
-  //             << std::endl;
-  //   throw;
-  // }
+  pqxx::work txn(database_connection_);
+  simulation_node_id_ = txn.exec1(
+    "INSERT INTO nest_simulation_node (address) " 
+    "VALUES ('http://insite-nest-module:" + get_port_string() + "') "
+    "RETURNING id;"
+  )[0].as<int>();
+  std::cout << "Simulation node registered to database. Node ID: " << simulation_node_id_ << std::endl;
+  txn.commit();
 }
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
@@ -102,19 +96,13 @@ void RecordingBackendInsite::post_run_hook() {
 void RecordingBackendInsite::post_step_hook() {
   // Send simulation time
   {
-    web::uri_builder builder("/current_time");
-    builder.append_query("time", latest_simulation_time_, false);
-    builder.append_query("node_address", address_, true);
-
-    // info_node_.request(web::http::methods::PUT, builder.to_string())
-    //     .then([](const web::http::http_response& response) {
-    //       if (response.status_code() != web::http::status_codes::OK) {
-    //         std::cerr << "Failed to send time to info node: \n"
-    //                   << response.to_string() << "\n"
-    //                   << std::endl;
-    //         throw std::runtime_error(response.to_string());
-    //       }
-    //     }).wait(); // TODO: this wait definitely needs to go!
+    pqxx::work txn(database_connection_);
+    txn.exec0(
+      "UPDATE nest_simulation_node " 
+      "SET current_simulation_time = " + std::to_string(latest_simulation_time_) + ""
+      "WHERE id = " + std::to_string(simulation_node_id_)
+    );
+    txn.commit();
   }
 
   if (new_neuron_infos_.size() > 0) {
