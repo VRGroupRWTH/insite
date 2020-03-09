@@ -30,7 +30,7 @@ def nest_get_gids():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT GID FROM GIDS")
+    cur.execute("SELECT id FROM nest_neuron")
     gids = [i[0] for i in cur.fetchall()]
 
     con.close()
@@ -50,7 +50,7 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT GID FROM GIDS WHERE GIDS.POPULATION_ID ="+str(population_id))
+    cur.execute("SELECT id FROM nest_neuron WHERE nest_neuron.population_id ="+str(population_id))
     gids = [i[0] for i in cur.fetchall()]
 
     con.close()
@@ -68,13 +68,13 @@ def nest_get_multimeter_info():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    ur.execute("SELECT * FROM MULTIMETERS;")
+    ur.execute("SELECT * FROM nest_multimeter;")
     attributes = np.array(cur.fetchall())
 
 
     gids = []
     for id in attributes[:,0]:
-        cur.execute("SELECT GID FROM MULT_PER_GID WHERE MULTIMETER_ID = %s", (id,))
+        cur.execute("SELECT id FROM nest_neuron_multimeter WHERE id = %s", (id,))
         gids.append([i[0] for i in cur.fetchall()])
 
     mult_info = []
@@ -175,15 +175,15 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("Select * FROM GIDS LIMIT 0")
+    cur.execute("Select * FROM nest_neuron LIMIT 0")
     colnames = np.array([desc[0] for desc in cur.description])
     # column 1 and 2 contain the Node_id/Population_id and thus are removed
     colnames = np.delete(colnames, [1,2])
 
     if gids == None:
-        cur.execute("Select * FROM GIDS")
+        cur.execute("Select * FROM nest_neuron")
     else:
-        cur.execute("Select * FROM GIDS WHERE GID IN %s", (tuple(gids),))
+        cur.execute("Select * FROM nest_neuron WHERE id IN %s", (tuple(gids),))
     
     con.close()
 
@@ -212,7 +212,7 @@ def nest_get_populations():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT DISTINCT (POPULATION_ID) FROM GIDS")
+    cur.execute("SELECT DISTINCT (population_id) FROM nest_neuron")
     populations = [i[0] for i in cur.fetchall()]
 
     con.close()
@@ -230,7 +230,7 @@ def nest_get_simulation_time_info():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT MIN(CURRENT_SIM_TIME) FROM SIMULATION_NODES")
+    cur.execute("SELECT MIN(current_simulation_time) FROM nest_simulation_node")
     current_time = cur.fetchall()[0][0]
 
     con.close()

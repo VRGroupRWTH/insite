@@ -30,7 +30,7 @@ def arbor_get_attributes():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT NAME FROM ATTRIBUTES")
+    cur.execute("SELECT name FROM arbor_attribute")
     attributes = [i[0] for i in cur.fetchall()]
 
     con.close()
@@ -48,7 +48,7 @@ def arbor_get_cell_ids():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT CELL_ID FROM CELLS")
+    cur.execute("SELECT id FROM arbor_cell")
     cell_ids = [i[0] for i in cur.fetchall()]
 
     con.close()
@@ -69,9 +69,9 @@ def arbor_get_cell_properties(cell_ids=None):  # noqa: E501
     cur = con.cursor()
 
     if cell_ids == None:
-        cur.execute("SELECT CELL_ID, PROPERTY FROM CELL_PROPERTIES")
+        cur.execute("SELECT cell_id, property FROM cell_property")
     else: 
-        cur.execute("SELECT CELL_ID, PROPERTY FROM CELL_PROPERTIES WHERE CELL_PROPERTIES.CELL_ID IN %s", (tuple(cell_ids),))
+        cur.execute("SELECT cell_id, property FROM cell_property WHERE cell_property.cell_id IN %s", (tuple(cell_ids),))
 
     properties = np.array(cur.fetchall())
     cell_ids = np.unique(properties[:,0])
@@ -159,20 +159,20 @@ def arbor_get_probes(attribute=None):  # noqa: E501
 
     if attribute == None:
         cur.execute('''SELECT 
-                        PROBES.PROBE_ID, 
-                        PROBES.CELL_ID, 
-                        PROBES.SEGMENT_ID,  
-                        PROBES.POSITION,
-                        FROM PROBES''')
+                        arbor_probe.id, 
+                        arbor_probe.cell_id, 
+                        arbor_probe.segment_id,  
+                        arbor_probe.position,
+                        FROM arbor_probe''')
     else:
         cur.execute('''SELECT 
-                        PROBES.PROBE_ID, 
-                        PROBES.CELL_ID, 
-                        PROBES.SEGMENT_ID,  
-                        PROBES.POSITION,
-                        FROM PROBES INNER JOIN ATTRIBUTES
-                        ON PROBES.ATTRIBUTE_ID = ATTRIBUTES.ATTRIBUTE_ID
-                        WHERE ATTRIBUTES.NAME = %s''', (attribute,))
+                        arbor_probe.id, 
+                        arbor_probe.cell_id, 
+                        arbor_probe.segment_id,  
+                        arbor_probe.position,
+                        FROM arbor_probe INNER JOIN arbor_attribute
+                        ON arbor_probe.attribute_id = arbor_attribute.id
+                        WHERE arbor_attribute.name = %s''', (attribute,))
 
     probes = np.array(cur.fetchall())
     con.close()
@@ -191,7 +191,7 @@ def arbor_get_simulation_time_info():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    cur.execute("SELECT MIN(CURRENT_SIM_TIME) FROM ARBOR_SIMULATION_NODES")
+    cur.execute("SELECT MIN(current_simulation_time) FROM arbor_simulation_node")
     current_time = cur.fetchall()[0][0]
 
     con.close()

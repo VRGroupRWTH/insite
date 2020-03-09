@@ -21,33 +21,41 @@ def SetupNestTables(postgres_username, postgres_password, port):
 	print("Database connection opened successfully!")
 
 	cur = con.cursor()
-	cur.execute("DROP TABLE IF EXISTS SIMULATION_NODES CASCADE")
-	cur.execute("DROP TABLE IF EXISTS MULTIMETERS CASCADE")
-	cur.execute("DROP TABLE IF EXISTS GIDS CASCADE")
-	cur.execute("DROP TABLE IF EXISTS MULT_PER_GID CASCADE")
+	cur.execute("DROP TABLE IF EXISTS nest_simulation_node CASCADE")
+	cur.execute("DROP TABLE IF EXISTS nest_multimeter CASCADE")
+	cur.execute("DROP TABLE IF EXISTS nest_neuron CASCADE")
+	cur.execute("DROP TABLE IF EXISTS nest_neuron_multimeter CASCADE")
 
 
-	cur.execute('''CREATE TABLE SIMULATION_NODES (
-      NODE_ID           SERIAL PRIMARY KEY NOT NULL UNIQUE,
-      ADDRESS           VARCHAR(50),
-      CURRENT_SIM_TIME  FLOAT);''')
+	cur.execute('''
+	  CREATE TABLE nest_simulation_node (
+        id                      SERIAL PRIMARY KEY NOT NULL UNIQUE,
+        address                 VARCHAR(50),
+        current_simulation_time FLOAT
+	  );''')
 
-	cur.execute('''CREATE TABLE MULTIMETERS (
-      MULTIMETER_ID   INT PRIMARY KEY NOT NULL UNIQUE,
-      ATTRIBUTE       VARCHAR(50) );''')
+	cur.execute('''
+	  CREATE TABLE nest_multimeter (
+        id        INT PRIMARY KEY NOT NULL UNIQUE,
+        attribute VARCHAR(50)
+	  );''')
 
-	cur.execute('''CREATE TABLE GIDS (
-      GID             INT PRIMARY KEY NOT NULL UNIQUE,
-      NODE_ID         INT,  
-      POPULATION_ID   INT,
-      FOREIGN KEY (NODE_ID) REFERENCES SIMULATION_NODES (NODE_ID));''')
+	cur.execute('''
+	  CREATE TABLE nest_neuron (
+        id                 INT PRIMARY KEY NOT NULL UNIQUE,
+        simulation_node_id INT,  
+        population_id      INT,
+        FOREIGN KEY (simulation_node_id) REFERENCES nest_simulation_node (id)
+	  );''')
 
-	cur.execute('''CREATE TABLE MULT_PER_GID(
-      GID             INT NOT NULL,
-      MULTIMETER_ID   INT NOT NULL,
-      PRIMARY KEY (GID,MULTIMETER_ID),
-      FOREIGN KEY (GID) REFERENCES GIDS (GID),
-      FOREIGN KEY (MULTIMETER_ID) REFERENCES MULTIMETERS (MULTIMETER_ID));''')
+	cur.execute('''
+	  CREATE TABLE nest_neuron_multimeter (
+        neuron_id     INT NOT NULL,
+        multimeter_id INT NOT NULL,
+        PRIMARY KEY (neuron_id,multimeter_id),
+        FOREIGN KEY (neuron_id) REFERENCES nest_neuron (id),
+        FOREIGN KEY (multimeter_id) REFERENCES nest_multimeter (id)
+	  );''')
 
 	con.commit()
 	con.close()
@@ -57,42 +65,50 @@ def SetupArborTables(postgres_username, postgres_password, port):
 	con = ConnectToDatabase(postgres_username, postgres_password, port)
 	print("Database connection opened successfully!")
 	cur = con.cursor()
-	cur.execute("DROP TABLE IF EXISTS PROBES CASCADE")
-	cur.execute("DROP TABLE IF EXISTS CELLS CASCADE")
-	cur.execute("DROP TABLE IF EXISTS ARBOR_SIMULATION_NODES CASCADE")
-	cur.execute("DROP TABLE IF EXISTS ATTRIBUTES CASCADE")
+	cur.execute("DROP TABLE IF EXISTS arbor_probe CASCADE")
+	cur.execute("DROP TABLE IF EXISTS arbor_cell CASCADE")
+	cur.execute("DROP TABLE IF EXISTS arbor_simulation_node CASCADE")
+	cur.execute("DROP TABLE IF EXISTS arbor_attribute CASCADE")
 
-	cur.execute('''CREATE TABLE ARBOR_SIMULATION_NODES (
-      NODE_ID           INT PRIMARY KEY NOT NULL UNIQUE,
-      ADDRESS           VARCHAR(50),
-      CURRENT_SIM_TIME  FLOAT);''')
+	cur.execute('''
+	  CREATE TABLE arbor_simulation_node (
+        id                       INT PRIMARY KEY NOT NULL UNIQUE,
+        address                  VARCHAR(50),
+        current_simulation_time  FLOAT
+	  );''')
 
-	cur.execute('''CREATE TABLE CELLS (
-      CELL_ID   			INT PRIMARY KEY NOT NULL UNIQUE
-			);''')
+	cur.execute('''
+	  CREATE TABLE arbor_cell (
+        id INT PRIMARY KEY NOT NULL UNIQUE
+	  );
+	  ''')
 
-	cur.execute('''CREATE TABLE CELL_PROPERTIES (
-      CELL_ID   			INT NOT NULL,
-			PROPERTY				VARCHAR(50) NOT NULL,
-			PRIMARY KEY (CELL_ID, PROPERTY),
-			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID),
-			);''')
+	cur.execute('''
+	  CREATE TABLE cell_property (
+        cell_id  INT NOT NULL,
+		property VARCHAR(50) NOT NULL,
+		PRIMARY KEY (cell_id, property),
+		FOREIGN KEY (cell_id) REFERENCES arbor_cell (id),
+	  );''')
 
-	cur.execute('''CREATE TABLE ATTRIBUTES (
-      ATTRIBUTE_ID		INT PRIMARY KEY NOT NULL UNIQUE,
-      NAME   					VARCHAR(50) NOT NULL,
-    	);''')
+	cur.execute('''
+	  CREATE TABLE arbor_attribute (
+        id   INT PRIMARY KEY NOT NULL UNIQUE,
+        name VARCHAR(50) NOT NULL,
+	  );''')
 
-	cur.execute('''CREATE TABLE PROBES (
-      PROBE_ID      INT PRIMARY KEY NOT NULL UNIQUE,
-      CELL_ID       INT NOT NULL,  
-      SEGMENT_ID 		INT NOT NULL,
-			POSITION   		FLOAT,
-			ATTRIBUTE_ID	INT NOT NULL,
-			NODE_ID       INT,
-      FOREIGN KEY (NODE_ID) REFERENCES ARBOR_SIMULATION_NODES (NODE_ID),
-			FOREIGN KEY (CELL_ID) REFERENCES CELLS (CELL_ID),
-			FOREIGN KEY (ATTRIBUTE_ID) REFERENCES ATTRIBUTES (ATTRIBUTE_ID));''')
+	cur.execute('''
+	  CREATE TABLE arbor_probe (
+        id                 INT PRIMARY KEY NOT NULL UNIQUE,
+        cell_id            INT NOT NULL,  
+        segment_id 		   INT NOT NULL,
+		position   		   FLOAT,
+		attribute_id	   INT NOT NULL,
+		simulation_node_id INT,
+        FOREIGN KEY (simulation_node_id) REFERENCES arbor_simulation_node (id),
+		FOREIGN KEY (cell_id) REFERENCES arbor_cell (id),
+		FOREIGN KEY (attribute_id) REFERENCES arbor_attribute (id)
+	  );''')
 
 	
 
@@ -114,10 +130,10 @@ def main():
 	con = ConnectToDatabase('postgres', 'docker', 5432)
 	cur = con.cursor()
 	# NEST
-	cur.execute("SELECT ADDRESS FROM SIMULATION_NODES")
+	cur.execute("SELECT address FROM nest_simulation_node")
 	nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
 	# Arbor
-	#cur.execute("SELECT ADDRESS FROM SIMULATION_NODES")
+	#cur.execute("SELECT address FROM nest_simulation_node")
 	#nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
 	con.close()
 
