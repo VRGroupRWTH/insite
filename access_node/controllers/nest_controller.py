@@ -185,19 +185,18 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
     else:
         cur.execute("Select * FROM nest_neuron WHERE id IN %s", (tuple(gids),))
     
-    con.close()
-
-    properties = np.array(cur.fetchall())
-    properties = np.delete(properties, [1,2], 1)
-
     nest_properties = []
-    for k in range(len(properties[:,0])):
-        props = {}
-        id = properties[k,0]
-        for i in range(1, len(colnames)):
-            props.update({colnames[i]: properties[k,i]})
-        nest_properties.extend(NestNeuronProperties(id, props))
+    properties = np.array(cur.fetchall())
+    if properties.size != 0:
+        properties = np.delete(properties, [1,2], 1)
+        for k in range(len(properties[:,0])):
+            props = {}
+            id = properties[k,0]
+            for i in range(1, len(colnames)):
+                props.update({colnames[i]: properties[k,i] if properties[k,i] != None else []})
+            nest_properties.append(NestNeuronProperties(id, props))
 
+    con.close()
     return nest_properties
 
 
