@@ -29,7 +29,8 @@ deploy:master:
     script:
         - docker build -t rwthvr/insite-nest-module .
         - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
-        - "[[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]"
+        - >
+            [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
         - docker tag rwthvr/insite-nest-module rwthvr/insite-nest-module:$VERSION
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-nest-module
