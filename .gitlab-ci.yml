@@ -17,6 +17,5 @@ deploy:
         - develop
     script:
         - docker build -t rwthvr/insite-nest-module:develop .
-        - echo ${TEST}
-        - docker login hub.docker.com -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-nest-module:develop
