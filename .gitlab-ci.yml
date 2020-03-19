@@ -6,5 +6,14 @@ include:
 variables:
     INSITE_NEST_MODULE_COMMIT: $CI_COMMIT_SHA
 
-api_test:
-    extends: .api_test
+# api_test:
+#     extends: .api_test
+
+deploy:
+    tags:
+        - docker
+    only:
+        - develop
+    script:
+        - docker build -t rwthvr/insite-nest-module:develop .
+        - docker push rwthvr/insite-nest-module:develop
