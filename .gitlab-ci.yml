@@ -9,7 +9,7 @@ variables:
 # api_test:
 #     extends: .api_test
 
-deploy.develop:
+deploy:develop:
     tags:
         - docker
         - centos
@@ -20,7 +20,7 @@ deploy.develop:
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-nest-module:develop
 
-deploy.master:
+deploy:master:
     tags:
         - docker
         - centos
