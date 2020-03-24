@@ -68,14 +68,15 @@ def nest_get_multimeter_info():  # noqa: E501
     con = connect_to_database()
     cur = con.cursor()
 
-    ur.execute("SELECT * FROM nest_multimeter;")
+    cur.execute("SELECT * FROM nest_multimeter;")
     attributes = np.array(cur.fetchall())
 
 
     gids = []
-    for id in attributes[:,0]:
-        cur.execute("SELECT id FROM nest_neuron_multimeter WHERE id = %s", (id,))
-        gids.append([i[0] for i in cur.fetchall()])
+    if len(attributes) > 0:
+        for id in attributes[:,0]:
+            cur.execute("SELECT id FROM nest_neuron_multimeter WHERE id = %s", (id,))
+            gids.append([i[0] for i in cur.fetchall()])
 
     mult_info = []
     for i in range(len(attributes)):
