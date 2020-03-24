@@ -45,9 +45,7 @@ def SetupNestTables(postgres_username, postgres_password, port):
         id                 INT PRIMARY KEY NOT NULL UNIQUE,
         simulation_node_id INT,  
         population_id      INT,
-		position_x         FLOAT,
-		position_y         FLOAT,
-		position_z         FLOAT,
+		position           FLOAT[],
         FOREIGN KEY (simulation_node_id) REFERENCES nest_simulation_node (id)
 	  );''')
 
