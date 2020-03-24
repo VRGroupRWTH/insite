@@ -75,7 +75,7 @@ def nest_get_multimeter_info():  # noqa: E501
     gids = []
     if len(attributes) > 0:
         for id in attributes[:,0]:
-            cur.execute("SELECT id FROM nest_neuron_multimeter WHERE id = %s", (id,))
+            cur.execute("SELECT neuron_id FROM nest_neuron_multimeter WHERE multimeter_id = %s", (id,))
             gids.append([i[0] for i in cur.fetchall()])
 
     mult_info = []
