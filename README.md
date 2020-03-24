@@ -3,7 +3,7 @@ Public access server providing a REST API for the in-situ pipeline.
 
 To generate execute this from the projects root dir:
 ```
-java -jar <path/to/swagger-codegen-cli.2.4.8.jar> generate -i access_node/swagger/swagger.yaml -l python-flask -c config.json
+java -jar swagger-codegen-cli-2.4.8.jar generate -i access_node/swagger/swagger.yaml -l python-flask -c config.json
 ```
 # Swagger generated server
 

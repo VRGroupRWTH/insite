@@ -1,8 +1,9 @@
 from typing import List
 
 class Nodes(object):
-  def __init__(self, info_node: str=None, simulation_nodes: List[str]=None):
+  def __init__(self, info_node: str=None, nest_simulation_nodes: List[str]=None, arbor_simulation_nodes: List[str]=None):
     self.info_node = info_node
-    self.simulation_nodes = simulation_nodes
+    self.nest_simulation_nodes = nest_simulation_nodes
+    self.arbor_simulation_nodes = arbor_simulation_nodes
 
 nodes = Nodes()
