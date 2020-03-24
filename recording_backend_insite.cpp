@@ -20,26 +20,18 @@ namespace insite {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      info_node_("http://info-node:8080"),
-      address_("insite-nest-module:" + get_port_string()) {
-  web::uri_builder builder("/node");
-  builder.append_query("node_type", "nest_simulation", true);
-  builder.append_query("address", address_, true);
-
-  try {
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            throw std::runtime_error(response.to_string());
-          }
-        })
-        .wait();
-  } catch (const std::exception& exception) {
-    std::cerr << "Failed to register to info node: \n"
-              << exception.what() << "\n"
-              << std::endl;
-    throw;
-  }
+      database_connection_("postgresql://postgres@database") {
+  pqxx::work txn(database_connection_);
+  simulation_node_id_ = txn.exec1(
+                               "INSERT INTO nest_simulation_node (address) "
+                               "VALUES ('http://insite-nest-module:" +
+                               get_port_string() +
+                               "') "
+                               "RETURNING id;")[0]
+                            .as<int>();
+  std::cout << "Simulation node registered to database. Node ID: "
+            << simulation_node_id_ << std::endl;
+  txn.commit();
 }
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
@@ -55,7 +47,7 @@ void RecordingBackendInsite::finalize() {
 void RecordingBackendInsite::enroll(const nest::RecordingDevice& device,
                                     const DictionaryDatum& params) {
   std::cout << "RecordingBackendInsite::enroll(" << device.get_label() << ")\n";
-  
+
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto id = device.get_node_id();
     multimeter_infos_.emplace(std::make_pair(id, MultimeterInfo{id, true}));
@@ -75,13 +67,33 @@ void RecordingBackendInsite::set_value_names(
 
   if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     auto& multimeter = multimeter_infos_.at(device.get_node_id());
-    
-    for (auto& name : double_value_names)
-      multimeter.double_attributes.push_back(name.toString());
-    for (auto& name : long_value_names)
-      multimeter.long_attributes.push_back(name.toString());
 
-    multimeter.needs_update = true;    
+    std::stringstream multimeter_query;
+    multimeter_query << "INSERT INTO nest_multimeter (id, attributes) "
+                     << "VALUES (" << device.get_node_id() << ",\'{";
+
+    bool first = true;
+    for (auto& name : double_value_names) {
+      const auto& name_string = name.toString();
+      multimeter.double_attributes.push_back(name_string);
+
+      multimeter_query << (first ? "" : ",") << '\"' << name_string << "\"";
+      first = false;
+    }
+    for (auto& name : long_value_names) {
+      const auto& name_string = name.toString();
+      multimeter.long_attributes.push_back(name_string);
+
+      multimeter_query << (first ? "" : ",") << '\"' << name_string << "\"";
+      first = false;
+    }
+    multimeter_query << "}\') ON CONFLICT DO NOTHING;";
+
+    multimeter.needs_update = true;
+
+    pqxx::work txn(database_connection_);
+    txn.exec0(multimeter_query.str());
+    txn.commit();
   }
 }
 
@@ -102,63 +114,58 @@ void RecordingBackendInsite::post_run_hook() {
 void RecordingBackendInsite::post_step_hook() {
   // Send simulation time
   {
-    web::uri_builder builder("/current_time");
-    builder.append_query("time", latest_simulation_time_, false);
-    builder.append_query("node_address", address_, true);
-
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send time to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          }
-        }).wait(); // TODO: this wait definitely needs to go!
+    pqxx::work txn(database_connection_);
+    txn.exec0(
+        "UPDATE nest_simulation_node "
+        "SET current_simulation_time = " +
+        std::to_string(latest_simulation_time_) +
+        ""
+        "WHERE id = " +
+        std::to_string(simulation_node_id_));
+    txn.commit();
   }
 
   if (new_neuron_infos_.size() > 0) {
-    // Send new gids
-    web::uri_builder builder("/gids");
+    std::stringstream neuron_query;
+    neuron_query << "INSERT INTO nest_neuron (id, simulation_node_id, "
+                    "population_id, position) "
+                 << "VALUES ";
     for (auto& neuron_info : new_neuron_infos_) {
-      builder.append_query("gids", neuron_info.gid, false);
-    }
-    builder.append_query("address", address_, true);
+      const bool first = neuron_info.gid == new_neuron_infos_[0].gid;
+      if (!first) {
+        neuron_query << ",";
+      }
 
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send gids to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
+      uint64_t population_id = 0;
+      for (const nest::NodeIDTriple& node_id_triple :
+           *neuron_info.gid_collection.get()) {
+        population_id ^= node_id_triple.node_id * 938831;
+      }
+
+      neuron_query << "(" << neuron_info.gid << "," << simulation_node_id_
+                   << "," << population_id % 0x800000;
+
+      const auto position_size = neuron_info.position.size();
+      if (position_size > 0) {
+        assert(position_size <= 3);
+        neuron_query << ",\'{";
+        for (size_t i = 0; i < position_size; ++i) {
+          if (i > 0) {
+            neuron_query << ",";
           }
-        }).wait();
-
-    // Send new properties
-    builder = web::uri_builder("/neuron_properties");
-    web::json::value request_body =
-        web::json::value::array(new_neuron_infos_.size());
-    for (std::size_t i = 0; i < new_neuron_infos_.size(); ++i) {
-      auto& neuron_info = new_neuron_infos_[i];
-      request_body[i]["gid"] = neuron_info.gid;
-      request_body[i]["properties"] = web::json::value();
-      if (!neuron_info.position.empty())
-        request_body[i]["properties"]["position"] =
-            web::json::value::array(std::vector<web::json::value>(
-                neuron_info.position.begin(), neuron_info.position.end()));
+          neuron_query << neuron_info.position[i];
+        }
+        neuron_query << "}\'";
+      } else {
+        neuron_query << ",NULL";
+      }
+      neuron_query << ")";
     }
+    neuron_query << ";";
 
-    info_node_
-        .request(web::http::methods::PUT, builder.to_string(), request_body)
-        .then([](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send neuron properties to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          }
-        }).wait();
+    pqxx::work txn(database_connection_);
+    txn.exec0(neuron_query.str());
+    txn.commit();
 
     neuron_infos_.insert(neuron_infos_.end(), new_neuron_infos_.begin(),
                          new_neuron_infos_.end());
@@ -169,64 +176,28 @@ void RecordingBackendInsite::post_step_hook() {
   // Send multimeter info
   for (auto& kvp : multimeter_infos_) {
     auto& multimeter = kvp.second;
-    if (!multimeter.needs_update)
-      continue;
+    if (!multimeter.needs_update) continue;
     multimeter.needs_update = false;
-    
-    web::uri_builder builder("/multimeter_info");
-    builder.append_query("id", multimeter.device_id, true);
-    for (auto attribute : multimeter.double_attributes)
-      builder.append_query("attributes", attribute, true);
-    for (auto attribute : multimeter.long_attributes)
-      builder.append_query("attributes", attribute, true);
-    for (auto gid : multimeter.gids)
-      builder.append_query("gids", gid, false);
-    
-    try {
-      info_node_.request(web::http::methods::PUT, builder.to_string())
-          .then([](const web::http::http_response& response) {
-            if (response.status_code() != web::http::status_codes::OK) {
-              throw std::runtime_error(response.to_string());
-            }
-          })
-          .wait();
-    } catch (const std::exception& exception) {
-      std::cerr << "Failed to put multimeter info: \n"
-                << exception.what() << "\n"
-                << std::endl;
-      throw;
-    }
-  }
-  // Send new collections
-  for (const auto& node_collection : node_collections_to_register_) {
-    web::uri_builder builder("/populations");
-    for (auto node_id_triple : *node_collection) {
-      builder.append_query("gids", node_id_triple.node_id, false);
-    }
 
-    // Initialize to "invalid" state
-    registered_node_collections_[node_collection] = -1;
-    info_node_.request(web::http::methods::PUT, builder.to_string())
-        .then([this,
-               node_collection](const web::http::http_response& response) {
-          if (response.status_code() != web::http::status_codes::OK) {
-            std::cerr << "Failed to send population to info node: \n"
-                      << response.to_string() << "\n"
-                      << std::endl;
-            throw std::runtime_error(response.to_string());
-          } else {
-            response.extract_json().then(
-                [this, node_collection](const web::json::value& population_id) {
-                  std::cout << "Got id for node collection " << node_collection
-                            << ": " << population_id << std::endl;
-                  registered_node_collections_[node_collection] =
-                      population_id.as_number().to_int64();
-                });
-          }
-        })
-        .wait();  // Wait because it may cause a race condition
+    if (multimeter.gids.size() > 0) {
+      std::stringstream neuron_multimeter_query;
+      neuron_multimeter_query
+          << "INSERT INTO nest_neuron_multimeter (neuron_id, multimeter_id) "
+          << "VALUES ";
+
+      for (const auto& neuron_id : multimeter.gids) {
+        const bool first = neuron_id == multimeter.gids[0];
+        neuron_multimeter_query << (first ? "" : ",") << "(" << neuron_id << ","
+                                << multimeter.device_id << ")";
+      }
+
+      neuron_multimeter_query << " ON CONFLICT DO NOTHING;";
+
+      pqxx::work txn(database_connection_);
+      txn.exec0(neuron_multimeter_query.str());
+      txn.commit();
+    }
   }
-  node_collections_to_register_.clear();
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
@@ -245,19 +216,19 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
 
     // If the measurement is from a GID we previously do not know, add.
     if (!binary_search(gids.begin(), gids.end(), sender_gid)) {
-      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid), 
-        sender_gid);
+      gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid),
+                  sender_gid);
       multimeter.needs_update = true;
     }
 
     for (std::size_t i = 0; i < double_values.size(); ++i)
-      data_storage_.AddMultimeterMeasurement(device_id, 
-        multimeter.double_attributes[i], time_stamp, sender_gid, 
-        double_values[i]);
+      data_storage_.AddMultimeterMeasurement(
+          device_id, multimeter.double_attributes[i], time_stamp, sender_gid,
+          double_values[i]);
     for (std::size_t i = 0; i < long_values.size(); ++i)
-      data_storage_.AddMultimeterMeasurement(device_id, 
-        multimeter.long_attributes[i], time_stamp, sender_gid, 
-        double(long_values[i]));
+      data_storage_.AddMultimeterMeasurement(
+          device_id, multimeter.long_attributes[i], time_stamp, sender_gid,
+          double(long_values[i]));
   }
   latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
 
@@ -278,20 +249,6 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
         std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
                          neuron_info),
         neuron_info);
-
-    // Check if the node collection (population) is already sent to the
-    // info-node
-    const auto sender_node_collection = event.get_sender().get_nc();
-    if (registered_node_collections_.count(sender_node_collection) == 0 &&
-        !binary_search(node_collections_to_register_.begin(),
-                       node_collections_to_register_.end(),
-                       sender_node_collection)) {
-      node_collections_to_register_.insert(
-          std::lower_bound(node_collections_to_register_.begin(),
-                           node_collections_to_register_.end(),
-                           sender_node_collection),
-          sender_node_collection);
-    }
   }
 }
 

@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libwebsocketpp-dev openssl libssl-dev ninja-build \
     openmpi-bin libopenmpi-dev
 RUN pip3 install Cython
+
 RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
     cd nest && \
     git checkout 5c0f41230dda9e4b99b8df89729ea43b340246ad && \
@@ -20,6 +21,7 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     /nest
 RUN ninja && ninja install
+
 RUN git clone --single-branch --branch v2.10.14 --recurse-submodules https://github.com/microsoft/cpprestsdk.git /cpprestsdk
 WORKDIR /cpprestsdk-build
 RUN cmake \
@@ -28,6 +30,17 @@ RUN cmake \
     -DBUILD_TESTS=OFF \
     /cpprestsdk
 RUN ninja && ninja install
+
+RUN apt-get update && apt-get install -y libpq-dev postgresql-server-dev-all
+RUN git clone --single-branch --branch 6.4.6 https://github.com/jtv/libpqxx.git /libpqxx
+WORKDIR /libpqxx-build
+RUN cmake \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_TESTS=OFF \
+    /libpqxx
+RUN ninja && ninja install
+
 COPY . /insite
 WORKDIR /insite-build
 RUN cmake \
