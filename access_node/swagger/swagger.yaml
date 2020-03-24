@@ -616,15 +616,15 @@ definitions:
         items:
           type: "number"
           format: "double"
-      probe_ids:
+      gids:
         type: "array"
         items:
           type: "integer"
           format: "uint64"
       values:
         type: "array"
-        description: "This array contains the measured values for each probe and time\
-          \ to get the value for probe n at time t you have to use the index n * length(simulation_times)\
+        description: "This array contains the measured values for each gid and time\
+          \ to get the value for gid n at time t you have to use the index n * length(simulation_times)\
           \ + t"
         items:
           type: "number"
