@@ -1,9 +1,6 @@
 [submodule "access-node"]
 	path = access-node
 	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/access-node.git
-[submodule "info-node"]
-	path = info-node
-	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/info-node.git
 [submodule "insite-nest-module"]
 	path = insite-nest-module
 	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite-nest-module.git

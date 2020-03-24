@@ -1,27 +1,31 @@
 version: '3'
 services:
-  info-node:
-    build: ./info-node
+  database:
+    image: postgres:12.1
+    environment:
+      - POSTGRES_USER:'postgres'
+      - POSTGRES_PASSWORD:'docker'
+      - POSTGRES_DB:'postgres'
+    container_name: "insite_pg-database"
     ports:
-      - "8079:8080"
+      - "5432:5432"
   access-node:
     build: ./access-node
     ports:
       - "8080:8080"
     depends_on:
-    - "info-node"
+    - "database"
   insite-nest-module:
     build: ./insite-nest-module
     entrypoint:
     - "/insite/wait-for.sh"
     - "-t"
     - "5"
-    - "info-node:8080"
+    - "database:5432"
     - "--"
     - "/insite-build/run_brunel_simulation.sh"
     - "1000"
     depends_on:
     - "access-node"
-    - "info-node"
     ports:
-      - "8000:8000"
+      - "8000-8079:8000-8079"
