@@ -1,6 +1,8 @@
 #include "http_server.hpp"
 #include "data_storage.hpp"
 
+#include <regex>
+
 namespace insite {
 
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
@@ -84,11 +86,19 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
 
   const auto multimeter_id = std::stoll(parameter_multimeter_id->second);
   const auto attribute = parameter_attribute->second;
-  const auto filter_gids = parameter_gids != parameters.end() 
-    ? std::vector<std::uint64_t>(
-        parameter_gids->second.begin(), 
-        parameter_gids->second.end()) 
-    : std::vector<std::uint64_t>();
+
+  auto filter_gids = std::vector<std::uint64_t>();
+  if (parameter_gids != parameters.end()) {
+    std::regex regex{R"([\s,]+)"};
+    std::sregex_token_iterator it{parameter_gids->second.begin(), 
+      parameter_gids->second.end(), regex, -1};
+    std::vector<std::string> filter_gid_strings{it, {}};
+    std::transform(filter_gid_strings.begin(), filter_gid_strings.end(), 
+      std::back_inserter(filter_gids), [ ] (const std::string& str) { 
+        return std::stoll(str); 
+      });
+  }
+  std::cout << "Filter GID count: " << filter_gids.size() << "\n";
 
   const auto measurements = storage_->GetMultimeterMeasurements();
   if (measurements.find(multimeter_id) != measurements.end() &&
