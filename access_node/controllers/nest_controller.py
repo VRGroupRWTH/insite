@@ -16,7 +16,7 @@ import numpy as np
 
 def connect_to_database():
     return psycopg2.connect(database="postgres", user="postgres",
-                       password="docker", host="database", port="5432")
+                       password="postgres", host="database", port="5432")
 
 
 def nest_get_gids():  # noqa: E501

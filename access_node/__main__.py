@@ -22,7 +22,7 @@ def main():
 	time.sleep(5)
 
 	# get simulation nodes
-	con = ConnectToDatabase('postgres', 'docker', 5432)
+	con = ConnectToDatabase('postgres', 'postgres', 5432)
 	cur = con.cursor()
 	# NEST
 	cur.execute("SELECT address FROM nest_simulation_node")
