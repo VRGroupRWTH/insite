@@ -1,11 +1,7 @@
 version: '3'
 services:
   database:
-    image: postgres:12.1
-    environment:
-      - POSTGRES_USER:'postgres'
-      - POSTGRES_PASSWORD:'docker'
-      - POSTGRES_DB:'postgres'
+    build: ./postgres
     container_name: "insite_pg-database"
     ports:
       - "5432:5432"
