@@ -4,3 +4,6 @@
 [submodule "insite-nest-module"]
 	path = insite-nest-module
 	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite-nest-module.git
+[submodule "insite-database"]
+	path = insite-database
+	url = https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/insite-database
