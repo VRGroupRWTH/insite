@@ -304,7 +304,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
-            node+'/population/'+population_id+'/spikes', params={"from": _from, "to": to}).json()
+            node+'/population/$'+str(population_id)+'/spikes', params={"from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
