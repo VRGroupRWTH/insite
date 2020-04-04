@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <atomic>
 
 namespace insite {
 
@@ -45,6 +46,9 @@ class DataStorage {
   std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
     MultimeterMeasurements>> GetMultimeterMeasurements();
 
+  void SetCurrentSimulationTime(double simulation_time);
+  double GetCurrentSimulationTime() const;
+
  private:
   // std::unique_ptr<H5::H5File> h5_file_;
 
@@ -53,6 +57,8 @@ class DataStorage {
   // H5::DataSet spikes_times_dataset_;
   // H5::DataSet spikes_neurons_dataset_;
   std::mutex spike_mutex_;
+
+  std::atomic_uint64_t current_simulation_time_;
 
   // Device ID to attribute index to measurement map.
   std::unordered_map<std::uint64_t, std::unordered_map<std::string, 

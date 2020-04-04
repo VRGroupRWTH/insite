@@ -1,6 +1,7 @@
 #include "data_storage.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 namespace insite {
 
@@ -139,6 +140,19 @@ std::unordered_map<std::uint64_t, std::unordered_map<std::string,
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   auto measurements = buffered_measurements_;
   return measurements;
+}
+
+void DataStorage::SetCurrentSimulationTime(double simulation_time) {
+  uint64_t simulation_time_int;
+  memcpy(&simulation_time_int, &simulation_time, sizeof(simulation_time_int));
+  current_simulation_time_ = simulation_time_int;
+}
+
+double DataStorage::GetCurrentSimulationTime() const {
+  const uint64_t simulation_time_int =current_simulation_time_;
+  double simulation_time;
+  memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
+  return simulation_time;
 }
 
 }  // namespace insite

@@ -14,6 +14,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     } else if (request.method() == "GET" &&
         request.relative_uri().path() == "/multimeter_measurement") {
       request.reply(GetMultimeterMeasurement(request));
+    } else if (request.method() == "GET" &&
+        request.relative_uri().path() == "/current_simulation_time") {
+      request.reply(GetCurrentSimulationTime(request));
     } else {
       std::cerr << "Invalid request: " << request.to_string() << "\n";
       request.reply(web::http::status_codes::NotFound);
@@ -22,6 +25,14 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
 
   http_listener_.open().wait();
   std::cout << "HTTP server is listening...\n";
+}
+
+web::http::http_response HttpServer::GetCurrentSimulationTime(
+    const web::http::http_request& request) {
+  web::http::http_response response(web::http::status_codes::OK);
+  web::json::value simulation_time = storage_->GetCurrentSimulationTime();
+  response.set_body(simulation_time);
+  return response;
 }
 
 web::http::http_response HttpServer::GetSpikes(

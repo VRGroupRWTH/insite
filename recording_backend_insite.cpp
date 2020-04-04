@@ -128,18 +128,19 @@ void RecordingBackendInsite::post_run_hook() {
 }
 
 void RecordingBackendInsite::post_step_hook() {
-  // Send simulation time
-  {
-    pqxx::work txn(database_connection_);
-    txn.exec0(
-        "UPDATE nest_simulation_node "
-        "SET current_simulation_time = " +
-        std::to_string(latest_simulation_time_) +
-        ""
-        "WHERE id = " +
-        std::to_string(simulation_node_id_));
-    txn.commit();
-  }
+  // // Send simulation time
+  // {
+  //   pqxx::work txn(database_connection_);
+  //   txn.exec0(
+  //       "UPDATE nest_simulation_node "
+  //       "SET current_simulation_time = " +
+  //       std::to_string(latest_simulation_time_) +
+  //       ""
+  //       "WHERE id = " +
+  //       std::to_string(simulation_node_id_));
+  //   txn.commit();
+  // }
+  data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
 
   if (new_neuron_infos_.size() > 0) {
     std::stringstream neuron_query;
@@ -190,30 +191,30 @@ void RecordingBackendInsite::post_step_hook() {
   }
 
   // Send multimeter info
-  for (auto& kvp : multimeter_infos_) {
-    auto& multimeter = kvp.second;
-    if (!multimeter.needs_update) continue;
-    multimeter.needs_update = false;
+  // for (auto& kvp : multimeter_infos_) {
+  //   auto& multimeter = kvp.second;
+  //   if (!multimeter.needs_update) continue;
+  //   multimeter.needs_update = false;
 
-    if (multimeter.gids.size() > 0) {
-      std::stringstream neuron_multimeter_query;
-      neuron_multimeter_query
-          << "INSERT INTO nest_neuron_multimeter (neuron_id, multimeter_id) "
-          << "VALUES ";
+  //   if (multimeter.gids.size() > 0) {
+  //     std::stringstream neuron_multimeter_query;
+  //     neuron_multimeter_query
+  //         << "INSERT INTO nest_neuron_multimeter (neuron_id, multimeter_id) "
+  //         << "VALUES ";
 
-      for (const auto& neuron_id : multimeter.gids) {
-        const bool first = neuron_id == multimeter.gids[0];
-        neuron_multimeter_query << (first ? "" : ",") << "(" << neuron_id << ","
-                                << multimeter.device_id << ")";
-      }
+  //     for (const auto& neuron_id : multimeter.gids) {
+  //       const bool first = neuron_id == multimeter.gids[0];
+  //       neuron_multimeter_query << (first ? "" : ",") << "(" << neuron_id << ","
+  //                               << multimeter.device_id << ")";
+  //     }
 
-      neuron_multimeter_query << " ON CONFLICT DO NOTHING;";
+  //     neuron_multimeter_query << " ON CONFLICT DO NOTHING;";
 
-      pqxx::work txn(database_connection_);
-      txn.exec0(neuron_multimeter_query.str());
-      txn.commit();
-    }
-  }
+  //     pqxx::work txn(database_connection_);
+  //     txn.exec0(neuron_multimeter_query.str());
+  //     txn.commit();
+  //   }
+  // }
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice& device,
