@@ -37,6 +37,7 @@ DataStorage::DataStorage(
   // spikes_neurons_dataset_ =
   //     h5_file_->createDataSet("spikes/neurons", H5::PredType::NATIVE_UINT64,
   //                             spikes_data_space, spikes_set_properties_);
+  buffered_spikes_.reserve(32 * 1024 * 1024 / sizeof(Spike)); // Reserve 32mb
 }
 
 void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
