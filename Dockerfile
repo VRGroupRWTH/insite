@@ -51,4 +51,4 @@ RUN cmake \
 RUN ninja && ninja install
 ENV PGPASSWORD=postgres
 EXPOSE 8000
-ENTRYPOINT [ "/insite-build/run_brunel_simulation.sh" ]
+ENTRYPOINT [ "/insite-build/run_brunel_simulation.sh" 1000 2500 2 ]
