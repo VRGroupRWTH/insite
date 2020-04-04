@@ -12,9 +12,12 @@ import time
 import requests
 import psycopg2
 
-def ConnectToDatabase(postgres_username, postgres_password, port):
-	return psycopg2.connect(database="postgres", user=postgres_username,
-                       password=postgres_password, host="database", port=str(port))
+def ConnectToDatabase(postgres_username, postgres_password):
+	database_host = 'database'
+    with open('database_host.txt') as database_host_file:
+        database_host = database_host_file.readline()
+    return psycopg2.connect(database="postgres", user="postgres",
+                       password="postgres", host=database_host, port="5432")
 
 
 def main():
@@ -22,7 +25,7 @@ def main():
 	time.sleep(5)
 
 	# get simulation nodes
-	con = ConnectToDatabase('postgres', 'postgres', 5432)
+	con = ConnectToDatabase('postgres', 'postgres')
 	cur = con.cursor()
 	# NEST
 	cur.execute("SELECT address FROM nest_simulation_node")
