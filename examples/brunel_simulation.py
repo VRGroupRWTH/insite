@@ -44,7 +44,6 @@ References
 # Import all necessary modules for simulation, analysis and plotting.
 
 import nest
-import nest.raster_plot
 import signal
 import math
 
@@ -91,7 +90,8 @@ epsilon = 0.1  # connection probability
 # Definition of the number of neurons in the network and the number of neuron
 # recorded from
 
-order = 625 # Should be square, otherwise the position grid becomes invalid
+order = int(sys.argv[2]) if len(
+    sys.argv) > 2 else 2500 # Should be square, otherwise the position grid becomes invalid
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
