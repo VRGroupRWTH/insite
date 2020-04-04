@@ -15,8 +15,11 @@ import numpy as np
 
 
 def connect_to_database():
+    database_host = 'database'
+    with open('database_host.txt') as database_host_file:
+        database_host = database_host_file.readline()
     return psycopg2.connect(database="postgres", user="postgres",
-                       password="postgres", host="database", port="5432")
+                       password="postgres", host=database_host, port="5432")
 
 
 def nest_get_gids():  # noqa: E501
