@@ -162,17 +162,12 @@ nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sq
 noise = nest.Create("poisson_generator")
 espikes = nest.Create("spike_detector")
 ispikes = nest.Create("spike_detector")
-multimeter = nest.Create("multimeter")
-multimeter2 = nest.Create("multimeter")
 
 nest.SetStatus(espikes, [{"label": "brunel-py-ex",
                           "record_to": "insite"}])
 
 nest.SetStatus(ispikes, [{"label": "brunel-py-in",
                           "record_to": "insite"}])
-
-nest.SetStatus(multimeter, {"record_from": ["V_m"], "record_to": "insite", })
-nest.SetStatus(multimeter2, {"record_from": ["V_m"], "record_to": "insite", })
 
 print("Connecting devices")
 
@@ -208,8 +203,6 @@ nest.Connect(noise, nodes_in, syn_spec="excitatory")
 
 nest.Connect(nodes_ex, espikes, syn_spec="excitatory")
 nest.Connect(nodes_in, ispikes, syn_spec="excitatory")
-nest.Connect(multimeter, nodes_ex, syn_spec="excitatory")
-nest.Connect(multimeter, nodes_in, syn_spec="excitatory")
 
 print("Connecting network")
 
