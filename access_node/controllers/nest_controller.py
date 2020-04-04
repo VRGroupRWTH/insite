@@ -17,7 +17,7 @@ import numpy as np
 def connect_to_database():
     database_host = 'database'
     with open('database_host.txt') as database_host_file:
-        database_host = database_host_file.readline()
+        database_host = database_host_file.readline().rstrip('\n')
     return psycopg2.connect(database="postgres", user="postgres",
                        password="postgres", host=database_host, port="5432")
 
