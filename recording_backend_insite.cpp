@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <string>
 
 // Includes from libnestutil:
 #include "compose.hpp"
@@ -17,10 +18,25 @@
 
 namespace insite {
 
+namespace {
+
+std::string ReadDatabaseHost() {
+  std::ifstream host_file("database_host.txt");
+  if (host_file.is_open()) {
+    std::string database_host;
+    std::getline(host_file, database_host);
+    return database_host;
+  } else {
+    return "database";
+  }
+}
+
+}
+
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      database_connection_("postgresql://postgres@database") {
+      database_connection_("postgresql://postgres@" + ReadDatabaseHost()) {
   pqxx::work txn(database_connection_);
   simulation_node_id_ = txn.exec1(
                                "INSERT INTO nest_simulation_node (address) "
