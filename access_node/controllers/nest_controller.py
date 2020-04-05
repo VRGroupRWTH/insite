@@ -233,13 +233,13 @@ def nest_get_simulation_time_info():  # noqa: E501
 
     :rtype: SimulationTimeInfo
     """
-    con = connect_to_database()
-    cur = con.cursor()
 
-    cur.execute("SELECT MIN(current_simulation_time) FROM nest_simulation_node")
-    current_time = cur.fetchall()[0][0]
-
-    con.close()
+    current_time = float('inf')
+    print("Hello")
+    for node in nodes.nest_simulation_nodes:
+        response = requests.get(
+            node+'/current_simulation_time').json()
+        current_time = min(current_time, response)
 
     # TODO Add Start and End time when available
     time_info = SimulationTimeInfo(current=current_time)
@@ -310,7 +310,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
-            node+'/population/$'+str(population_id)+'/spikes', params={"from": _from, "to": to}).json()
+            node+'/spikes', params={"from": _from, "to": to}).json()
         for x in range(len(response['simulation_times'])):
             spikes.simulation_times.append(response['simulation_times'][x])
             spikes.gids.append(response['gids'][x])
@@ -330,4 +330,27 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
 
     return spikes
+    # spikes = Spikes([], [])
+    # for node in nodes.nest_simulation_nodes:
+    #     response = requests.get(
+    #         node+'/population/$'+str(population_id)+'/spikes', params={"from": _from, "to": to}).json()
+    #     for x in range(len(response['simulation_times'])):
+    #         spikes.simulation_times.append(response['simulation_times'][x])
+    #         spikes.gids.append(response['gids'][x])
+
+    # # sort
+    # sorted_ids = [x for _, x in sorted(
+    #     zip(spikes.simulation_times, spikes.gids))]
+    # spikes.gids = sorted_ids
+    # spikes.simulation_times.sort()
+
+    # # offset and limit
+    # if (offset is None):
+    #     offset = 0
+    # if (limit is None or (limit + offset) > len(spikes.gids)):
+    #     limit = len(spikes.gids) - offset
+    # spikes.gids = spikes.gids[offset:offset+limit]
+    # spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
+
+    # return spikes
     
