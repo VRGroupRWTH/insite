@@ -41,6 +41,21 @@ DataStorage::DataStorage(
   buffered_spikes_.reserve(32 * 1024 * 1024 / sizeof(Spike)); // Reserve 32mb
 }
 
+void DataStorage::AddNeuronId(uint64_t neuron_id) {
+  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
+  const auto insert_position =
+      std::lower_bound(neuron_ids_.begin(), neuron_ids_.end(), neuron_id);
+  if (insert_position == neuron_ids_.end() || *insert_position != neuron_id) {
+    neuron_ids_.insert(insert_position, neuron_id);
+  }
+}
+
+std::vector<uint64_t> DataStorage::GetNeuronIds() {
+  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
+  std::vector<uint64_t> temp_neuron_ids = neuron_ids_;
+  return temp_neuron_ids;
+}
+
 void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
   std::unique_lock<std::mutex> lock(spike_mutex_);
   constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
@@ -95,27 +110,31 @@ void DataStorage::Flush() {
   // buffered_spikes_.clear();
 }
 
-void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id, 
-    const std::string& attribute_name, const double simulation_time,
-    const std::uint64_t gid, const double value) {
+void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,
+                                           const std::string& attribute_name,
+                                           const double simulation_time,
+                                           const std::uint64_t gid,
+                                           const double value) {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   auto& measurement = buffered_measurements_[device_id][attribute_name];
   auto& simulation_times = measurement.simulation_times;
   auto& gids = measurement.gids;
   auto& values = measurement.values;
 
-  auto time_iterator = std::lower_bound(simulation_times.begin(), 
-      simulation_times.end(), simulation_time);
+  auto time_iterator = std::lower_bound(
+      simulation_times.begin(), simulation_times.end(), simulation_time);
   auto time_index = std::distance(simulation_times.begin(), time_iterator);
-  if (time_iterator == simulation_times.end() || 
+  if (time_iterator == simulation_times.end() ||
       *time_iterator != simulation_time) {
     simulation_times.insert(time_iterator, simulation_time);
-    
-    auto new_values = std::vector<double>(simulation_times.size() * gids.size(), 0.0);
+
+    auto new_values =
+        std::vector<double>(simulation_times.size() * gids.size(), 0.0);
     for (std::size_t t = 0; t < simulation_times.size(); ++t)
       for (std::size_t g = 0; g < gids.size(); ++g)
         if (t != time_index)
-          new_values[t * gids.size() + g] = values[(t > time_index ? t - 1 : t) * gids.size() + g];
+          new_values[t * gids.size() + g] =
+              values[(t > time_index ? t - 1 : t) * gids.size() + g];
     values = new_values;
   }
 
@@ -123,20 +142,23 @@ void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,
   auto gid_index = std::distance(gids.begin(), gid_iterator);
   if (gid_iterator == gids.end() || *gid_iterator != gid) {
     gids.insert(gid_iterator, gid);
-  
-    auto new_values = std::vector<double>(simulation_times.size() * gids.size(), 0.0);
+
+    auto new_values =
+        std::vector<double>(simulation_times.size() * gids.size(), 0.0);
     for (std::size_t t = 0; t < simulation_times.size(); ++t)
       for (std::size_t g = 0; g < gids.size(); ++g)
         if (g != gid_index)
-          new_values[t * gids.size() + g] = values[t * gids.size() + (g > gid_index ? g - 1 : g)];
+          new_values[t * gids.size() + g] =
+              values[t * gids.size() + (g > gid_index ? g - 1 : g)];
     values = new_values;
   }
-  
+
   values[time_index * gids.size() + gid_index] = value;
 }
 
-std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
-    MultimeterMeasurements>> DataStorage::GetMultimeterMeasurements() {
+std::unordered_map<std::uint64_t,
+                   std::unordered_map<std::string, MultimeterMeasurements>>
+DataStorage::GetMultimeterMeasurements() {
   std::unique_lock<std::mutex> lock(measurement_mutex_);
   auto measurements = buffered_measurements_;
   return measurements;

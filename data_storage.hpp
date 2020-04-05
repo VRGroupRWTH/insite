@@ -36,6 +36,9 @@ class DataStorage {
   DataStorage(const std::string& filename
               /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/);
 
+  void AddNeuronId(uint64_t neuron_ids);
+  std::vector<uint64_t> GetNeuronIds();
+
   void AddSpike(double simulation_time, std::uint64_t gid);
   std::vector<Spike> GetSpikes();
   void Flush();
@@ -51,6 +54,9 @@ class DataStorage {
 
  private:
   // std::unique_ptr<H5::H5File> h5_file_;
+
+  std::mutex neuron_ids_mutex_;
+  std::vector<uint64_t> neuron_ids_;
 
   // uint64_t flushed_spikes_count = 0;
   std::vector<Spike> buffered_spikes_;

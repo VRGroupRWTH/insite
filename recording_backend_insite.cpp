@@ -31,12 +31,12 @@ std::string ReadDatabaseHost() {
   }
 }
 
-}
+}  // namespace
 
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
-      http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_),
-      database_connection_("postgresql://postgres@" + ReadDatabaseHost()) {
+      database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
+      http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_, &database_connection_) {
   pqxx::work txn(database_connection_);
   simulation_node_id_ = txn.exec1(
                                "INSERT INTO nest_simulation_node (address) "
@@ -266,6 +266,7 @@ void RecordingBackendInsite::write(const nest::RecordingDevice& device,
         std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
                          neuron_info),
         neuron_info);
+    data_storage_.AddNeuronId(neuron_info.gid);
   }
 }
 

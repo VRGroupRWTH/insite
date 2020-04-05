@@ -62,8 +62,8 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::string get_port_string() const;
 
   DataStorage data_storage_;
-  HttpServer http_server_;
   pqxx::connection database_connection_;
+  HttpServer http_server_;
   int simulation_node_id_;
   std::vector<NeuronInfo> neuron_infos_;
   std::vector<NeuronInfo> new_neuron_infos_;
