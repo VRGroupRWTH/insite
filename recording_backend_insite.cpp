@@ -36,7 +36,7 @@ std::string ReadDatabaseHost() {
 RecordingBackendInsite::RecordingBackendInsite()
     : data_storage_("tgest"),
       database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
-      http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_, &database_connection_) {
+      http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_, "postgresql://postgres@" + ReadDatabaseHost()) {
   pqxx::work txn(database_connection_);
   simulation_node_id_ = txn.exec1(
                                "INSERT INTO nest_simulation_node (address) "

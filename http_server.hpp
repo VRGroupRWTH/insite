@@ -11,12 +11,12 @@ class DataStorage;
 
 class HttpServer {
  public:
-  HttpServer(web::http::uri address, DataStorage* storage, pqxx::connection* database_connection);
+  HttpServer(web::http::uri address, DataStorage* storage, std::string database_uri);
 
  private:
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;
-  pqxx::connection* database_connection_;
+  std::string database_uri_;
 
   web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
 

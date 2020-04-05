@@ -10,10 +10,10 @@
 namespace insite {
 
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
-                       pqxx::connection* database_connection)
+                       std::string database_uri)
     : http_listener_{address},
       storage_(storage),
-      database_connection_(database_connection) {
+      database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/spikes") {
@@ -55,7 +55,8 @@ web::http::http_response HttpServer::GetSpikes(
 
     std::unordered_set<uint64_t> population_node_ids;
   if (population != parameters.end()) {
-    pqxx::work txn(*database_connection_);
+    pqxx::connection connection(database_uri_);
+    pqxx::work txn(connection);
     const auto population_node_ids_result = txn.exec(
         "SELECT id FROM nest_neuron WHERE nest_neuron.population_id = " +
         population->second);
