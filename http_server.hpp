@@ -3,6 +3,7 @@
 
 #include <cpprest/http_listener.h>
 #include <string>
+#include <pqxx/pqxx>
 
 namespace insite {
 
@@ -10,11 +11,12 @@ class DataStorage;
 
 class HttpServer {
  public:
-  HttpServer(web::http::uri address, DataStorage* storage);
+  HttpServer(web::http::uri address, DataStorage* storage, pqxx::connection* database_connection);
 
  private:
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;
+  pqxx::connection* database_connection_;
 
   web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
 
