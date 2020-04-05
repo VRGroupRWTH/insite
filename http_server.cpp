@@ -101,10 +101,7 @@ web::http::http_response HttpServer::GetSpikes(
     for (auto spike = spikes_begin; spike != spikes_end; ++spike, ++index) {
       gids[index] = spike->gid;
       simulation_times[index] = spike->simulation_time;
-
-      std::cout << population_node_ids.count(spike->gid) << " " << gids[index] << "\n";
     }
-    std::cout << std::endl;
   }
 
   response.set_body(web::json::value::object(
