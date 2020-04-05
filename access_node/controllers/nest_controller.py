@@ -310,24 +310,23 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
-            node+'/spikes', params={"from": _from, "to": to}).json()
-        for x in range(len(response['simulation_times'])):
-            spikes.simulation_times.append(response['simulation_times'][x])
-            spikes.gids.append(response['gids'][x])
+            node+'/spikes', params={"from": _from, "to": to, "population": population_id}).json()
+        spikes.simulation_times.extend(response['simulation_times'])
+        spikes.gids.extend(response['gids'])
 
-    # sort
-    sorted_ids = [x for _, x in sorted(
-        zip(spikes.simulation_times, spikes.gids))]
-    spikes.gids = sorted_ids
-    spikes.simulation_times.sort()
+    # # sort
+    # sorted_ids = [x for _, x in sorted(
+    #     zip(spikes.simulation_times, spikes.gids))]
+    # spikes.gids = sorted_ids
+    # spikes.simulation_times.sort()
 
-    # offset and limit
-    if (offset is None):
-        offset = 0
-    if (limit is None or (limit + offset) > len(spikes.gids)):
-        limit = len(spikes.gids) - offset
-    spikes.gids = spikes.gids[offset:offset+limit]
-    spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
+    # # offset and limit
+    # if (offset is None):
+    #     offset = 0
+    # if (limit is None or (limit + offset) > len(spikes.gids)):
+    #     limit = len(spikes.gids) - offset
+    # spikes.gids = spikes.gids[offset:offset+limit]
+    # spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
 
     return spikes
     # spikes = Spikes([], [])
