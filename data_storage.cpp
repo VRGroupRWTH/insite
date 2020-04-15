@@ -59,7 +59,7 @@ std::vector<uint64_t> DataStorage::GetNeuronIds() {
 
 void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
   std::unique_lock<std::mutex> lock(spike_mutex_);
-  constexpr auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
+  const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
     return lhs.simulation_time < rhs.simulation_time;
   };
   const Spike spike{simulation_time, gid};
