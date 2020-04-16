@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     openmpi-bin libopenmpi-dev
 RUN pip3 install Cython
 
-RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
+RUN git clone --single-branch --branch master https://github.com/nest/nest-simulator.git nest && \
     cd nest && \
     git checkout 5c0f41230dda9e4b99b8df89729ea43b340246ad && \
     cd /
