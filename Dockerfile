@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
     libwebsocketpp-dev openssl libssl-dev ninja-build \
-    openmpi-bin libopenmpi-dev
+    openmpi-bin libopenmpi-dev libpq-dev postgresql-server-dev-all
 RUN pip3 install Cython
 
 RUN git clone --single-branch --branch nest-3 https://github.com/nest/nest-simulator.git nest && \
@@ -31,7 +31,6 @@ RUN cmake \
     /cpprestsdk
 RUN ninja && ninja install
 
-RUN apt-get update && apt-get install -y libpq-dev postgresql-server-dev-all
 RUN git clone --single-branch --branch 6.4.6 https://github.com/jtv/libpqxx.git /libpqxx
 WORKDIR /libpqxx-build
 RUN cmake \
@@ -50,5 +49,7 @@ RUN cmake \
     /insite
 RUN ninja && ninja install
 ENV PGPASSWORD=postgres
+
 EXPOSE 8000
-ENTRYPOINT [ "/insite-build/run_brunel_simulation.sh" 1000 2500 2 ]
+ENTRYPOINT "/insite-build/run_brunel_simulation.sh"
+CMD 1000 2500 2
