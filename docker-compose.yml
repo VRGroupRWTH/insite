@@ -21,6 +21,8 @@ services:
     - "--"
     - "/insite-build/run_brunel_simulation.sh"
     - "1000"
+    - "2500"
+    - "1"
     depends_on:
     - "access-node"
     ports:
