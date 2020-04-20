@@ -16,7 +16,7 @@ deploy:master:
     only:
         - master
     script:
-        - docker build -t rwthvr/insite-databasr .
+        - docker build -t rwthvr/insite-database .
         - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
         - >
             [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
