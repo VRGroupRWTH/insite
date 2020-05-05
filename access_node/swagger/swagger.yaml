@@ -77,7 +77,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the list of all cell ids."
+      summary: "Retrieves a list of all cell ids."
       operationId: "arbor_get_cell_ids"
       produces:
       - "application/json"
@@ -90,6 +90,9 @@ paths:
             items:
               type: "integer"
               format: "uint64"
+            example:
+            - 1
+            - 2
         400:
           description: "Operation failed."
           schema:
@@ -100,7 +103,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the list of all probes for a given attribute (optional)."
+      summary: "Retrieves a list of all probes for a given attribute (optional)."
       operationId: "arbor_get_probes"
       produces:
       - "application/json"
@@ -127,7 +130,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the list of all attributes."
+      summary: "Retrieves a list of all attributes."
       operationId: "arbor_get_attributes"
       produces:
       - "application/json"
@@ -161,7 +164,7 @@ paths:
       parameters:
       - name: "attribute"
         in: "query"
-        description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
+        description: "The attribute to query"
         required: true
         type: "string"
       - name: "probe_ids"
@@ -192,7 +195,7 @@ paths:
         format: "uint64"
       - name: "limit"
         in: "query"
-        description: "The maximum of entries to be result."
+        description: "The maximum of entries to be returned."
         required: false
         type: "integer"
         format: "uint64"
@@ -211,7 +214,7 @@ paths:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves simulation time information."
+      summary: "Retrieves simulation time information(begin, current, end)."
       operationId: "arbor_get_simulation_time_info"
       produces:
       - "application/json"
@@ -261,7 +264,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves simulation time information."
+      summary: "Retrieves simulation time information (begin, current, end)."
       operationId: "nest_get_simulation_time_info"
       produces:
       - "application/json"
@@ -281,7 +284,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all GID."
+      summary: "Retrieves a list of all gids."
       operationId: "nest_get_gids"
       produces:
       - "application/json"
@@ -294,6 +297,11 @@ paths:
             items:
               type: "integer"
               format: "uint64"
+            example:
+            - 1
+            - 2
+            - 3
+            - 15
         400:
           description: "Operation failed."
           schema:
@@ -311,7 +319,7 @@ paths:
       parameters:
       - name: "gids"
         in: "query"
-        description: "A list of GIDs queried for properties."
+        description: "A list of gids queried for properties."
         required: false
         type: "array"
         items:
@@ -334,7 +342,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all population IDs."
+      summary: "Retrieves a list of all population IDs."
       operationId: "nest_get_populations"
       produces:
       - "application/json"
@@ -347,6 +355,10 @@ paths:
             items:
               type: "integer"
               format: "uint64"
+            example:
+            - 1
+            - 2
+            - 3
         400:
           description: "Operation failed."
           schema:
@@ -358,7 +370,7 @@ paths:
       tags:
       - "nest"
       summary: "Retrieves the spikes for the given simulation steps (optional) and\
-        \ GIDS (optional)."
+        \ gids (optional)."
       operationId: "nest_get_spikes"
       consumes:
       - "application/json"
@@ -379,7 +391,7 @@ paths:
         format: "double"
       - name: "gids"
         in: "query"
-        description: "A list of GIDs queried for spike data."
+        description: "A list of gids queried for spike data."
         required: false
         type: "array"
         items:
@@ -393,7 +405,7 @@ paths:
         format: "uint64"
       - name: "limit"
         in: "query"
-        description: "The maximum of entries to be result."
+        description: "The maximum of entries to be returned."
         required: false
         type: "integer"
         format: "uint64"
@@ -446,7 +458,7 @@ paths:
         format: "uint64"
       - name: "limit"
         in: "query"
-        description: "The maximum of entries to be result."
+        description: "The maximum of entries to be returned."
         required: false
         type: "integer"
         format: "uint64"
@@ -487,7 +499,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the measurements for a multimeter, attribute and GIDS (optional)."
+      summary: "Retrieves the measurements for a multimeter, attribute and gids (optional)."
       operationId: "nest_get_multimeter_measurements"
       consumes:
       - "application/json"
@@ -498,8 +510,8 @@ paths:
         in: "query"
         description: "The multimeter to query"
         required: true
-        type: "number"
-        format: "integer"
+        type: "integer"
+        format: "uint64"
       - name: "attribute"
         in: "query"
         description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
@@ -519,7 +531,7 @@ paths:
         format: "double"
       - name: "gids"
         in: "query"
-        description: "A list of GIDs queried for spike data."
+        description: "A list of gids queried for spike data."
         required: false
         type: "array"
         items:
@@ -552,7 +564,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves the list of all neuron IDs within the population."
+      summary: "Retrieves the list of all neuron ids within the population."
       operationId: "nest_get_gids_in_population"
       produces:
       - "application/json"
@@ -571,6 +583,9 @@ paths:
             items:
               type: "integer"
               format: "uint64"
+            example:
+            - 1
+            - 2
         400:
           description: "Operation failed."
           schema:
@@ -594,11 +609,11 @@ definitions:
           format: "uint64"
     example:
       simulation_times:
-      - 0.8008281904610115
-      - 0.8008281904610115
+      - 0.8
+      - 0.9
       gids:
-      - 6.027456183070403
-      - 6.027456183070403
+      - 1
+      - 2
   MultimeterInfo:
     type: "array"
     items:
@@ -607,6 +622,10 @@ definitions:
     - id: 0
       attributes:
       - "V_m"
+      gids:
+      - 1
+      - 2
+      - 3
   MultimeterMeasurement:
     type: "object"
     properties:
@@ -724,11 +743,13 @@ definitions:
         type: "object"
         properties: {}
     example:
-      population: "pop1"
-      position:
-      - 0.1
-      - 0.1
-      - 0.1
+      gid: 1
+      properties:
+        population: 2
+        position:
+        - 0.1
+        - 0.1
+        - 0.1
   SimulationTimeInfo:
     type: "object"
     properties:
@@ -742,9 +763,9 @@ definitions:
         type: "number"
         format: "double"
     example:
-      current: 1.4658129805029452
-      start: 0.8008281904610115
-      end: 6.027456183070403
+      current: 2.1
+      start: 0.1
+      end: 4.5
   MultimeterInfo_inner:
     properties:
       id:
@@ -759,3 +780,4 @@ definitions:
         items:
           type: "integer"
           format: "uint64"
+          
