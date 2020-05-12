@@ -100,7 +100,7 @@ class MultimeterMeasurement(Model):
     def values(self) -> List[float]:
         """Gets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each probe and time to get the value for probe n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
+        This array contains the measured values for each gid and time to get the value for gid n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
 
         :return: The values of this MultimeterMeasurement.
         :rtype: List[float]
@@ -111,7 +111,7 @@ class MultimeterMeasurement(Model):
     def values(self, values: List[float]):
         """Sets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each probe and time to get the value for probe n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
+        This array contains the measured values for each gid and time to get the value for gid n at time t you have to use the index n * length(simulation_times) + t  # noqa: E501
 
         :param values: The values of this MultimeterMeasurement.
         :type values: List[float]

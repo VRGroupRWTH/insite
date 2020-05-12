@@ -6,7 +6,6 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from access_node.models.base_model_ import Model
-from access_node.models.multimeter_info_inner import MultimeterInfoInner  # noqa: F401,E501
 from access_node import util
 
 
