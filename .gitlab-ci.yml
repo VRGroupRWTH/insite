@@ -9,6 +9,15 @@
 # api_test:
 #     extends: .api_test
 
+publish:github:develop:
+    tags:
+        - centos
+    only:
+        - develop
+    script:
+        - git remote add github git@github.com:VRGroupRWTH/insite-nest-module.git
+        - git push github develop
+
 deploy:develop:
     tags:
         - docker
