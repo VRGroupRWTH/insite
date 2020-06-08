@@ -16,6 +16,7 @@ publish:github:develop:
         - develop
     script:
         - git remote add github git@github.com:VRGroupRWTH/insite-nest-module.git
+        - git branch # For debug purposes
         - git push github develop
 
 deploy:develop:
