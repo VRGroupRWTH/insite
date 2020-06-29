@@ -343,8 +343,8 @@ if ( ( NOT CMAKE_CROSSCOMPILING )
 endif ()
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/examples/run_brunel_simulation.sh.in
-  ${CMAKE_BINARY_DIR}/run_brunel_simulation.sh
+  ${CMAKE_SOURCE_DIR}/scripts/run_simulation.sh.in
+  ${CMAKE_BINARY_DIR}/run_simulation.sh
   @ONLY
 )
 

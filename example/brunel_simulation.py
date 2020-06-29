@@ -74,7 +74,7 @@ startbuild = time.time()
 
 dt = 0.1  # the resolution in ms
 simtime = float(sys.argv[1]) if len(
-    sys.argv) > 1 else 10000.0  # Simulation time in ms
+    sys.argv) > 1 else 100.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
 
 
@@ -91,7 +91,7 @@ epsilon = 0.1  # connection probability
 # recorded from
 
 order = int(sys.argv[2]) if len(
-    sys.argv) > 2 else 2500 # Should be square, otherwise the position grid becomes invalid
+    sys.argv) > 2 else 25 # Should be square, otherwise the position grid becomes invalid
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
