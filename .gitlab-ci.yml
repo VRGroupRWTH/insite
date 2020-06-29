@@ -31,7 +31,7 @@ deploy:master:
         - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
         - >
             [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
-        - echo "Version tag: $VERSION"
+        - echo $VERSION
         - docker tag rwthvr/insite-access-node rwthvr/access-node:$VERSION
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-access-node
