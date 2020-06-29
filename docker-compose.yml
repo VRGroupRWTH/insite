@@ -1,29 +1,23 @@
 version: '3'
 services:
   database:
-    build: ./insite-database
+    image: rwthvr/insite-database:0.1.1
     container_name: "insite_pg-database"
     ports:
       - "5432:5432"
   access-node:
-    build: ./access-node
+    image: rwthvr/insite-access-node:0.2.2
     ports:
       - "8080:8080"
     depends_on:
     - "database"
-  insite-nest-module:
-    build: ./insite-nest-module
+  insite-nest:
+    image: rwthvr/insite-nest-module:0.2.0
     entrypoint:
-    - "/insite/wait-for.sh"
-    - "-t"
-    - "5"
-    - "database:5432"
-    - "--"
-    - "/insite-build/run_brunel_simulation.sh"
-    - "1000"
-    - "2500"
-    - "1"
+    - "/insite-module-build/run_simulation.sh"
     depends_on:
     - "access-node"
+    - "database"
     ports:
       - "8000-8079:8000-8079"
+    
