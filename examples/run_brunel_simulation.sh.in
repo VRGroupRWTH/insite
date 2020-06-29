@@ -1,5 +1,0 @@
-#!/bin/bash
-source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
-export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
-# python3 @CMAKE_SOURCE_DIR@/examples/brunel_simulation.py $1 $2 # Uncomment this to run normally
-time mpirun -n $3 --mca btl_vader_single_copy_mechanism none --allow-run-as-root -x PYTHONPATH python3 @CMAKE_SOURCE_DIR@/examples/brunel_simulation.py $1 $2

@@ -40,16 +40,18 @@ RUN cmake \
     /libpqxx
 RUN ninja && ninja install
 
-COPY . /insite
-WORKDIR /insite-build
+COPY src /insite-module
+WORKDIR /insite-module-build
 RUN cmake \
     -G Ninja \
     -Dwith-nest=/nest-install/bin/nest-config \
     -DCMAKE_BUILD_TYPE=Release \
-    /insite
+    /insite-module
 RUN ninja && ninja install
 ENV PGPASSWORD=postgres
 
+COPY example /example
+
 EXPOSE 8000
-ENTRYPOINT "/insite-build/run_brunel_simulation.sh"
-CMD 1000 2500 2
+ENTRYPOINT ["/insite-module-build/run_simulation.sh"]
+CMD ["/example/brunel_simulation.py"]
