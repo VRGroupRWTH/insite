@@ -32,6 +32,6 @@ deploy:master:
         - echo $VERSION
         - >
             [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
-        - docker tag rwthvr/insite-access-node rwthvr/access-node:$VERSION
+        - docker tag rwthvr/insite-access-node rwthvr/insite-access-node:$VERSION
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-access-node
