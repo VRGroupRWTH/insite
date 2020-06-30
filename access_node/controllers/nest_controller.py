@@ -239,7 +239,7 @@ def nest_get_simulation_time_info():  # noqa: E501
     cur.execute("SELECT address FROM nest_simulation_node")
     nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
     con.close()
-
+    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
 
     current_time = float('inf')
     for node in nodes.nest_simulation_nodes:
@@ -276,6 +276,7 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
     cur.execute("SELECT address FROM nest_simulation_node")
     nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
     con.close()
+    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
 
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
@@ -325,6 +326,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     cur.execute("SELECT address FROM nest_simulation_node")
     nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
     con.close()
+    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
 
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
