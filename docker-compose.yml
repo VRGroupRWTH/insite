@@ -1,23 +1,36 @@
 version: '3'
+networks:
+  internal:
+      driver: bridge
 services:
   database:
     image: rwthvr/insite-database:0.1.1
     container_name: "insite_pg-database"
     ports:
       - "5432:5432"
+    networks:
+      internal:
+         aliases:
+           - database
   access-node:
     image: rwthvr/insite-access-node:0.2.2
     ports:
       - "8080:8080"
     depends_on:
-    - "database"
-  insite-nest:
+      - "database"
+    networks:
+      internal:
+         aliases:
+           - access-node
+  insite-nest-module:
     image: rwthvr/insite-nest-module:0.2.0
-    entrypoint:
-    - "/insite-module-build/run_simulation.sh"
     depends_on:
-    - "access-node"
-    - "database"
+      - "access-node"
+      - "database"
     ports:
       - "8000-8079:8000-8079"
-    
+    networks:
+      internal:
+         aliases:
+           - insite-nest-module
+  
