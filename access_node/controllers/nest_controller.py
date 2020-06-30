@@ -234,8 +234,14 @@ def nest_get_simulation_time_info():  # noqa: E501
     :rtype: SimulationTimeInfo
     """
 
+    con = connect_to_database()
+    cur = con.cursor()
+    cur.execute("SELECT address FROM nest_simulation_node")
+    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    con.close()
+
+
     current_time = float('inf')
-    print("Hello")
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
             node+'/current_simulation_time').json()
@@ -264,6 +270,13 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
 
     :rtype: Spikes
     """
+
+    con = connect_to_database()
+    cur = con.cursor()
+    cur.execute("SELECT address FROM nest_simulation_node")
+    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    con.close()
+
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
@@ -307,6 +320,12 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
 
     :rtype: Spikes
     """
+    con = connect_to_database()
+    cur = con.cursor()
+    cur.execute("SELECT address FROM nest_simulation_node")
+    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    con.close()
+
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
