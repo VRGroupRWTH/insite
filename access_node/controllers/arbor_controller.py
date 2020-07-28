@@ -26,7 +26,7 @@ def connect_to_database():
 
 
 def arbor_get_attributes():  # noqa: E501
-    """Retrieves the list of all attributes.
+    """Retrieves a list of all attributes.
 
      # noqa: E501
 
@@ -44,7 +44,7 @@ def arbor_get_attributes():  # noqa: E501
 
 
 def arbor_get_cell_ids():  # noqa: E501
-    """Retrieves the list of all cell ids.
+    """Retrieves a list of all cell ids.
 
      # noqa: E501
 
@@ -98,7 +98,7 @@ def arbor_get_measurements(attribute, probe_ids=None, _from=None, to=None, offse
 
      # noqa: E501
 
-    :param attribute: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
+    :param attribute: The attribute to query
     :type attribute: str
     :param probe_ids: A list of probes ids queried for data.
     :type probe_ids: List[int]
@@ -108,7 +108,7 @@ def arbor_get_measurements(attribute, probe_ids=None, _from=None, to=None, offse
     :type to: float
     :param offset: The offset into the result.
     :type offset: int
-    :param limit: The maximum of entries to be result.
+    :param limit: The maximum of entries to be returned.
     :type limit: int
 
     :rtype: ArborMeasurement
@@ -151,7 +151,7 @@ def arbor_get_measurements(attribute, probe_ids=None, _from=None, to=None, offse
 
 
 def arbor_get_probes(attribute=None):  # noqa: E501
-    """Retrieves the list of all probes for a given attribute (optional).
+    """Retrieves a list of all probes for a given attribute (optional).
 
      # noqa: E501
 
@@ -187,7 +187,7 @@ def arbor_get_probes(attribute=None):  # noqa: E501
 
 
 def arbor_get_simulation_time_info():  # noqa: E501
-    """Retrieves simulation time information.
+    """Retrieves simulation time information(begin, current, end).
 
      # noqa: E501
 
