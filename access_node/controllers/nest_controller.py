@@ -26,7 +26,7 @@ def connect_to_database():
 
 
 def nest_get_gids():  # noqa: E501
-    """Retrieves the list of all GID.
+    """Retrieves a list of all gids.
 
      # noqa: E501
 
@@ -44,7 +44,7 @@ def nest_get_gids():  # noqa: E501
 
 
 def nest_get_gids_in_population(population_id):  # noqa: E501
-    """Retrieves the list of all neuron IDs within the population.
+    """Retrieves the list of all neuron ids within the population.
 
      # noqa: E501
 
@@ -65,7 +65,7 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
 def nest_get_multimeter_info():  # noqa: E501
     """Retreives the available multimeters and their properties.
-    
+
      # noqa: E501
 
 
@@ -96,19 +96,19 @@ def nest_get_multimeter_info():  # noqa: E501
 
 
 def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the measurements for a multimeter, attribute and GIDS (optional).
+    """Retrieves the measurements for a multimeter, attribute and gids (optional).
 
      # noqa: E501
 
     :param multimeter_id: The multimeter to query
-    :type multimeter_id: 
+    :type multimeter_id: int
     :param attribute: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
     :type attribute: str
     :param _from: The start time (including) to be queried.
     :type _from: float
     :param to: The end time (excluding) to be queried.
     :type to: float
-    :param gids: A list of GIDs queried for spike data.
+    :param gids: A list of gids queried for spike data.
     :type gids: List[int]
     :param offset: The offset into the result.
     :type offset: int
@@ -174,7 +174,7 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
 
      # noqa: E501
 
-    :param gids: A list of GIDs queried for properties.
+    :param gids: A list of gids queried for properties.
     :type gids: List[int]
 
     :rtype: List[NestNeuronProperties]
@@ -208,7 +208,7 @@ def nest_get_neuron_properties(gids=None):  # noqa: E501
 
 
 def nest_get_populations():  # noqa: E501
-    """Retrieves the list of all population IDs.
+    """Retrieves a list of all population IDs.
 
      # noqa: E501
 
@@ -226,7 +226,7 @@ def nest_get_populations():  # noqa: E501
 
 
 def nest_get_simulation_time_info():  # noqa: E501
-    """Retrieves simulation time information.
+    """Retrieves simulation time information (begin, current, end).
 
      # noqa: E501
 
@@ -234,8 +234,14 @@ def nest_get_simulation_time_info():  # noqa: E501
     :rtype: SimulationTimeInfo
     """
 
+    con = connect_to_database()
+    cur = con.cursor()
+    cur.execute("SELECT address FROM nest_simulation_node")
+    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    con.close()
+    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
+
     current_time = float('inf')
-    print("Hello")
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
             node+'/current_simulation_time').json()
@@ -247,7 +253,7 @@ def nest_get_simulation_time_info():  # noqa: E501
 
 
 def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the spikes for the given simulation steps (optional) and GIDS (optional).
+    """Retrieves the spikes for the given simulation steps (optional) and gids (optional).
 
      # noqa: E501
 
@@ -255,15 +261,23 @@ def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  #
     :type _from: float
     :param to: The end time (excluding) to be queried.
     :type to: float
-    :param gids: A list of GIDs queried for spike data.
+    :param gids: A list of gids queried for spike data.
     :type gids: List[int]
     :param offset: The offset into the result.
     :type offset: int
-    :param limit: The maximum of entries to be result.
+    :param limit: The maximum of entries to be returned.
     :type limit: int
 
     :rtype: Spikes
     """
+
+    con = connect_to_database()
+    cur = con.cursor()
+    cur.execute("SELECT address FROM nest_simulation_node")
+    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    con.close()
+    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
+
     spikes = Spikes([], [])
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
@@ -302,7 +316,7 @@ def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=Non
     :type to: float
     :param offset: The offset into the result.
     :type offset: int
-    :param limit: The maximum of entries to be result.
+    :param limit: The maximum of entries to be returned.
     :type limit: int
 
     :rtype: Spikes

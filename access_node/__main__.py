@@ -25,18 +25,18 @@ def ConnectToDatabase(postgres_username, postgres_password):
 
 def main():
     # Wait for simulation nodes to post to database
-    time.sleep(5)
+    time.sleep(0.1)
 
-    # get simulation nodes
-    con = ConnectToDatabase('postgres', 'postgres')
-    cur = con.cursor()
-    # NEST
-    cur.execute("SELECT address FROM nest_simulation_node")
-    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
-    # Arbor
-    cur.execute("SELECT address FROM nest_simulation_node")
-    nodes.arbor_simulation_nodes = [i[0] for i in cur.fetchall()]
-    con.close()
+    # # get simulation nodes
+    # con = ConnectToDatabase('postgres', 'postgres')
+    # cur = con.cursor()
+    # # NEST
+    # cur.execute("SELECT address FROM nest_simulation_node")
+    # nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
+    # # Arbor
+    # cur.execute("SELECT address FROM nest_simulation_node")
+    # nodes.arbor_simulation_nodes = [i[0] for i in cur.fetchall()]
+    # con.close()
 
 
     # run acces_node
