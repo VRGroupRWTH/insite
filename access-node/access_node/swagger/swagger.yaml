@@ -1,0 +1,783 @@
+---
+swagger: "2.0"
+info:
+  description: "This is the REST API for the in-situ pipeline."
+  version: "1.0.0"
+  title: "In-Situ Pipeline REST API"
+host: "localhost"
+basePath: "/"
+schemes:
+- "https"
+- "http"
+paths:
+  /arbor/spikes:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves the spikes for the given simulation times (optional),  cell\
+        \ and segment (optional)."
+      operationId: "arbor_get_spikes"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "cell_ids"
+        in: "query"
+        description: "A list of cell ids queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "segment_ids"
+        in: "query"
+        description: "A list of segment ids queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Spikes"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/cell_ids:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves a list of all cell ids."
+      operationId: "arbor_get_cell_ids"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "integer"
+              format: "uint64"
+            example:
+            - 1
+            - 2
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/probes:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves a list of all probes for a given attribute (optional)."
+      operationId: "arbor_get_probes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "attribute"
+        in: "query"
+        description: "The attribute measured for which existing probes will be returned."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Probe"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/attributes:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves a list of all attributes."
+      operationId: "arbor_get_attributes"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "string"
+            example:
+            - "Voltage"
+            - "Current"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/measurements:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves the measurements for given probes (optional)."
+      operationId: "arbor_get_measurements"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "attribute"
+        in: "query"
+        description: "The attribute to query"
+        required: true
+        type: "string"
+      - name: "probe_ids"
+        in: "query"
+        description: "A list of probes ids queried for data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be returned."
+        required: false
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/ArborMeasurement"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/simulation_time_info:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves simulation time information(begin, current, end)."
+      operationId: "arbor_get_simulation_time_info"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/SimulationTimeInfo"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /arbor/cell_properties:
+    get:
+      tags:
+      - "arbor"
+      summary: "Retrieves the properties of the specified cells."
+      operationId: "arbor_get_cell_properties"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cell_ids"
+        in: "query"
+        description: "A list of cell IDs queried for properties."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ArborCellProperties"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+  /nest/simulation_time_info:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves simulation time information (begin, current, end)."
+      operationId: "nest_get_simulation_time_info"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/SimulationTimeInfo"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/gids:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves a list of all gids."
+      operationId: "nest_get_gids"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "integer"
+              format: "uint64"
+            example:
+            - 1
+            - 2
+            - 3
+            - 15
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/neuron_properties:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the properties of the specified neurons."
+      operationId: "nest_get_neuron_properties"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "gids"
+        in: "query"
+        description: "A list of gids queried for properties."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/NestNeuronProperties"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/populations:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves a list of all population IDs."
+      operationId: "nest_get_populations"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "integer"
+              format: "uint64"
+            example:
+            - 1
+            - 2
+            - 3
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/spikes:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ gids (optional)."
+      operationId: "nest_get_spikes"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "gids"
+        in: "query"
+        description: "A list of gids queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be returned."
+        required: false
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Spikes"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/population/${population_id}/spikes:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the spikes for the given simulation steps (optional) and\
+        \ population."
+      operationId: "nest_get_spikes_by_population"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "population_id"
+        in: "path"
+        description: "The identifier of the population."
+        required: true
+        type: "integer"
+        format: "uint64"
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be returned."
+        required: false
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Spikes"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/multimeter_info:
+    get:
+      tags:
+      - "nest"
+      summary: "Retreives the available multimeters and their properties."
+      operationId: "nest_get_multimeter_info"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/MultimeterInfo"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/multimeter_measurement:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the measurements for a multimeter, attribute and gids (optional)."
+      operationId: "nest_get_multimeter_measurements"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "multimeter_id"
+        in: "query"
+        description: "The multimeter to query"
+        required: true
+        type: "integer"
+        format: "uint64"
+      - name: "attribute"
+        in: "query"
+        description: "The attribute to query (e.g., 'V_m' for the membrane potential)"
+        required: true
+        type: "string"
+      - name: "from"
+        in: "query"
+        description: "The start time (including) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "to"
+        in: "query"
+        description: "The end time (excluding) to be queried."
+        required: false
+        type: "number"
+        format: "double"
+      - name: "gids"
+        in: "query"
+        description: "A list of gids queried for spike data."
+        required: false
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      - name: "offset"
+        in: "query"
+        description: "The offset into the result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      - name: "limit"
+        in: "query"
+        description: "The maximum of entries to be result."
+        required: false
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/MultimeterMeasurement"
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+  /nest/population/${population_id}/gids:
+    get:
+      tags:
+      - "nest"
+      summary: "Retrieves the list of all neuron ids within the population."
+      operationId: "nest_get_gids_in_population"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "population_id"
+        in: "path"
+        description: "The identifier of the population"
+        required: true
+        type: "integer"
+        format: "uint64"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            type: "array"
+            items:
+              type: "integer"
+              format: "uint64"
+            example:
+            - 1
+            - 2
+        "400":
+          description: "Operation failed."
+          schema:
+            type: "string"
+            example: "Error message"
+      x-swagger-router-controller: "access_node.controllers.nest_controller"
+definitions:
+  Spikes:
+    type: "object"
+    properties:
+      simulation_times:
+        type: "array"
+        description: "This array is always sorted."
+        items:
+          type: "number"
+          format: "double"
+      gids:
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+    example:
+      simulation_times:
+      - 0.8
+      - 0.9
+      gids:
+      - 1
+      - 2
+  MultimeterInfo:
+    type: "array"
+    items:
+      $ref: "#/definitions/MultimeterInfo_inner"
+    example:
+    - id: 0
+      attributes:
+      - "V_m"
+      gids:
+      - 1
+      - 2
+      - 3
+  MultimeterMeasurement:
+    type: "object"
+    properties:
+      simulation_times:
+        type: "array"
+        description: "This array is always sorted."
+        items:
+          type: "number"
+          format: "double"
+      gids:
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      values:
+        type: "array"
+        description: "This array contains the measured values for each gid and time\
+          \ to get the value for gid n at time t you have to use the index n * length(simulation_times)\
+          \ + t"
+        items:
+          type: "number"
+    example:
+      simulation_times:
+      - 0.1
+      - 0.2
+      gids:
+      - 1
+      - 2
+      - 3
+      values:
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+  ArborMeasurement:
+    type: "object"
+    properties:
+      simulation_times:
+        type: "array"
+        description: "This array is always sorted."
+        items:
+          type: "number"
+          format: "double"
+      gids:
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+      values:
+        type: "array"
+        description: "This array contains the measured values for each gid and time\
+          \ to get the value for gid n at time t you have to use the index n * length(simulation_times)\
+          \ + t"
+        items:
+          type: "number"
+    example:
+      simulation_times:
+      - 0.1
+      - 0.2
+      gids:
+      - 1
+      - 2
+      - 3
+      values:
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+      - 0.123
+  Probe:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "uint64"
+      cell_id:
+        type: "integer"
+        format: "uint64"
+      segment_id:
+        type: "integer"
+        format: "uint64"
+      position:
+        type: "number"
+        format: "double"
+    example:
+      id: 1
+      cell_id: 2
+      segment_id: 1
+      position: 0.4
+  ArborCellProperties:
+    type: "object"
+    properties:
+      neuron_id:
+        type: "integer"
+        format: "uint64"
+      properties:
+        type: "object"
+        properties: {}
+    example:
+      population: "pop1"
+      position:
+      - 0.1
+      - 0.1
+      - 0.1
+  NestNeuronProperties:
+    type: "object"
+    properties:
+      gid:
+        type: "integer"
+        format: "uint64"
+      properties:
+        type: "object"
+        properties: {}
+    example:
+      gid: 1
+      properties:
+        population: 2
+        position:
+        - 0.1
+        - 0.1
+        - 0.1
+  SimulationTimeInfo:
+    type: "object"
+    properties:
+      start:
+        type: "number"
+        format: "double"
+      end:
+        type: "number"
+        format: "double"
+      current:
+        type: "number"
+        format: "double"
+    example:
+      current: 2.1
+      start: 0.1
+      end: 4.5
+  MultimeterInfo_inner:
+    properties:
+      id:
+        type: "integer"
+        format: "uint64"
+      attributes:
+        type: "array"
+        items:
+          type: "string"
+      gids:
+        type: "array"
+        items:
+          type: "integer"
+          format: "uint64"
+          
