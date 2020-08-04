@@ -1,7 +1,7 @@
 import requests
 
 def test_spikes(nest_simulation):
-    r = requests.get("http://localhost:8000/spikes")
+    r = requests.get("http://localhost:8080/nest/spikes")
     spikes = r.json()
     assert(len(spikes['gids']) == len(spikes['simulation_times']))
     
