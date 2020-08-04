@@ -1,0 +1,24 @@
+#!/bin/bash
+# Usage: run_simulation.sh file_path mpi_nodes
+
+source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
+export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
+
+if [ "$#" -eq 1 ]; then
+    python3 $1
+elif [ "$#" -eq 2 ]; then
+    mpirun -n $2 --mca btl_vader_single_copy_mechanism none --allow-run-as-root -x PYTHONPATH python3 $1
+else
+    echo "$0 $*"
+    echo "Usage: $0 file_path [mpi_nodes]"
+fi
+
+# ls /nest-simulation
+# if [ -f "/nest-simulation/simulation.py" ]; then
+#     echo "/nest-simulation/simulation.py exists"
+# else
+#     echo "/nest-simulation/simulation.py does not exist"
+# fi
+
+#  # Uncomment this to run normally
+# time  @CMAKE_SOURCE_DIR@/examples/brunel_simulation.py $1 $2
