@@ -4,7 +4,7 @@ networks:
       driver: bridge
 services:
   database:
-    image: rwthvr/insite-database:0.1.1
+    build: ./database
     container_name: "insite_pg-database"
     ports:
       - "5432:5432"
@@ -13,7 +13,7 @@ services:
          aliases:
            - database
   access-node:
-    image: rwthvr/insite-access-node:0.2.2
+    build: ./access-node
     ports:
       - "8080:8080"
     depends_on:
@@ -23,7 +23,7 @@ services:
          aliases:
            - access-node
   insite-nest-module:
-    image: rwthvr/insite-nest-module:0.2.0
+    build: ./nest-module
     depends_on:
       - "access-node"
       - "database"
