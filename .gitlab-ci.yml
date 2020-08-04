@@ -1,0 +1,4 @@
+include:
+    - 'access-node/.gitlab-ci.yml'
+    - 'database/.gitlab-ci.yml'
+    - 'nest-module/.gitlab-ci.yml'

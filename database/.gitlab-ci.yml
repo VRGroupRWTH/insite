@@ -1,4 +1,4 @@
-deploy:develop:
+deploy:database:develop:
     tags:
         - docker
         - centos
@@ -9,7 +9,7 @@ deploy:develop:
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-database:develop
 
-deploy:master:
+deploy:database:master:
     tags:
         - docker
         - centos
