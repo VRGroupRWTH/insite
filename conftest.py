@@ -23,9 +23,7 @@ def nest_simulation(request):
         time.sleep(1.0)
         try:
             r = requests.get("http://localhost:8080/nest/simulation_time_info")
-            simulation_time_info = r.json()
-            new_time = simulation_time_info['current']
-            if new_time > 0.0:
+            if r.status_code == 200:
                 break
         except requests.exceptions.ConnectionError:
             pass
