@@ -5,7 +5,7 @@ deploy:database:develop:
     only:
         - develop
     script:
-        - docker build -t rwthvr/insite-database:develop .
+        - docker build -t rwthvr/insite-database:develop ./database
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-database:develop
 
@@ -16,7 +16,7 @@ deploy:database:master:
     only:
         - master
     script:
-        - docker build -t rwthvr/insite-database .
+        - docker build -t rwthvr/insite-database ./database
         - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
         - >
             [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]

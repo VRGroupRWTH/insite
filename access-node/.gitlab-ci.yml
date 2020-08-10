@@ -5,7 +5,7 @@ deploy:access-node:develop:
     only:
         - develop
     script:
-        - docker build -t rwthvr/insite-access-node:develop .
+        - docker build -t rwthvr/insite-access-node:develop ./access-node
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-access-node:develop
 
@@ -16,7 +16,7 @@ deploy:access-node:master:
     only:
         - master
     script:
-        - docker build -t rwthvr/insite-access-node .
+        - docker build -t rwthvr/insite-access-node ./access-node
         - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
         - echo $VERSION
         - >
