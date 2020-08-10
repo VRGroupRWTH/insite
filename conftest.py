@@ -11,7 +11,11 @@ def nest_simulation(request):
 
     def finalize():
         process.send_signal(signal.SIGINT)
-        process.wait()
+        try:
+            process.wait(5)
+        except subprocess.TimeoutExpired:
+            process.send_signal(signal.SIGKILL)
+            process.wait()
         logfile.close()
     request.addfinalizer(finalize)
 
