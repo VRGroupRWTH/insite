@@ -11,17 +11,19 @@ def nest_simulation(request):
 
     def finalize():
         process.send_signal(signal.SIGINT)
-        process.wait()
+        try:
+            process.wait(5)
+        except subprocess.TimeoutExpired:
+            process.send_signal(signal.SIGKILL)
+            process.wait()
         logfile.close()
     request.addfinalizer(finalize)
 
     while True:
         time.sleep(1.0)
         try:
-            r = requests.get("http://localhost:8080/simulation_time_info")
-            simulation_time_info = r.json()
-            new_time = simulation_time_info['current']
-            if new_time > 0.0:
+            r = requests.get("http://localhost:8080/nest/simulation_time_info")
+            if r.status_code == 200:
                 break
         except requests.exceptions.ConnectionError:
             pass

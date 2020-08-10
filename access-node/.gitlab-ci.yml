@@ -1,0 +1,26 @@
+deploy:access-node:develop:
+    tags:
+        - docker
+        - centos
+    only:
+        - develop
+    script:
+        - docker build -t rwthvr/insite-access-node:develop .
+        - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        - docker push rwthvr/insite-access-node:develop
+
+deploy:access-node:master:
+    tags:
+        - docker
+        - centos
+    only:
+        - master
+    script:
+        - docker build -t rwthvr/insite-access-node .
+        - VERSION=$(git tag --points-at $CI_COMMIT_SHA)
+        - echo $VERSION
+        - >
+            [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
+        - docker tag rwthvr/insite-access-node rwthvr/insite-access-node:$VERSION
+        - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        - docker push rwthvr/insite-access-node
