@@ -50,7 +50,10 @@ class DataStorage {
     MultimeterMeasurements>> GetMultimeterMeasurements();
 
   void SetCurrentSimulationTime(double simulation_time);
+  void SetSimulationTimeRange(double begin, double end);
   double GetCurrentSimulationTime() const;
+  double GetSimulationBeginTime() const;
+  double GetSimulationEndTime() const;
 
  private:
   // std::unique_ptr<H5::H5File> h5_file_;
@@ -65,6 +68,8 @@ class DataStorage {
   std::mutex spike_mutex_;
 
   std::atomic_uint64_t current_simulation_time_;
+  std::atomic_uint64_t simulation_begin_time_;
+  std::atomic_uint64_t simulation_end_time_;
 
   // Device ID to attribute index to measurement map.
   std::unordered_map<std::uint64_t, std::unordered_map<std::string, 

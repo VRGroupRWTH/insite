@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "data_storage.hpp"
+#include "nest_time.h"
 
 namespace insite {
 
@@ -22,7 +23,7 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
                request.relative_uri().path() == "/multimeter_measurement") {
       request.reply(GetMultimeterMeasurement(request));
     } else if (request.method() == "GET" &&
-               request.relative_uri().path() == "/current_simulation_time") {
+               request.relative_uri().path() == "/simulation_time_info") {
       request.reply(GetCurrentSimulationTime(request));
     } else {
       std::cerr << "Invalid request: " << request.to_string() << "\n";
@@ -37,8 +38,13 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
 web::http::http_response HttpServer::GetCurrentSimulationTime(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
-  web::json::value simulation_time = storage_->GetCurrentSimulationTime();
-  response.set_body(simulation_time);
+  
+  web::json::value response_body =  web::json::value::object();
+  response_body["current"] = storage_->GetCurrentSimulationTime();
+  response_body["begin"] = storage_->GetSimulationEndTime();
+  response_body["end"] = storage_->GetSimulationBeginTime();
+  response_body["step_size"] = nest::Time(nest::Time::step(1)).get_ms();
+  response.set_body(response_body);
   return response;
 }
 

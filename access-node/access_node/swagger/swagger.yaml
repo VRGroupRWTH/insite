@@ -264,7 +264,7 @@ paths:
     get:
       tags:
       - "nest"
-      summary: "Retrieves simulation time information (begin, current, end)."
+      summary: "Retrieves simulation time information (step_size, begin, current, end)."
       operationId: "nest_get_simulation_time_info"
       produces:
       - "application/json"
@@ -753,7 +753,10 @@ definitions:
   SimulationTimeInfo:
     type: "object"
     properties:
-      start:
+      step_size:
+        type: "number"
+        format: "double"
+      begin:
         type: "number"
         format: "double"
       end:
@@ -763,8 +766,9 @@ definitions:
         type: "number"
         format: "double"
     example:
+      step_size: 0.1
       current: 2.1
-      start: 0.1
+      begin: 0.1
       end: 4.5
   MultimeterInfo_inner:
     properties:

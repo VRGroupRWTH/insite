@@ -15,29 +15,29 @@ class SimulationTimeInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, start: float=None, end: float=None, current: float=None):  # noqa: E501
+    def __init__(self, begin: float=None, end: float=None, current: float=None):  # noqa: E501
         """SimulationTimeInfo - a model defined in Swagger
 
-        :param start: The start of this SimulationTimeInfo.  # noqa: E501
-        :type start: float
+        :param begin: The begin of this SimulationTimeInfo.  # noqa: E501
+        :type begin: float
         :param end: The end of this SimulationTimeInfo.  # noqa: E501
         :type end: float
         :param current: The current of this SimulationTimeInfo.  # noqa: E501
         :type current: float
         """
         self.swagger_types = {
-            'start': float,
+            'begin': float,
             'end': float,
             'current': float
         }
 
         self.attribute_map = {
-            'start': 'start',
+            'begin': 'begin',
             'end': 'end',
             'current': 'current'
         }
 
-        self._start = start
+        self._begin = begin
         self._end = end
         self._current = current
 
@@ -53,25 +53,25 @@ class SimulationTimeInfo(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def start(self) -> float:
-        """Gets the start of this SimulationTimeInfo.
+    def begin(self) -> float:
+        """Gets the begin of this SimulationTimeInfo.
 
 
-        :return: The start of this SimulationTimeInfo.
+        :return: The begin of this SimulationTimeInfo.
         :rtype: float
         """
-        return self._start
+        return self._begin
 
-    @start.setter
-    def start(self, start: float):
-        """Sets the start of this SimulationTimeInfo.
+    @begin.setter
+    def begin(self, begin: float):
+        """Sets the begin of this SimulationTimeInfo.
 
 
-        :param start: The start of this SimulationTimeInfo.
-        :type start: float
+        :param begin: The begin of this SimulationTimeInfo.
+        :type begin: float
         """
 
-        self._start = start
+        self._begin = begin
 
     @property
     def end(self) -> float:
