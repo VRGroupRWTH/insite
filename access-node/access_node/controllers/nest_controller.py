@@ -242,13 +242,19 @@ def nest_get_simulation_time_info():  # noqa: E501
     print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
 
     current_time = float('inf')
+    begin = 0
+    end = 0
+    step_size = 0
     for node in nodes.nest_simulation_nodes:
         response = requests.get(
-            node+'/current_simulation_time').json()
-        current_time = min(current_time, response)
+            node+'/simulation_time_info').json()
+        current_time = min(current_time, response["current"])
+        begin = max(begin, response["begin"])
+        end = max(end, response["end"])
+        step_size = response["step_size"]
 
     # TODO Add Start and End time when available
-    time_info = SimulationTimeInfo(current=current_time)
+    time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end)
     return time_info
 
 

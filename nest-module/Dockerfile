@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     cmake g++ make ninja-build python3 python3-dev python3-pip python3-numpy python3-scipy python3-matplotlib \
@@ -9,20 +9,7 @@ RUN apt-get update && apt-get install -y \
     openmpi-bin libopenmpi-dev libpq-dev postgresql-server-dev-all
 RUN pip3 install Cython
 
-RUN git clone --single-branch --branch master https://github.com/nest/nest-simulator.git nest && \
-    cd nest && \
-    git checkout 5c0f41230dda9e4b99b8df89729ea43b340246ad && \
-    cd /
-WORKDIR /nest-build
-RUN cmake \
-    -G Ninja \
-    -Dwith-mpi=ON \
-    -DCMAKE_INSTALL_PREFIX=/nest-install \
-    -DCMAKE_BUILD_TYPE=Release \
-    /nest
-RUN ninja && ninja install
-
-RUN git clone --single-branch --branch v2.10.14 --recurse-submodules https://github.com/microsoft/cpprestsdk.git /cpprestsdk
+RUN git clone --single-branch --branch v2.10.16 --recurse-submodules https://github.com/microsoft/cpprestsdk.git /cpprestsdk
 WORKDIR /cpprestsdk-build
 RUN cmake \
     -G Ninja \
@@ -38,6 +25,16 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_TESTS=OFF \
     /libpqxx
+RUN ninja && ninja install
+
+RUN git clone --single-branch --branch make-time-information-accessable https://github.com/VRGroupRWTH/nest-simulator.git /nest
+WORKDIR /nest-build
+RUN cmake \
+    -G Ninja \
+    -Dwith-mpi=ON \
+    -DCMAKE_INSTALL_PREFIX=/nest-install \
+    -DCMAKE_BUILD_TYPE=Release \
+    /nest
 RUN ninja && ninja install
 
 COPY src /insite-module

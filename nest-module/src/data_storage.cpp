@@ -171,8 +171,31 @@ void DataStorage::SetCurrentSimulationTime(double simulation_time) {
   current_simulation_time_ = simulation_time_int;
 }
 
+void DataStorage::SetSimulationTimeRange(double begin, double end) {
+  uint64_t simulation_time_int;
+  memcpy(&simulation_time_int, &begin, sizeof(simulation_time_int));
+  simulation_begin_time_ = simulation_time_int;
+
+  memcpy(&simulation_time_int, &end, sizeof(simulation_time_int));
+  simulation_end_time_ = simulation_time_int;
+}
+
 double DataStorage::GetCurrentSimulationTime() const {
-  const uint64_t simulation_time_int =current_simulation_time_;
+  const uint64_t simulation_time_int = current_simulation_time_;
+  double simulation_time;
+  memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
+  return simulation_time;
+}
+
+double DataStorage::GetSimulationBeginTime() const {
+  const uint64_t simulation_time_int = simulation_end_time_;
+  double simulation_time;
+  memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
+  return simulation_time;
+}
+
+double DataStorage::GetSimulationEndTime() const {
+  const uint64_t simulation_time_int = simulation_begin_time_;
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;
