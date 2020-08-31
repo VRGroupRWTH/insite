@@ -15,7 +15,7 @@ class SimulationTimeInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, begin: float=None, end: float=None, current: float=None):  # noqa: E501
+    def __init__(self, begin: float=None, end: float=None, current: float=None, step_size:float=None):  # noqa: E501
         """SimulationTimeInfo - a model defined in Swagger
 
         :param begin: The begin of this SimulationTimeInfo.  # noqa: E501
@@ -24,22 +24,27 @@ class SimulationTimeInfo(Model):
         :type end: float
         :param current: The current of this SimulationTimeInfo.  # noqa: E501
         :type current: float
+        :param step_size: The duration of one step in milliseconds.  # noqa: E501
+        :type step_size: float
         """
         self.swagger_types = {
             'begin': float,
             'end': float,
-            'current': float
+            'current': float,
+            'step_size': float
         }
 
         self.attribute_map = {
             'begin': 'begin',
             'end': 'end',
-            'current': 'current'
+            'current': 'current',
+            'step_size': 'step_size'
         }
 
         self._begin = begin
         self._end = end
         self._current = current
+        self._step_size = step_size
 
     @classmethod
     def from_dict(cls, dikt) -> 'SimulationTimeInfo':
@@ -114,3 +119,24 @@ class SimulationTimeInfo(Model):
         """
 
         self._current = current
+
+    @property
+    def step_size(self) -> float:
+        """Gets the step_size of this SimulationTimeInfo.
+
+
+        :return: The step_size of this SimulationTimeInfo.
+        :rtype: float
+        """
+        return self._step_size
+
+    @step_size.setter
+    def step_size(self, step_size: float):
+        """Sets the step_size of this SimulationTimeInfo.
+
+
+        :param step_size: The step_size of this SimulationTimeInfo.
+        :type step_size: float
+        """
+
+        self._step_size = step_size

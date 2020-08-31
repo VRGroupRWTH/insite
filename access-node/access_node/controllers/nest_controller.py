@@ -254,7 +254,7 @@ def nest_get_simulation_time_info():  # noqa: E501
         step_size = response["step_size"]
 
     # TODO Add Start and End time when available
-    time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end)
+    time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end, step_size=step_size)
     return time_info
 
 
