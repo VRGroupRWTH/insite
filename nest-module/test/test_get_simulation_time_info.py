@@ -16,6 +16,8 @@ def test_simulation_time_info(nest_simulation, simulation_time):
     r = requests.get("http://localhost:8080/nest/simulation_time_info")
     simulation_time_info = r.json()
 
+    assert(r.status_code == 200)
+
     assert('step_size' in simulation_time_info)
     assert(isinstance(simulation_time_info['step_size'], numbers.Number))
     assert('current' in simulation_time_info)
