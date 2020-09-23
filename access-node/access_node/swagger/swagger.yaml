@@ -5,17 +5,34 @@ info:
   version: "1.0.0"
   title: "In-Situ Pipeline REST API"
 host: "localhost"
-basePath: "/"
+basePath: "/v1/"
 schemes:
-- "https"
 - "http"
 paths:
+  /version:
+    get:
+      operationId: "get_version"
+      summary: "Returns the deployed insite and API versions."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Operation successful."
+          schema:
+            $ref: "#/definitions/Version"
+        "500":
+          description: "Operation failed due to server error."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+      x-swagger-router-controller: "access_node.controllers.arbor_controller"
+
   /arbor/spikes:
     get:
       tags:
       - "arbor"
-      summary: "Retrieves the spikes for the given simulation times (optional),  cell\
-        \ and segment (optional)."
+      summary: "Retrieves the spikes for the given simulation times (optional), cell and segment (optional)."
       operationId: "arbor_get_spikes"
       consumes:
       - "application/json"
@@ -768,6 +785,22 @@ paths:
             $ref: "#/definitions/ErrorResponse"
       x-swagger-router-controller: "access_node.controllers.nest_controller"
 definitions:
+  Version:
+    type: "object"
+    properties:
+      api:
+        type: "string"
+      insite:
+        type: "string"
+    required:
+      - api
+      - insite
+    example:
+      api:
+        v1: "1.3"
+        v2: "2.1"
+        v3: "3.5"
+      insite: "4.6"
   ErrorResponse:
     type: "object"
     properties:
