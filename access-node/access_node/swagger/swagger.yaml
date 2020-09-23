@@ -485,7 +485,8 @@ paths:
         description: "The ID of the spike detector to query."
         in: "path"
         required: true
-        format: "integer"
+        type: "integer"
+        format: "uint64"
       - name: "fromTime"
         in: "query"
         description: "The start time in milliseconds (including) to be queried."
