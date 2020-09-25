@@ -1,49 +1,90 @@
 import connexion
 import six
 
+from access_node.models.error_response import ErrorResponse  # noqa: E501
 from access_node.models.multimeter_info import MultimeterInfo  # noqa: E501
 from access_node.models.multimeter_measurement import MultimeterMeasurement  # noqa: E501
 from access_node.models.nest_neuron_properties import NestNeuronProperties  # noqa: E501
 from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: E501
+from access_node.models.spikedetector_info import SpikedetectorInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
 
-from access_node.models.nodes import nodes
-import requests
-import psycopg2
-import numpy as np
+
+def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
+    """Retreives the available multimeters and their properties.
+
+     # noqa: E501
+
+    :param multimeter_id: The identifier of the multimeter.
+    :type multimeter_id: int
+
+    :rtype: MultimeterInfo
+    """
+    return 'do some magic!'
 
 
-def connect_to_database():
-    database_host = 'database'
-    try:
-        with open('database_host.txt') as database_host_file:
-            database_host = database_host_file.readline().rstrip('\n')
-    except:
-        pass
-    return psycopg2.connect(database="postgres", user="postgres",
-                       password="postgres", host=database_host, port="5432")
+def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the measurements for a multimeter, attribute and neuron IDs (optional).
+
+     # noqa: E501
+
+    :param multimeter_id: The multimeter to query
+    :type multimeter_id: int
+    :param attribute_name: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
+    :type attribute_name: str
+    :param from_time: The start time (including) to be queried.
+    :type from_time: float
+    :param to_time: The end time (excluding) to be queried.
+    :type to_time: float
+    :param neuron_ids: A list of neuron IDs queried for attribute data.
+    :type neuron_ids: List[int]
+    :param skip: The offset into the result.
+    :type skip: int
+    :param top: The maximum number of entries to be returned.
+    :type top: int
+
+    :rtype: MultimeterMeasurement
+    """
+    return 'do some magic!'
 
 
-def nest_get_gids():  # noqa: E501
-    """Retrieves a list of all gids.
+def nest_get_multimeters():  # noqa: E501
+    """Retreives the available multimeters and their properties.
+
+     # noqa: E501
+
+
+    :rtype: List[MultimeterInfo]
+    """
+    return 'do some magic!'
+
+
+def nest_get_neuron_by_id(neuron_id):  # noqa: E501
+    """Retrieves the properties of the specified neuron.
+
+     # noqa: E501
+
+    :param neuron_id: The ID of the queried neuron.
+    :type neuron_id: int
+
+    :rtype: NestNeuronProperties
+    """
+    return 'do some magic!'
+
+
+def nest_get_neuron_ids():  # noqa: E501
+    """Retrieves a list of all neuron IDs accessable via the pipeline.
 
      # noqa: E501
 
 
     :rtype: List[int]
     """
-    con = connect_to_database()
-    cur = con.cursor()
-
-    cur.execute("SELECT id FROM nest_neuron")
-    gids = [i[0] for i in cur.fetchall()]
-
-    con.close()
-    return gids
+    return 'do some magic!'
 
 
-def nest_get_gids_in_population(population_id):  # noqa: E501
+def nest_get_neuron_ids_by_population(population_id):  # noqa: E501
     """Retrieves the list of all neuron ids within the population.
 
      # noqa: E501
@@ -53,281 +94,126 @@ def nest_get_gids_in_population(population_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    con = connect_to_database()
-    cur = con.cursor()
-
-    cur.execute("SELECT id FROM nest_neuron WHERE nest_neuron.population_id ="+str(population_id))
-    gids = [i[0] for i in cur.fetchall()]
-
-    con.close()
-    return gids
+    return 'do some magic!'
 
 
-def nest_get_multimeter_info():  # noqa: E501
-    """Retreives the available multimeters and their properties.
-
-     # noqa: E501
-
-
-    :rtype: MultimeterInfo
-    """
-    con = connect_to_database()
-    cur = con.cursor()
-
-    cur.execute("SELECT * FROM nest_multimeter;")
-    attributes = np.array(cur.fetchall())
-
-
-    gids = []
-    if len(attributes) > 0:
-        for id in attributes[:,0]:
-            cur.execute("SELECT neuron_id FROM nest_neuron_multimeter WHERE multimeter_id = %s", (id,))
-            gids.append([i[0] for i in cur.fetchall()])
-
-    mult_info = []
-    for i in range(len(attributes)):
-        mult_info.append({"id": attributes[i][0],
-                    "attributes": attributes[i][1],
-                    "gids": gids[i]})
-
-   
-    con.close()
-    return mult_info
-
-
-def nest_get_multimeter_measurements(multimeter_id, attribute, _from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the measurements for a multimeter, attribute and gids (optional).
-
-     # noqa: E501
-
-    :param multimeter_id: The multimeter to query
-    :type multimeter_id: int
-    :param attribute: The attribute to query (e.g., &#39;V_m&#39; for the membrane potential)
-    :type attribute: str
-    :param _from: The start time (including) to be queried.
-    :type _from: float
-    :param to: The end time (excluding) to be queried.
-    :type to: float
-    :param gids: A list of gids queried for spike data.
-    :type gids: List[int]
-    :param offset: The offset into the result.
-    :type offset: int
-    :param limit: The maximum of entries to be result.
-    :type limit: int
-
-    :rtype: MultimeterMeasurement
-    """
-    mult_info = nest_get_multimeter_info()
-
-    mult_gids = []
-    multimeter_exists = False
-    for mult in mult_info:
-        if mult['id'] == multimeter_id:
-            multimeter_exists = True
-            if attribute not in mult['attributes']:
-                return "Given multimeter does not measure given attribute", 400
-            mult_gids = mult['gids']
-            break
-    if not multimeter_exists:
-        return "Given multimeter does not exist", 400
-
-    if gids == None:
-        gids = mult_gids
-    else:
-        for gid in gids:
-            if gid not in mult_gids:
-                return "Gid "+str(gid)+" is not measured by given Multimeter", 400
-
-    init = True
-    sim_times = []
-    measurement = MultimeterMeasurement([], [], [])
-    for node in nodes.nest_simulation_nodes:
-        response = requests.get(
-            node+'/multimeter_measurement', params={"multimeter_id": multimeter_id, "attribute": attribute, "from": _from, "to": to, "gids": gids}).json()
-        if init:
-            sim_times = response['simulation_times']
-            measurement = MultimeterMeasurement(
-                sim_times, gids, [None for x in range(0, (len(sim_times)*len(gids)))])
-            init = False
-        for x in range(len(response['gids'])):
-            gid = response['gids'][x]
-            index = measurement.gids.index(gid)
-            index_offset = index * len(sim_times)
-            for y in range(len(sim_times)):
-                measurement.values[index_offset +
-                                   y] = response['values'][x*len(sim_times)+y]
-
-    # offset and limit
-    if (offset is None):
-        offset = 0
-    if (limit is None or (limit + offset) > len(measurement.gids)):
-        limit = len(measurement.gids) - offset
-    measurement.gids = measurement.gids[offset:offset+limit]
-    measurement.values = measurement.values[offset *
-                                            len(sim_times):(offset+limit)*len(sim_times)]
-
-    return measurement
-
-
-def nest_get_neuron_properties(gids=None):  # noqa: E501
+def nest_get_neurons():  # noqa: E501
     """Retrieves the properties of the specified neurons.
 
      # noqa: E501
 
-    :param gids: A list of gids queried for properties.
-    :type gids: List[int]
 
     :rtype: List[NestNeuronProperties]
     """
-    con = connect_to_database()
-    cur = con.cursor()
+    return 'do some magic!'
 
-    cur.execute("Select * FROM nest_neuron LIMIT 0")
-    colnames = np.array([desc[0] for desc in cur.description])
-    # column 1 and 2 contain the Node_id/Population_id and thus are removed
-    colnames = np.delete(colnames, [1,2])
 
-    if gids == None:
-        cur.execute("Select * FROM nest_neuron")
-    else:
-        cur.execute("Select * FROM nest_neuron WHERE id IN %s", (tuple(gids),))
-    
-    nest_properties = []
-    properties = np.array(cur.fetchall())
-    if properties.size != 0:
-        properties = np.delete(properties, [1,2], 1)
-        for k in range(len(properties[:,0])):
-            props = {}
-            id = properties[k,0]
-            for i in range(1, len(colnames)):
-                props.update({colnames[i]: properties[k,i] if properties[k,i] != None else []})
-            nest_properties.append(NestNeuronProperties(id, props))
+def nest_get_neurons_by_population(population_id):  # noqa: E501
+    """Retrieves the neurons that belong to the specified population.
 
-    con.close()
-    return nest_properties
+     # noqa: E501
+
+    :param population_id: The population ID to query the neurons for.
+    :type population_id: List[int]
+
+    :rtype: List[NestNeuronProperties]
+    """
+    return 'do some magic!'
 
 
 def nest_get_populations():  # noqa: E501
-    """Retrieves a list of all population IDs.
+    """Retrieves a list of all accessable population IDs.
 
      # noqa: E501
 
 
     :rtype: List[int]
     """
-    con = connect_to_database()
-    cur = con.cursor()
-
-    cur.execute("SELECT DISTINCT (population_id) FROM nest_neuron")
-    populations = [i[0] for i in cur.fetchall()]
-
-    con.close()
-    return populations
+    return 'do some magic!'
 
 
 def nest_get_simulation_time_info():  # noqa: E501
-    """Retrieves simulation time information (begin, current, end).
+    """Retrieves simulation time information (stepSize, begin, current, end).
 
      # noqa: E501
 
 
     :rtype: SimulationTimeInfo
     """
-
-    con = connect_to_database()
-    cur = con.cursor()
-    cur.execute("SELECT address FROM nest_simulation_node")
-    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
-    con.close()
-    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
-
-    current_time = float('inf')
-    begin = 0
-    end = 0
-    step_size = 0
-    for node in nodes.nest_simulation_nodes:
-        response = requests.get(
-            node+'/simulation_time_info').json()
-        current_time = min(current_time, response["current"])
-        begin = max(begin, response["begin"])
-        end = max(end, response["end"])
-        step_size = response["step_size"]
-
-    # TODO Add Start and End time when available
-    time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end)
-    return time_info
+    return 'do some magic!'
 
 
-def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the spikes for the given simulation steps (optional) and gids (optional).
+def nest_get_spikedetectors():  # noqa: E501
+    """Queries all spike detectors accessable to the pipeline.
 
      # noqa: E501
 
-    :param _from: The start time (including) to be queried.
-    :type _from: float
-    :param to: The end time (excluding) to be queried.
-    :type to: float
-    :param gids: A list of gids queried for spike data.
-    :type gids: List[int]
-    :param offset: The offset into the result.
-    :type offset: int
-    :param limit: The maximum of entries to be returned.
-    :type limit: int
+
+    :rtype: SpikedetectorInfo
+    """
+    return 'do some magic!'
+
+
+def nest_get_spikes(from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given time range (optional) and neuron IDs (optional). If no time range or neuron list is specified, it will return the spikes for whole time or all neurons respectively. This request merges the spikes recorded by all spike detectors and removes duplicates.
+
+     # noqa: E501
+
+    :param from_time: The start time in milliseconds (including) to be queried.
+    :type from_time: float
+    :param to_time: The end time in milliseconds (excluding) to be queried.
+    :type to_time: float
+    :param neuron_ids: A list of neuron IDs queried for spike data.
+    :type neuron_ids: List[int]
+    :param skip: The offset into the result.
+    :type skip: int
+    :param top: The maximum number of entries to be returned.
+    :type top: int
 
     :rtype: Spikes
     """
-
-    con = connect_to_database()
-    cur = con.cursor()
-    cur.execute("SELECT address FROM nest_simulation_node")
-    nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
-    con.close()
-    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
-
-    spikes = Spikes([], [])
-    for node in nodes.nest_simulation_nodes:
-        response = requests.get(
-            node+'/spikes', params={"from": _from, "to": to, "gids": gids}).json()
-        for x in range(len(response['simulation_times'])):
-            spikes.simulation_times.append(response['simulation_times'][x])
-            spikes.gids.append(response['gids'][x])
-
-    # sort
-    sorted_ids = [x for _, x in sorted(
-        zip(spikes.simulation_times, spikes.gids))]
-    spikes.gids = sorted_ids
-    spikes.simulation_times.sort()
-
-    # offset and limit
-    if (offset is None):
-        offset = 0
-    if (limit is None or (limit + offset) > len(spikes.gids)):
-        limit = len(spikes.gids) - offset
-    spikes.gids = spikes.gids[offset:offset+limit]
-    spikes.simulation_times = spikes.simulation_times[offset:offset+limit]
-
-    return spikes
+    return 'do some magic!'
 
 
-def nest_get_spikes_by_population(population_id, _from=None, to=None, offset=None, limit=None):  # noqa: E501
-    """Retrieves the spikes for the given simulation steps (optional) and population.
+def nest_get_spikes_by_population(population_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given simulation steps (optional) and population. This request merges the spikes recorded by all spike detectors and removes duplicates.
 
      # noqa: E501
 
     :param population_id: The identifier of the population.
     :type population_id: int
-    :param _from: The start time (including) to be queried.
-    :type _from: float
-    :param to: The end time (excluding) to be queried.
-    :type to: float
-    :param offset: The offset into the result.
-    :type offset: int
-    :param limit: The maximum of entries to be returned.
-    :type limit: int
+    :param from_time: The start time (including) to be queried.
+    :type from_time: float
+    :param to_time: The end time (excluding) to be queried.
+    :type to_time: float
+    :param skip: The offset into the result.
+    :type skip: int
+    :param top: The maximum numbers of entries to be returned.
+    :type top: int
 
     :rtype: Spikes
     """
-    gids = nest_get_gids_in_population(population_id)
-    return nest_get_spikes(_from, to, gids, offset, limit)
+    return 'do some magic!'
 
 
+def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given time range (optional) and neuron IDs (optional) from one spike detector. If no time range or neuron list is specified, it will return the spikes for whole time or all neurons respectively.
+
+     # noqa: E501
+
+    :param spikedetector_id: The ID of the spike detector to query.
+    :type spikedetector_id: int
+    :param from_time: The start time in milliseconds (including) to be queried.
+    :type from_time: float
+    :param to_time: The end time in milliseconds (excluding) to be queried.
+    :type to_time: float
+    :param neuron_ids: A list of neuron IDs queried for spike data.
+    :type neuron_ids: List[int]
+    :param skip: The offset into the result.
+    :type skip: int
+    :param top: The maximum number of entries to be returned.
+    :type top: int
+
+    :rtype: Spikes
+    """
+    return 'do some magic!'
