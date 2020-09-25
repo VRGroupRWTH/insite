@@ -80,37 +80,6 @@ std::vector<Spike> DataStorage::GetSpikes() {
   return spikes;
 }
 
-void DataStorage::Flush() {
-  // const hsize_t spikes_extend[] = {flushed_spikes_count +
-  //                                  buffered_spikes_.size()};
-  // const hsize_t count[] = {buffered_spikes_.size()};
-  // const hsize_t dest_start[] = {flushed_spikes_count};
-
-  // const hsize_t src_space_extend[] = {buffered_spikes_.size()};
-  // const H5::DataSpace src_space{1, src_space_extend};
-
-  // {
-  //   spikes_times_dataset_.extend(spikes_extend);
-  //   const auto dest_space = spikes_times_dataset_.getSpace();
-  //   dest_space.selectHyperslab(H5S_SELECT_SET, count, dest_start);
-  //   spikes_times_dataset_.write(buffered_spikes_.data(),
-  //                               H5::PredType::NATIVE_UINT64, src_space,
-  //                               dest_space);
-  // }
-
-  // {
-  //   spikes_neurons_dataset_.extend(spikes_extend);
-  //   const auto dest_space = spikes_neurons_dataset_.getSpace();
-  //   dest_space.selectHyperslab(H5S_SELECT_SET, count, dest_start);
-  //   spikes_times_dataset_.write(buffered_spikes_.data(),
-  //                               H5::PredType::NATIVE_DOUBLE, src_space,
-  //                               dest_space);
-  // }
-
-  // flushed_spikes_count += buffered_spikes_.size();
-  // buffered_spikes_.clear();
-}
-
 void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,
                                            const std::string& attribute_name,
                                            const double simulation_time,

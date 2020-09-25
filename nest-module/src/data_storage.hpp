@@ -41,7 +41,6 @@ class DataStorage {
 
   void AddSpike(double simulation_time, std::uint64_t gid);
   std::vector<Spike> GetSpikes();
-  void Flush();
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
     const std::string& attribute_name, const double simulation_time,
