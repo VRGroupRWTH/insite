@@ -16,29 +16,7 @@ constexpr size_t TIME_DIMENSION = 0;
 constexpr size_t NEURON_DIMENSION = 1;
 }  // namespace
 
-DataStorage::DataStorage(
-    const std::string& filename
-    /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/) {
-  // h5_file_ = make_unique<H5::H5File>(filename.c_str(), H5F_ACC_TRUNC);
-
-  // // Create dataset for spikes
-  // constexpr hsize_t spikes_initial_size[] = {0};
-  // constexpr hsize_t spikes_max_size[] = {H5S_UNLIMITED};
-  // const H5::DataSpace spikes_data_space{1, spikes_initial_size,
-  //                                       spikes_max_size};
-
-  // const hsize_t spikes_chunk_size[] = {time_chunk_size};
-  // H5::DSetCreatPropList spikes_set_properties_;
-  // spikes_set_properties_.setChunk(1, spikes_chunk_size);
-
-  // spikes_times_dataset_ =
-  //     h5_file_->createDataSet("spikes/times", H5::PredType::NATIVE_DOUBLE,
-  //                             spikes_data_space, spikes_set_properties_);
-
-  // spikes_neurons_dataset_ =
-  //     h5_file_->createDataSet("spikes/neurons", H5::PredType::NATIVE_UINT64,
-  //                             spikes_data_space, spikes_set_properties_);
-  buffered_spikes_.reserve(32 * 1024 * 1024 / sizeof(Spike)); // Reserve 32mb
+DataStorage::DataStorage() {
   SetCurrentSimulationTime(0.0);
 }
 
@@ -57,7 +35,7 @@ std::vector<uint64_t> DataStorage::GetNeuronIds() {
   return temp_neuron_ids;
 }
 
-void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
+void DataStorage::AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t gid) {
   std::unique_lock<std::mutex> lock(spike_mutex_);
   const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
     return lhs.simulation_time < rhs.simulation_time;

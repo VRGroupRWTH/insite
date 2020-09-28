@@ -17,6 +17,12 @@ struct Spike {
 };
 static_assert(sizeof(Spike) == 2 * 8);
 
+struct Spikedetector {
+  std::uint64_t id;
+  std::vector<std::uint64_t> neuron_ids:
+  std::vector<Spike> spikes;
+};
+
 struct MultimeterInfo {
   std::uint64_t device_id;
   bool needs_update;
@@ -33,13 +39,12 @@ struct MultimeterMeasurements {
 
 class DataStorage {
  public:
-  DataStorage(const std::string& filename
-              /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/);
+  DataStorage();
 
   void AddNeuronId(uint64_t neuron_ids);
   std::vector<uint64_t> GetNeuronIds();
 
-  void AddSpike(double simulation_time, std::uint64_t gid);
+  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t gid);
   std::vector<Spike> GetSpikes();
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
@@ -55,20 +60,16 @@ class DataStorage {
   double GetSimulationEndTime() const;
 
  private:
-  // std::unique_ptr<H5::H5File> h5_file_;
-
   std::mutex neuron_ids_mutex_;
   std::vector<uint64_t> neuron_ids_;
-
-  // uint64_t flushed_spikes_count = 0;
-  std::vector<Spike> buffered_spikes_;
-  // H5::DataSet spikes_times_dataset_;
-  // H5::DataSet spikes_neurons_dataset_;
-  std::mutex spike_mutex_;
 
   std::atomic_uint64_t current_simulation_time_;
   std::atomic_uint64_t simulation_begin_time_;
   std::atomic_uint64_t simulation_end_time_;
+
+  
+  std::unordered_map<std::uint64_t, Spikedetector> spikedetectors_;
+  std::mutex spikedetectors_mutex_;
 
   // Device ID to attribute index to measurement map.
   std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
