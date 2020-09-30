@@ -239,23 +239,27 @@ def nest_get_simulation_time_info():  # noqa: E501
     cur.execute("SELECT address FROM nest_simulation_node")
     nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
     con.close()
-    print("Updated simumlation nodes: " + str(nodes.nest_simulation_nodes))
+    app = connexion.App("access_node")
+    app.app.logger.info("Updated simulation nodes: " + str(nodes.nest_simulation_nodes))
 
-    current_time = float('inf')
-    begin = 0
-    end = 0
-    step_size = 0
-    for node in nodes.nest_simulation_nodes:
-        response = requests.get(
-            node+'/simulation_time_info').json()
-        current_time = min(current_time, response["current"])
-        begin = max(begin, response["begin"])
-        end = max(end, response["end"])
-        step_size = response["step_size"]
+    if len(nodes.nest_simulation_nodes) != 0:
+        current_time = float('inf')
+        begin = 0
+        end = 0
+        step_size = 0
+        for node in nodes.nest_simulation_nodes:
+            response = requests.get(
+                node+'/simulation_time_info').json()
+            current_time = min(current_time, response["current"])
+            begin = max(begin, response["begin"])
+            end = max(end, response["end"])
+            step_size = response["step_size"]
 
-    # TODO Add Start and End time when available
-    time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end)
-    return time_info
+        time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end, step_size=step_size)
+        return time_info
+    else:
+        app.app.logger.warn("No simulation nodes available")
+        return 'Service not ready', 503
 
 
 def nest_get_spikes(_from=None, to=None, gids=None, offset=None, limit=None):  # noqa: E501

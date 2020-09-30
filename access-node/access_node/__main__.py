@@ -24,23 +24,8 @@ def ConnectToDatabase(postgres_username, postgres_password):
 
 
 def main():
-    # Wait for simulation nodes to post to database
-    time.sleep(0.1)
-
-    # # get simulation nodes
-    # con = ConnectToDatabase('postgres', 'postgres')
-    # cur = con.cursor()
-    # # NEST
-    # cur.execute("SELECT address FROM nest_simulation_node")
-    # nodes.nest_simulation_nodes = [i[0] for i in cur.fetchall()]
-    # # Arbor
-    # cur.execute("SELECT address FROM nest_simulation_node")
-    # nodes.arbor_simulation_nodes = [i[0] for i in cur.fetchall()]
-    # con.close()
-
-
     # run acces_node
-    app = connexion.App(__name__, specification_dir='./swagger/')
+    app = connexion.App("access_node", specification_dir='./swagger/')
     app.app.json_encoder = encoder.JSONEncoder
     app.add_api('swagger.yaml', arguments={
                 'title': 'In-Situ Pipeline REST API'})
