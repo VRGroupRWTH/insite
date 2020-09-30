@@ -5,7 +5,7 @@
 #include <regex>
 #include <unordered_set>
 
-#include "data_storage.hpp"
+#include "storage/data_storage.hpp"
 #include "nest_time.h"
 
 namespace insite {
@@ -75,7 +75,7 @@ web::http::http_response HttpServer::GetSpikes(
     }
 
     spikes.erase(std::remove_if(spikes.begin(), spikes.end(), [&population_node_ids](const Spike& spike) {
-      return population_node_ids.count(spike.gid) == 0;
+      return population_node_ids.count(spike.neuron_id) == 0;
     }), spikes.end());
   }
 
@@ -106,7 +106,7 @@ web::http::http_response HttpServer::GetSpikes(
   {
     size_t index = 0;
     for (auto spike = spikes_begin; spike != spikes_end; ++spike, ++index) {
-      gids[index] = spike->gid;
+      gids[index] = spike->neuron_id;
       simulation_times[index] = spike->simulation_time;
     }
   }

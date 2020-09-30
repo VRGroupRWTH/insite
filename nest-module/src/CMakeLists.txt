@@ -42,8 +42,9 @@ set( MODULE_NAME ${SHORT_NAME}module )
 set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
      recording_backend_insite.h recording_backend_insite.cpp
-     data_storage.hpp data_storage.cpp
      http_server.hpp http_server.cpp
+     storage/data_storage.hpp storage/data_storage.cpp
+     storage/spikedetector_storage.hpp storage/spikedetector_storage.cpp
    )
 
 # 3) We require a header name like this:

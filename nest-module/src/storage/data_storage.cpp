@@ -1,6 +1,7 @@
 #include "data_storage.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 
 namespace insite {
@@ -16,9 +17,7 @@ constexpr size_t TIME_DIMENSION = 0;
 constexpr size_t NEURON_DIMENSION = 1;
 }  // namespace
 
-DataStorage::DataStorage() {
-  SetCurrentSimulationTime(0.0);
-}
+DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
 void DataStorage::AddNeuronId(uint64_t neuron_id) {
   std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
@@ -35,26 +34,35 @@ std::vector<uint64_t> DataStorage::GetNeuronIds() {
   return temp_neuron_ids;
 }
 
-void DataStorage::AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t gid) {
-  std::unique_lock<std::mutex> lock(spike_mutex_);
-  const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
-    return lhs.simulation_time < rhs.simulation_time;
-  };
-  const Spike spike{simulation_time, gid};
-  const auto equal_range =
-      std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike,
-                       spike_occured_before);
-  for (auto i = equal_range.first; i != equal_range.second; ++i) {
-    if (i->gid == gid) {
-      return;
-    }
+SpikedetectorStorage* DataStorage::GetSpikeDetectorStorage(
+    std::uint64_t spike_detector_id) {
+  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+  auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
+  if (spike_detector_iterator == spikedetectors_.end()) {
+    auto insert_result = spikedetectors_.insert(
+        std::make_pair(spike_detector_id,
+                       make_unique<SpikedetectorStorage>(spike_detector_id)));
+    assert(insert_result.second);
+    return insert_result.first->second.get();
+  } else {
+    return spike_detector_iterator->second.get();
   }
-  buffered_spikes_.insert(equal_range.second, spike);
+}
+
+void DataStorage::AddSpike(std::uint64_t spikedetector_id,
+                           double simulation_time, std::uint64_t neuron_id) {
+  GetSpikeDetectorStorage(spikedetector_id)
+      ->AddSpike(simulation_time, neuron_id);
 }
 
 std::vector<Spike> DataStorage::GetSpikes() {
-  std::unique_lock<std::mutex> lock(spike_mutex_);
-  std::vector<Spike> spikes = buffered_spikes_;
+  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+  std::vector<Spike> spikes;
+  std::vector<Spike> spikedetector_spikes;
+  for (const auto& spikedetector : spikedetectors_) {
+    spikedetector.second->ExtractSpikes(&spikedetector_spikes);
+    spikes.insert(spikes.end(), spikedetector_spikes.begin(), spikedetector_spikes.end());
+  }
   return spikes;
 }
 

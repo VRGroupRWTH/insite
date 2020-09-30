@@ -5,7 +5,7 @@
 #include <cpprest/http_client.h>
 #include <pqxx/pqxx>
 
-#include "data_storage.hpp"
+#include "storage/data_storage.hpp"
 #include "http_server.hpp"
 #include "recording_backend.h"
 #include "nest_types.h"

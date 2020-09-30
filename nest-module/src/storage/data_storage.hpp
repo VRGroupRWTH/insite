@@ -9,20 +9,9 @@
 #include <vector>
 #include <atomic>
 
+#include "spikedetector_storage.hpp"
+
 namespace insite {
-
-struct Spike {
-  double simulation_time;
-  std::uint64_t gid;
-};
-static_assert(sizeof(Spike) == 2 * 8);
-
-struct Spikedetector {
-  std::uint64_t id;
-  std::vector<std::uint64_t> neuron_ids:
-  std::vector<Spike> spikes;
-};
-
 struct MultimeterInfo {
   std::uint64_t device_id;
   bool needs_update;
@@ -44,7 +33,8 @@ class DataStorage {
   void AddNeuronId(uint64_t neuron_ids);
   std::vector<uint64_t> GetNeuronIds();
 
-  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t gid);
+  SpikedetectorStorage* GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
+  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
   std::vector<Spike> GetSpikes();
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
@@ -68,7 +58,7 @@ class DataStorage {
   std::atomic_uint64_t simulation_end_time_;
 
   
-  std::unordered_map<std::uint64_t, Spikedetector> spikedetectors_;
+  std::unordered_map<std::uint64_t, std::unique_ptr<SpikedetectorStorage>> spikedetectors_;
   std::mutex spikedetectors_mutex_;
 
   // Device ID to attribute index to measurement map.

@@ -41,8 +41,7 @@ namespace insite
   } // namespace
 
   RecordingBackendInsite::RecordingBackendInsite()
-      : data_storage_("tgest"),
-        database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
+      : database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
         http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_, "postgresql://postgres@" + ReadDatabaseHost())
   {
 
@@ -351,7 +350,7 @@ CREATE TABLE arbor_probe (
     const auto time_stamp = event.get_stamp().get_ms();
     if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR)
     {
-      data_storage_.AddSpike(time_stamp, sender_gid);
+      data_storage_.AddSpike(device.get_node_id(), time_stamp, sender_gid);
     }
     if (device.get_type() == nest::RecordingDevice::MULTIMETER)
     {
