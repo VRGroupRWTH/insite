@@ -10,6 +10,7 @@
 #include <atomic>
 
 #include "spikedetector_storage.hpp"
+#include "node_collection.h"
 
 namespace insite {
 struct MultimeterInfo {
@@ -26,15 +27,20 @@ struct MultimeterMeasurements {
   std::vector<double> values;
 };
 
+struct NodeCollection {
+  std::uint64_t first_node_id;
+  std::uint64_t last_node_id;
+};
+
 class DataStorage {
  public:
   DataStorage();
 
-  void AddNeuronId(uint64_t neuron_ids);
-  std::vector<uint64_t> GetNeuronIds();
+  void SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection);
 
   SpikedetectorStorage* GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
   void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
+
   std::vector<Spike> GetSpikes();
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
@@ -51,7 +57,7 @@ class DataStorage {
 
  private:
   std::mutex neuron_ids_mutex_;
-  std::vector<uint64_t> neuron_ids_;
+  std::vector<NodeCollection> node_collections_;
 
   std::atomic_uint64_t current_simulation_time_;
   std::atomic_uint64_t simulation_begin_time_;

@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <set>
+
+#include "node.h"
+#include "kernel_manager.h"
 
 namespace insite {
 
@@ -19,19 +23,24 @@ constexpr size_t NEURON_DIMENSION = 1;
 
 DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
-void DataStorage::AddNeuronId(uint64_t neuron_id) {
+void DataStorage::SetNodesFromCollection(
+    const nest::NodeCollectionPTR& node_collection) {
   std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
-  const auto insert_position =
-      std::lower_bound(neuron_ids_.begin(), neuron_ids_.end(), neuron_id);
-  if (insert_position == neuron_ids_.end() || *insert_position != neuron_id) {
-    neuron_ids_.insert(insert_position, neuron_id);
-  }
-}
+  std::set<nest::NodeCollection*> node_handles_node_connections;
+  node_collections_.clear();
 
-std::vector<uint64_t> DataStorage::GetNeuronIds() {
-  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
-  std::vector<uint64_t> temp_neuron_ids = neuron_ids_;
-  return temp_neuron_ids;
+  for (const nest::NodeIDTriple& node_id_triple : *node_collection.get()) {
+    nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+    nest::NodeCollection* node_collection = node->get_nc().get();
+
+    if (node_handles_node_connections.count(node_collection) == 0) {
+      const auto metadata = node_collection->get_metadata();
+      std::cout << "Node collection " << node_collections_.size() << ": " << node_collection->is_range() << (metadata ? metadata->get_type() : "") << std::endl;
+      node_collections_.push_back({});
+
+      node_handles_node_connections.insert(node_collection);
+    }
+  }
 }
 
 SpikedetectorStorage* DataStorage::GetSpikeDetectorStorage(
@@ -61,7 +70,8 @@ std::vector<Spike> DataStorage::GetSpikes() {
   std::vector<Spike> spikedetector_spikes;
   for (const auto& spikedetector : spikedetectors_) {
     spikedetector.second->ExtractSpikes(&spikedetector_spikes);
-    spikes.insert(spikes.end(), spikedetector_spikes.begin(), spikedetector_spikes.end());
+    spikes.insert(spikes.end(), spikedetector_spikes.begin(),
+                  spikedetector_spikes.end());
   }
   return spikes;
 }
