@@ -6,7 +6,8 @@ from access_node import encoder
 
 
 def main():
-    app = connexion.App(__name__, specification_dir='./openapi/')
+    app = connexion.App("access_node", specification_dir='./openapi/')
+    # run acces_node
     app.app.json_encoder = encoder.JSONEncoder
     app.add_api('openapi.yaml',
                 arguments={'title': 'In-Situ Pipeline REST API'},

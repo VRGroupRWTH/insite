@@ -965,7 +965,7 @@ paths:
           description: Operation failed due to server error.
       summary: Returns the deployed insite and API versions.
       x-swagger-router-controller: access_node.controllers.version_controller
-      x-openapi-router-controller: access_node.controllers.default_controller
+      x-openapi-router-controller: access_node.controllers.version_controller
 components:
   schemas:
     Version:
