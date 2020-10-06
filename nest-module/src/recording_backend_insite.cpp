@@ -231,6 +231,10 @@ CREATE TABLE arbor_probe (
     DictionaryDatum properties(new Dictionary());
     nest::NodeCollectionPTR nodes = nest::kernel().node_manager.get_nodes(properties, false);
     data_storage_.SetNodesFromCollection(nodes);
+
+    for (const auto& spike_detector : data_storage_.GetSpikeDetectors()) {
+      spike_detector.second->Prepare(nodes);
+    }
   }
 
   void RecordingBackendInsite::cleanup()

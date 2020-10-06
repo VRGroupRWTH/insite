@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "node_collection.h"
 
 namespace insite {
 
@@ -26,6 +27,9 @@ class SpikedetectorStorage {
   SpikedetectorStorage(const SpikedetectorStorage&) = delete;
   SpikedetectorStorage& operator=(const SpikedetectorStorage&) = delete;
 
+  void Prepare(const nest::NodeCollectionPTR& all_nodes);
+  void ExtractConnectedNodeIds(std::vector<std::uint64_t>* node_ids);
+
   void AddSpike(double simulation_time, std::uint64_t node_id);
   void ExtractSpikes(
       std::vector<Spike>* spikes_vector, double from_time = 0.0,
@@ -35,7 +39,7 @@ class SpikedetectorStorage {
 
  private:
   std::uint64_t id_;
-  std::vector<std::uint64_t> node_ids_;
+  std::vector<std::uint64_t> connected_nodes_;
   std::vector<Spike> spikes_;
   std::uint64_t first_spike_index_ = 0;
   std::mutex mutex_;

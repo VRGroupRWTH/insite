@@ -1,4 +1,5 @@
 #include "spikedetector_storage.hpp"
+#include "kernel_manager.h"
 
 namespace insite {
 
@@ -6,6 +7,35 @@ SpikedetectorStorage::SpikedetectorStorage(std::uint64_t spikedetector_id,
                                            std::uint64_t ring_buffer_size)
     : id_(spikedetector_id) {
   spikes_.reserve(ring_buffer_size);
+}
+
+void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
+  std::unique_lock<std::mutex> lock(mutex_);
+  nest::NodeCollectionPTR spike_detector_collection =
+      std::make_shared<nest::NodeCollectionPrimitive>(id_, id_);
+
+  std::cout << "SpikeDetector connections:" << std::endl;
+
+  std::deque<nest::ConnectionID> connections;
+  for (nest::synindex synapse_id = 0;
+       synapse_id < nest::kernel().model_manager.get_num_synapse_prototypes();
+       ++synapse_id) {
+    nest::kernel().connection_manager.get_connections(
+        connections, all_nodes, spike_detector_collection, synapse_id, -1);
+  }
+  
+  connected_nodes_.resize(0);
+  connected_nodes_.reserve(connections.size());
+  for (const auto& connection : connections) {
+    connected_nodes_.push_back(connection.get_source_node_id());
+  }
+}
+
+void SpikedetectorStorage::ExtractConnectedNodeIds(std::vector<std::uint64_t>* node_ids) {
+  assert(node_ids != nullptr);
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  *node_ids = connected_nodes_;
 }
 
 void SpikedetectorStorage::AddSpike(double simulation_time,

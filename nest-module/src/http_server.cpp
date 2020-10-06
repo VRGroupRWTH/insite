@@ -32,8 +32,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
                request.relative_uri().path() == "/simulation_time_info") {
       request.reply(GetCurrentSimulationTime(request));
     } else {
-      std::cerr << "Invalid request: " << request.to_string() << "\n";
-      request.reply(web::http::status_codes::NotFound);
+      request.reply(CreateErrorResponse(
+          web::http::status_codes::NotFound,
+          {"Invalid Endpoint", "The endpoint does not exists."}));
     }
   });
 
@@ -78,10 +79,17 @@ web::http::http_response HttpServer::GetSpikeDetectors(const web::http::http_req
   const auto spike_detectors = storage_->GetSpikeDetectors();
 
   web::json::value response_body =  web::json::value::array();
+  std::vector<std::uint64_t> connected_node_ids;
 
   for (const auto& spikedetector_id_storage : spike_detectors) {
     web::json::value spikedetector_data = web::json::value::object();
     spikedetector_data["id"] = spikedetector_id_storage.first;
+
+    spikedetector_id_storage.second->ExtractConnectedNodeIds(&connected_node_ids);
+    spikedetector_data["connectedNodes"] = web::json::value::array(connected_node_ids.size());
+    for (size_t i = 0; i < connected_node_ids.size(); ++i) {
+      spikedetector_data["connectedNodes"][i] = connected_node_ids[i];
+    }
 
     response_body[response_body.size()] = spikedetector_data;
   }
