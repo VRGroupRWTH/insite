@@ -13,7 +13,7 @@ namespace insite {
 
 struct Spike {
   double simulation_time;
-  std::uint64_t neuron_id;
+  std::uint64_t node_id;
 };
 static_assert(sizeof(Spike) == 2 * 8);
 
@@ -26,13 +26,16 @@ class SpikedetectorStorage {
   SpikedetectorStorage(const SpikedetectorStorage&) = delete;
   SpikedetectorStorage& operator=(const SpikedetectorStorage&) = delete;
 
-  void AddSpike(double simulation_time, std::uint64_t neuron_id);
-  void ExtractSpikes(std::vector<Spike>* spikes_vector, double from = 0.0,
-                     double to = std::numeric_limits<double>::infinity());
+  void AddSpike(double simulation_time, std::uint64_t node_id);
+  void ExtractSpikes(
+      std::vector<Spike>* spikes_vector, double from_time = 0.0,
+      double to_time = std::numeric_limits<double>::infinity(),
+      std::uint64_t from_neuron_id = 0,
+      std::uint64_t to_neuron_id = std::numeric_limits<std::uint64_t>::max());
 
  private:
   std::uint64_t id_;
-  std::vector<std::uint64_t> neuron_ids_;
+  std::vector<std::uint64_t> node_ids_;
   std::vector<Spike> spikes_;
   std::uint64_t first_spike_index_ = 0;
   std::mutex mutex_;

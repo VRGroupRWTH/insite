@@ -169,7 +169,10 @@ CREATE TABLE arbor_probe (
   {
     std::cout << "RecordingBackendInsite::enroll(" << device.get_label() << ")\n";
 
-    if (device.get_type() == nest::RecordingDevice::MULTIMETER)
+    if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR)
+    {
+      data_storage_.CreateSpikeDetectorStorage(device.get_node_id());
+    } else if (device.get_type() == nest::RecordingDevice::MULTIMETER)
     {
       auto id = device.get_node_id();
       multimeter_infos_.emplace(std::make_pair(id, MultimeterInfo{id, true}));

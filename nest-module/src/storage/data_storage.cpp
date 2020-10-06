@@ -57,37 +57,31 @@ void DataStorage::SetNodesFromCollection(
   }
 }
 
-SpikedetectorStorage* DataStorage::GetSpikeDetectorStorage(
-    std::uint64_t spike_detector_id) {
+std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(std::uint64_t spike_detector_id) {
   std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
   auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
   if (spike_detector_iterator == spikedetectors_.end()) {
     auto insert_result = spikedetectors_.insert(
         std::make_pair(spike_detector_id,
-                       make_unique<SpikedetectorStorage>(spike_detector_id)));
+                       std::make_shared<SpikedetectorStorage>(spike_detector_id)));
     assert(insert_result.second);
-    return insert_result.first->second.get();
+    return insert_result.first->second;
   } else {
-    return spike_detector_iterator->second.get();
+    return nullptr;
   }
+}
+
+std::shared_ptr<SpikedetectorStorage> DataStorage::GetSpikeDetectorStorage(
+    std::uint64_t spike_detector_id) {
+  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+  auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
+  return spike_detector_iterator == spikedetectors_.end() ? nullptr : spike_detector_iterator->second;
 }
 
 void DataStorage::AddSpike(std::uint64_t spikedetector_id,
                            double simulation_time, std::uint64_t neuron_id) {
   GetSpikeDetectorStorage(spikedetector_id)
       ->AddSpike(simulation_time, neuron_id);
-}
-
-std::vector<Spike> DataStorage::GetSpikes() {
-  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
-  std::vector<Spike> spikes;
-  std::vector<Spike> spikedetector_spikes;
-  for (const auto& spikedetector : spikedetectors_) {
-    spikedetector.second->ExtractSpikes(&spikedetector_spikes);
-    spikes.insert(spikes.end(), spikedetector_spikes.begin(),
-                  spikedetector_spikes.end());
-  }
-  return spikes;
 }
 
 void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,

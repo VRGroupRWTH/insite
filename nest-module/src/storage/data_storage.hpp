@@ -38,15 +38,27 @@ class DataStorage {
   DataStorage();
 
   void SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection);
+  inline size_t GetNodeCollectionCount() const {
+    std::unique_lock<std::mutex> lock(node_collections_mutex_);
+    return node_collections_.size();
+  }
+  inline NodeCollection GetNodeCollection(size_t id) const {
+    std::unique_lock<std::mutex> lock(node_collections_mutex_);
+    return node_collections_[id];
+  }
   inline std::vector<NodeCollection> GetNodeCollections() const {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_;
   }
 
-  SpikedetectorStorage* GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
-  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
+  std::shared_ptr<SpikedetectorStorage> CreateSpikeDetectorStorage(std::uint64_t spike_detector_id);
+  std::shared_ptr<SpikedetectorStorage> GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
+  std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> GetSpikeDetectors() const {
+    std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+    return spikedetectors_;
+  }
 
-  std::vector<Spike> GetSpikes();
+  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
 
   void AddMultimeterMeasurement(std::uint64_t device_id, 
     const std::string& attribute_name, const double simulation_time,
@@ -69,8 +81,8 @@ class DataStorage {
   std::atomic_uint64_t simulation_end_time_;
 
   
-  std::unordered_map<std::uint64_t, std::unique_ptr<SpikedetectorStorage>> spikedetectors_;
-  std::mutex spikedetectors_mutex_;
+  mutable std::mutex spikedetectors_mutex_;
+  std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spikedetectors_;
 
   // Device ID to attribute index to measurement map.
   std::unordered_map<std::uint64_t, std::unordered_map<std::string, 

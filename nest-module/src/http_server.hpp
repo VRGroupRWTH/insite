@@ -3,6 +3,7 @@
 
 #include <cpprest/http_listener.h>
 #include <string>
+#include <memory>
 #include <pqxx/pqxx>
 
 namespace insite {
@@ -19,13 +20,20 @@ class HttpServer {
   std::string database_uri_;
   
   web::http::http_response GetCollections(const web::http::http_request& request);
+  web::http::http_response GetSpikeDetectors(const web::http::http_request& request);
 
   web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
-
   web::http::http_response GetSpikes(const web::http::http_request& request);
-  
   web::http::http_response GetMultimeterMeasurement(
     const web::http::http_request& request);
+
+  struct Error {
+    std::string code;
+    std::string message;
+
+    web::json::value Serialize() const;
+  };
+  static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
 };
 
 }  // namespace insite

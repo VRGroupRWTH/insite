@@ -9,14 +9,14 @@ SpikedetectorStorage::SpikedetectorStorage(std::uint64_t spikedetector_id,
 }
 
 void SpikedetectorStorage::AddSpike(double simulation_time,
-                                    std::uint64_t neuron_id) {
+                                    std::uint64_t node_id) {
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (spikes_.size() < spikes_.capacity()) {
-    spikes_.push_back({simulation_time, neuron_id});
+    spikes_.push_back({simulation_time, node_id});
   } else {
     spikes_[first_spike_index_].simulation_time = simulation_time;
-    spikes_[first_spike_index_].neuron_id = neuron_id;
+    spikes_[first_spike_index_].node_id = node_id;
     ++first_spike_index_;
     if (first_spike_index_ == spikes_.size()) {
       first_spike_index_ = 0;
@@ -25,8 +25,9 @@ void SpikedetectorStorage::AddSpike(double simulation_time,
 }
 
 void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
-                                         double from, double to) {
-  spikes_vector->clear();
+                                         double from_time, double to_time,
+                                         std::uint64_t from_neuron_id,
+                                         std::uint64_t to_neuron_id) {
   if (spikes_.size() == 0) {
       return;
   }
@@ -39,8 +40,10 @@ void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
 
     // Todo: make this more efficient by doing a binary search on the simulation
     // time
-    if (current_spike.simulation_time >= from &&
-        current_spike.simulation_time < to) {
+    if (current_spike.simulation_time >= from_time &&
+        current_spike.simulation_time < to_time &&
+        current_spike.node_id >= from_neuron_id &&
+        current_spike.node_id < to_neuron_id) {
       spikes_vector->push_back(current_spike);
     }
 
