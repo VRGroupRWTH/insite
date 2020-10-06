@@ -25,20 +25,34 @@ DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
 void DataStorage::SetNodesFromCollection(
     const nest::NodeCollectionPTR& node_collection) {
-  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
+  std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
   node_collections_.clear();
 
   for (const nest::NodeIDTriple& node_id_triple : *node_collection.get()) {
     nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
-    nest::NodeCollection* node_collection = node->get_nc().get();
+    nest::NodeCollectionPTR node_collection = node->get_nc();
 
-    if (node_handles_node_connections.count(node_collection) == 0) {
-      const auto metadata = node_collection->get_metadata();
-      std::cout << "Node collection " << node_collections_.size() << ": " << node_collection->is_range() << (metadata ? metadata->get_type() : "") << std::endl;
-      node_collections_.push_back({});
+    if (node_handles_node_connections.count(node_collection.get()) == 0) {
+      assert(node_collection->is_range());
+      assert(node_collection->size() > 0);
 
-      node_handles_node_connections.insert(node_collection);
+      std::string model =
+          node_id_triple.model_id != nest::invalid_index
+              ? nest::kernel().model_manager.get_model(node_id_triple.model_id)->get_name()
+              : "none";
+
+      node_collections_.push_back({
+        (*node_collection)[0],
+        node_collection->size(),
+        model
+      });
+
+      std::cout << "Node collection: [" << (*node_collection)[0] << ","
+                << (*node_collection)[0] + node_collection->size()
+                << "): " << model << std::endl;
+
+      node_handles_node_connections.insert(node_collection.get());
     }
   }
 }

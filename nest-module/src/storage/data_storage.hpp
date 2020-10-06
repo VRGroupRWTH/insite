@@ -29,7 +29,8 @@ struct MultimeterMeasurements {
 
 struct NodeCollection {
   std::uint64_t first_node_id;
-  std::uint64_t last_node_id;
+  std::uint64_t node_count;
+  std::string model_name;
 };
 
 class DataStorage {
@@ -37,6 +38,10 @@ class DataStorage {
   DataStorage();
 
   void SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection);
+  inline std::vector<NodeCollection> GetNodeCollections() const {
+    std::unique_lock<std::mutex> lock(node_collections_mutex_);
+    return node_collections_;
+  }
 
   SpikedetectorStorage* GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
   void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
@@ -56,7 +61,7 @@ class DataStorage {
   double GetSimulationEndTime() const;
 
  private:
-  std::mutex neuron_ids_mutex_;
+  mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
 
   std::atomic_uint64_t current_simulation_time_;

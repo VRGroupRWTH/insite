@@ -17,6 +17,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
       database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
+        request.relative_uri().path() == "/nodeCollections") {
+      request.reply(GetCollections(request));
+    } else if (request.method() == "GET" &&
         request.relative_uri().path() == "/spikes") {
       request.reply(GetSpikes(request));
     } else if (request.method() == "GET" &&
@@ -45,6 +48,24 @@ web::http::http_response HttpServer::GetCurrentSimulationTime(
   response_body["end"] = storage_->GetSimulationBeginTime();
   response_body["step_size"] = nest::Time(nest::Time::step(1)).get_ms();
   response.set_body(response_body);
+  return response;
+}
+  
+web::http::http_response HttpServer::GetCollections(const web::http::http_request& request) {
+  web::http::http_response response(web::http::status_codes::OK);
+  
+  const auto node_collections = storage_->GetNodeCollections();
+
+  web::json::value response_body =  web::json::value::array(node_collections.size());
+  for (size_t i = 0; i < node_collections.size(); ++i) {
+    response_body[i] = web::json::value::object();
+    response_body[i]["id"] = i;
+    response_body[i]["firstNodeId"] = node_collections[i].first_node_id;
+    response_body[i]["nodeCount"] = node_collections[i].node_count;
+    response_body[i]["modelName"] = web::json::value(node_collections[i].model_name);
+  }
+  response.set_body(response_body);
+
   return response;
 }
 

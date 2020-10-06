@@ -17,6 +17,8 @@ class HttpServer {
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;
   std::string database_uri_;
+  
+  web::http::http_response GetCollections(const web::http::http_request& request);
 
   web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
 
