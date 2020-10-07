@@ -6,312 +6,29 @@ info:
 servers:
 - url: http://localhost/v1
 paths:
-  /arbor/attributes:
+  /nest/kernelStatus:
     get:
-      operationId: arbor_get_attributes
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                example:
-                - Voltage
-                - Current
-                items:
-                  type: string
-                type: array
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves a list of all attributes.
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/cell_ids:
-    get:
-      operationId: arbor_get_cell_ids
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                example:
-                - 1
-                - 2
-                items:
-                  format: uint64
-                  type: integer
-                type: array
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves a list of all cell ids.
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/cell_properties:
-    get:
-      operationId: arbor_get_cell_properties
-      parameters:
-      - description: A list of cell IDs queried for properties.
-        explode: false
-        in: query
-        name: cell_ids
-        required: false
-        schema:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        style: form
+      operationId: nest_get_kernel_status
       responses:
         "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ArborCellProperties'
+                  $ref: '#/components/schemas/MultimeterInfo'
                 type: array
           description: Operation successful.
-        "400":
+        "500":
           content:
             application/json:
               schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves the properties of the specified cells.
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retreives the current status of the NEST kernel.
       tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/measurements:
-    get:
-      operationId: arbor_get_measurements
-      parameters:
-      - description: The attribute to query
-        explode: true
-        in: query
-        name: attribute
-        required: true
-        schema:
-          type: string
-        style: form
-      - description: A list of probes ids queried for data.
-        explode: false
-        in: query
-        name: probe_ids
-        required: false
-        schema:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        style: form
-      - description: The start time (including) to be queried.
-        explode: true
-        in: query
-        name: from
-        required: false
-        schema:
-          format: double
-          type: number
-        style: form
-      - description: The end time (excluding) to be queried.
-        explode: true
-        in: query
-        name: to
-        required: false
-        schema:
-          format: double
-          type: number
-        style: form
-      - description: The offset into the result.
-        explode: true
-        in: query
-        name: offset
-        required: false
-        schema:
-          format: uint64
-          type: integer
-        style: form
-      - description: The maximum number of entries to be returned.
-        explode: true
-        in: query
-        name: limit
-        required: false
-        schema:
-          format: uint64
-          type: integer
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ArborMeasurement'
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves the measurements for given probes (optional).
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/probes:
-    get:
-      operationId: arbor_get_probes
-      parameters:
-      - description: The attribute measured for which existing probes will be returned.
-        explode: true
-        in: query
-        name: attribute
-        required: false
-        schema:
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/Probe'
-                type: array
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves a list of all probes for a given attribute (optional).
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/simulation_time_info:
-    get:
-      operationId: arbor_get_simulation_time_info
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SimulationTimeInfo'
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves simulation time information(begin, current, end).
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
-  /arbor/spikes:
-    get:
-      operationId: arbor_get_spikes
-      parameters:
-      - description: The start time (including) to be queried.
-        explode: true
-        in: query
-        name: from
-        required: false
-        schema:
-          format: double
-          type: number
-        style: form
-      - description: The end time (excluding) to be queried.
-        explode: true
-        in: query
-        name: to
-        required: false
-        schema:
-          format: double
-          type: number
-        style: form
-      - description: A list of cell ids queried for spike data.
-        explode: false
-        in: query
-        name: cell_ids
-        required: false
-        schema:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        style: form
-      - description: A list of segment ids queried for spike data.
-        explode: false
-        in: query
-        name: segment_ids
-        required: false
-        schema:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        style: form
-      - description: The offset into the result.
-        explode: true
-        in: query
-        name: offset
-        required: false
-        schema:
-          format: uint64
-          type: integer
-        style: form
-      - description: The maximum number of entries to be result.
-        explode: true
-        in: query
-        name: limit
-        required: false
-        schema:
-          format: uint64
-          type: integer
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Spikes'
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                example: Error message
-                type: string
-          description: Operation failed.
-      summary: Retrieves the spikes for the given simulation times (optional), cell
-        and segment (optional).
-      tags:
-      - arbor
-      x-swagger-router-controller: access_node.controllers.arbor_controller
-      x-openapi-router-controller: access_node.controllers.arbor_controller
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/multimeters:
     get:
       operationId: nest_get_multimeters
@@ -411,7 +128,7 @@ paths:
           format: double
           type: number
         style: form
-      - description: A list of neuron IDs queried for attribute data.
+      - description: A list of node IDs queried for attribute data.
         explode: false
         in: query
         name: nodeIds
@@ -459,7 +176,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the measurements for a multimeter, attribute and neuron IDs
+      summary: Retrieves the measurements for a multimeter, attribute and node IDs
         (optional).
       tags:
       - nest
@@ -467,7 +184,7 @@ paths:
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodes:
     get:
-      operationId: nest_get_neurons
+      operationId: nest_get_nodes
       responses:
         "200":
           content:
@@ -611,7 +328,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the list of all neuron ids within the node collection.
+      summary: Retrieves the list of all node within the node collection.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -654,7 +371,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the list of all neuron ids within the node collection.
+      summary: Retrieves the list of all node ids within the node collection.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -855,9 +572,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the spikes for the given time range (optional) and neuron
-        IDs (optional) from one spike detector. If no time range or neuron list is
-        specified, it will return the spikes for whole time or all neurons respectively.
+      summary: Retrieves the spikes for the given time range (optional) and node
+        IDs (optional) from one spike detector. If no time range or node list is
+        specified, it will return the spikes for whole time or all nodes respectively.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -930,9 +647,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the spikes for the given time range (optional) and neuron
-        IDs (optional). If no time range or neuron list is specified, it will return
-        the spikes for whole time or all neurons respectively. This request merges
+      summary: Retrieves the spikes for the given time range (optional) and node
+        IDs (optional). If no time range or node list is specified, it will return
+        the spikes for whole time or all nodes respectively. This request merges
         the spikes recorded by all spike detectors and removes duplicates.
       tags:
       - nest
@@ -1056,88 +773,18 @@ components:
             type: integer
           type: array
         values:
-          description: This array contains the measured values for each neuron ID
-            and time to get the value for neuron ID n at time t you have to use the
+          description: This array contains the measured values for each node ID
+            and time to get the value for node ID n at time t you have to use the
             index n * length(simulationTimes) + t
           items:
             type: number
           type: array
       type: object
-    ArborMeasurement:
-      example:
-        simulation_times:
-        - 0.1
-        - 0.2
-        gids:
-        - 1
-        - 2
-        - 3
-        values:
-        - 0.123
-        - 0.123
-        - 0.123
-        - 0.123
-        - 0.123
-        - 0.123
-      properties:
-        simulation_times:
-          description: This array is always sorted.
-          items:
-            format: double
-            type: number
-          type: array
-        gids:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        values:
-          description: This array contains the measured values for each gid and time
-            to get the value for gid n at time t you have to use the index n * length(simulation_times)
-            + t
-          items:
-            type: number
-          type: array
-      type: object
-    Probe:
-      example:
-        id: 1
-        cell_id: 2
-        segment_id: 1
-        position: 0.4
-      properties:
-        id:
-          format: uint64
-          type: integer
-        cell_id:
-          format: uint64
-          type: integer
-        segment_id:
-          format: uint64
-          type: integer
-        position:
-          format: double
-          type: number
-      type: object
-    ArborCellProperties:
-      example:
-        population: pop1
-        position:
-        - 0.1
-        - 0.1
-        - 0.1
-      properties:
-        neuron_id:
-          format: uint64
-          type: integer
-        properties:
-          properties: {}
-          type: object
-      type: object
     NestNodeProperties:
       example:
         nodeId: 1
         nodeCollectionId: 0
+        simulationNodeId: 0
         position:
           - 0.1
           - 0.2
@@ -1265,3 +912,117 @@ components:
             type: integer
           type: array
       type: object
+    NestKernelStatus:
+      type: object
+      properties:
+        # Time and resolution
+        resolution:
+          type: number
+          description: The resolution of the simulation (in ms)
+        time:
+          type: number
+          description: The current simulation time
+        to_do:
+          type: integer
+          description: The number of steps yet to be simulated (read only)
+        max_delay:
+          type: number
+          description: The maximum delay in the network
+        min_delay:
+          type: number
+          description: The minimum delay in the network
+        ms_per_tic:
+          type: number
+          description: The number of milliseconds per tic
+        tics_per_ms:
+          type: number
+          description: The number of tics per millisecond
+        tics_per_step:
+          type: integer
+          description: The number of tics per simulation time step
+        T_max:
+          type: number
+          description: The largest representable time value (read only)
+        T_min:
+          type: number
+          description: The smallest representable time value (read only)
+
+        # Parallel processing
+        total_num_virtual_procs:
+          type: integer
+          description: The total number of virtual processes
+        local_num_threads:
+          type: integer
+          description: The local number of threads
+        num_processes:
+          type: integer
+          description: The number of MPI processes (read only)
+        off_grid_spiking:
+          type: boolean
+          description: Whether to transmit precise spike times in MPI communication (read only)
+
+        # Connector configuration
+        initial_connector_capacity:
+          type: integer
+          description: When a connector is first created, it starts with this capacity (if >= connector_cutoff)
+        large_connector_limit:
+          type: integer
+          description: Capacity doubling is used up to this limit
+        large_connector_growth_factor:
+          type: number
+          description: Capacity growth factor to use beyond the limit
+
+        # Random number generators
+        grng_seed:
+          type: integer
+          description: Seed for global random number generator used synchronously by all virtual processes to create, e.g., fixed fan-out connections (write only).
+        rng_seeds:
+          type: array
+          items:
+            type: integer
+          description: Seeds for the per-virtual-process random number generators used for most purposes. Array with one integer per virtual process, all must be unique and differ from grng_seed (write only).
+
+        # Output
+        data_path:
+          type: string
+          description: A path, where all data is written to (default is the current directory)
+        data_prefix:
+          type: string
+          description: A common prefix for all data files
+        overwrite_files:
+          type: boolean
+          description: Whether to overwrite existing data files
+        print_time:
+          type: boolean
+          description: Whether to print progress information during the simulation
+
+        # Network information
+        network_size:
+          type: integer
+          description: The number of nodes in the network (read only)
+        num_connections:
+          type: integer
+          description: The number of connections in the network (read only, local only)
+
+        # Waveform relaxation method (wfr)
+        use_wfr:
+          type: boolean
+          description: Whether to use waveform relaxation method
+        wfr_comm_interval:
+          type: number
+          description: Desired waveform relaxation communication interval
+        wfr_tol:
+          type: number
+          description: Convergence tolerance of waveform relaxation method
+        wfr_max_iterations:
+          type: integer
+          description: Maximal number of iterations used for waveform relaxation
+        wfr_interpolation_order:
+          type: integer
+          description: Interpolation order of polynomial used in wfr iterations
+
+        # Miscellaneous
+        dict_miss_is_error:
+          type: boolean
+          description: Whether missed dictionary entries are treated as errors
+
