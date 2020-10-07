@@ -414,7 +414,7 @@ paths:
       - description: A list of neuron IDs queried for attribute data.
         explode: false
         in: query
-        name: neuronIds
+        name: nodeIds
         required: false
         schema:
           items:
@@ -465,7 +465,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/neurons:
+  /nest/nodes:
     get:
       operationId: nest_get_neurons
       responses:
@@ -474,7 +474,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/NestNeuronProperties'
+                  $ref: '#/components/schemas/NestNodeProperties'
                 type: array
           description: Operation successful.
         "500":
@@ -483,14 +483,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the properties of the specified neurons.
+      summary: Retrieves all nodes of the simulation.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/neurons/ids:
+  /nest/nodes/ids:
     get:
-      operationId: nest_get_neuron_ids
+      operationId: nest_get_node_ids
       responses:
         "200":
           content:
@@ -500,7 +500,7 @@ paths:
                 - 1
                 - 2
                 - 3
-                - 15
+                - 4
                 items:
                   format: uint64
                   type: integer
@@ -512,19 +512,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed.
-      summary: Retrieves a list of all neuron IDs accessable via the pipeline.
+      summary: Retrieves a list of all node IDs.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/neurons/{neuronId}:
+  /nest/nodes/{nodeId}:
     get:
-      operationId: nest_get_neuron_by_id
+      operationId: nest_get_node_by_id
       parameters:
-      - description: The ID of the queried neuron.
+      - description: The ID of the queried node.
         explode: false
         in: path
-        name: neuronId
+        name: nodeId
         required: true
         schema:
           format: uint64
@@ -535,7 +535,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NestNeuronProperties'
+                $ref: '#/components/schemas/NestNodeProperties'
           description: Operation successful.
         "400":
           content:
@@ -549,26 +549,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the properties of the specified neuron.
+      summary: Retrieves the properties of the specified node.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/populations:
+  /nest/nodeCollections:
     get:
-      operationId: nest_get_populations
+      operationId: nest_get_node_collections
       responses:
         "200":
           content:
             application/json:
               schema:
-                example:
-                - 1
-                - 2
-                - 3
                 items:
-                  format: uint64
-                  type: integer
+                  $ref: '#/components/schemas/NestNodeCollectionProperties'
                 type: array
           description: Operation successful.
         "500":
@@ -577,19 +572,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves a list of all accessable population IDs.
+      summary: Retrieves a list of all node collection IDs.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/populations/${populationId}/neurons/ids:
+  /nest/nodeCollections/${nodeCollectionId}/nodes:
     get:
-      operationId: nest_get_neuron_ids_by_population
+      operationId: nest_get_nodes_by_node_collection
       parameters:
-      - description: The identifier of the population
+      - description: The identifier of the node collection
         explode: false
         in: path
-        name: populationId
+        name: nodeCollectionId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestNodeProperties'
+                type: array
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the list of all neuron ids within the node collection.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodeCollections/${nodeCollectionId}/nodes/ids:
+    get:
+      operationId: nest_get_node_ids_by_node_collection
+      parameters:
+      - description: The identifier of the node collection
+        explode: false
+        in: path
+        name: nodeCollectionId
         required: true
         schema:
           format: uint64
@@ -620,60 +654,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the list of all neuron ids within the population.
+      summary: Retrieves the list of all neuron ids within the node collection.
       tags:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/populations/{populationId}/neurons:
+  /nest/nodeCollections/{nodeCollectionId}/spikes:
     get:
-      operationId: nest_get_neurons_by_population
+      operationId: nest_get_spikes_by_node_collection
       parameters:
-      - description: The population ID to query the neurons for.
+      - description: The identifier of the node collection.
         explode: false
         in: path
-        name: populationId
-        required: true
-        schema:
-          items:
-            format: uint64
-            type: integer
-          type: array
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/NestNeuronProperties'
-                type: array
-          description: Operation successful.
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Operation failed due to invalid request.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Operation failed due to server error.
-      summary: Retrieves the neurons that belong to the specified population.
-      tags:
-      - nest
-      x-swagger-router-controller: access_node.controllers.nest_controller
-      x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/populations/{populationId}/spikes:
-    get:
-      operationId: nest_get_spikes_by_population
-      parameters:
-      - description: The identifier of the population.
-        explode: false
-        in: path
-        name: populationId
+        name: nodeCollectionId
         required: true
         schema:
           format: uint64
@@ -735,7 +728,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
       summary: Retrieves the spikes for the given simulation steps (optional) and
-        population. This request merges the spikes recorded by all spike detectors
+        node collection. This request merges the spikes recorded by all spike detectors
         and removes duplicates.
       tags:
       - nest
@@ -814,10 +807,10 @@ paths:
           format: double
           type: number
         style: form
-      - description: A list of neuron IDs queried for spike data.
+      - description: A list of node IDs queried for spike data.
         explode: false
         in: query
-        name: neuronIds
+        name: nodeIds
         required: false
         schema:
           items:
@@ -874,7 +867,6 @@ paths:
       operationId: nest_get_spikes
       parameters:
       - description: The start time in milliseconds (including) to be queried.
-        explode: true
         in: query
         name: fromTime
         required: false
@@ -883,7 +875,6 @@ paths:
           type: number
         style: form
       - description: The end time in milliseconds (excluding) to be queried.
-        explode: true
         in: query
         name: toTime
         required: false
@@ -891,10 +882,10 @@ paths:
           format: double
           type: number
         style: form
-      - description: A list of neuron IDs queried for spike data.
+      - description: A list of node IDs queried for spike data.
         explode: false
         in: query
-        name: neuronIds
+        name: nodeIds
         required: false
         schema:
           items:
@@ -1020,7 +1011,7 @@ components:
         simulationTimes:
         - 0.8
         - 0.9
-        neuronIds:
+        nodeIds:
         - 1
         - 2
       properties:
@@ -1030,7 +1021,7 @@ components:
             format: double
             type: number
           type: array
-        neuronIds:
+        nodeIds:
           items:
             format: uint64
             type: integer
@@ -1041,7 +1032,7 @@ components:
         simulationTimes:
         - 0.1
         - 0.2
-        neuronIds:
+        nodeIds:
         - 1
         - 2
         - 3
@@ -1059,7 +1050,7 @@ components:
             format: double
             type: number
           type: array
-        neuronIds:
+        nodeIds:
           items:
             format: uint64
             type: integer
@@ -1143,22 +1134,75 @@ components:
           properties: {}
           type: object
       type: object
-    NestNeuronProperties:
+    NestNodeProperties:
       example:
-        neuronId: 1
-        properties:
-          population: 2
-          position:
+        nodeId: 1
+        nodeCollectionId: 0
+        position:
           - 0.1
-          - 0.1
-          - 0.1
+          - 0.2
+        model:
+          name: 'iaf_psc_delta'
+          parameters:
+            "C_m": 1.0
+            "tau_m": 20.0
+            "t_ref": 2.0
+            "E_L": 0.0
+            "V_reset": 0.0
+            "V_m": 0.0
+            "V_th": 20.0
       properties:
-        neuronId:
+        nodeId:
           format: uint64
           type: integer
-        properties:
-          properties: {}
+        nodeCollectionId:
+          format: uint64
+          type: integer
+        model:
           type: object
+          properties:
+            name:
+              type: string
+            parameters:
+              type: object
+        position:
+          type: array
+          items:
+            type: number
+      type: object
+    NestNodeCollectionProperties:
+      example:
+        nodeCollectionId: 0
+        nodes:
+          firstId: 1
+          lastId: 100
+          count: 100
+        model:
+          name: "iaf_psc_delta"
+          parameters:
+            - "C_m"
+            - "tau_m"
+            - "t_ref"
+            - "E_L"
+            - "V_reset"
+            - "V_m"
+            - "V_th"
+      properties:
+        nodeCollectionId:
+          format: uint64
+          type: integer
+        nodes:
+          type: object
+          properties:
+            firstId:
+              format: uint64
+              type: integer
+            lastId:
+              format: uint64
+              type: integer
+            count:
+              format: uint64
+              type: integer
       type: object
     SimulationTimeInfo:
       example:
@@ -1182,23 +1226,22 @@ components:
       type: object
     MultimeterInfo:
       example:
-        id: 0
+        multimeterId: 10
         attributes:
         - V_m
-        neuronIds:
-        - 0
+        nodeIds:
         - 1
         - 3
         - 5
       properties:
-        id:
+        multimeterId:
           format: uint64
           type: integer
         attributes:
           items:
             type: string
           type: array
-        neuronIds:
+        nodeIds:
           items:
             format: uint64
             type: integer
@@ -1206,17 +1249,17 @@ components:
       type: object
     SpikedetectorInfo:
       example:
-        id: 0
-        neuronIds:
-        - 0
+        spikedetectorId: 0
+        nodeIds:
         - 1
         - 3
         - 5
       properties:
-        id:
+        spikedetectorId:
           format: uint64
           type: integer
-        neuronIds:
+        nodeIds:
+          description: "These are the nodes connected to the spike detector."
           items:
             format: uint64
             type: integer
