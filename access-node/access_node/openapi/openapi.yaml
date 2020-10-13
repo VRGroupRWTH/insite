@@ -480,7 +480,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpikedetectorInfo'
+                items:
+                  $ref: '#/components/schemas/SpikedetectorInfo'
+                type: array
           description: Operation successful.
         "500":
           content:
