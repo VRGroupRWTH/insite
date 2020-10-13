@@ -7,5 +7,3 @@ class SimulationNodes(object):
     self.nest_simulation_nodes = nest_simulation_nodes
 
 simulation_nodes = SimulationNodes()
-
-spikedetector_info = []
