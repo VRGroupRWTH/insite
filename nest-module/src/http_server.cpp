@@ -5,7 +5,7 @@
 #include <regex>
 #include <unordered_set>
 
-#include "data_storage.hpp"
+#include "storage/data_storage.hpp"
 #include "nest_time.h"
 
 namespace insite {
@@ -17,6 +17,12 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
       database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
+        request.relative_uri().path() == "/nodeCollections") {
+      request.reply(GetCollections(request));
+    } else if (request.method() == "GET" &&
+        request.relative_uri().path() == "/spikedetectors") {
+      request.reply(GetSpikeDetectors(request));
+    } else if (request.method() == "GET" &&
         request.relative_uri().path() == "/spikes") {
       request.reply(GetSpikes(request));
     } else if (request.method() == "GET" &&
@@ -26,8 +32,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
                request.relative_uri().path() == "/simulation_time_info") {
       request.reply(GetCurrentSimulationTime(request));
     } else {
-      std::cerr << "Invalid request: " << request.to_string() << "\n";
-      request.reply(web::http::status_codes::NotFound);
+      request.reply(CreateErrorResponse(
+          web::http::status_codes::NotFound,
+          {"Invalid Endpoint", "The endpoint does not exists."}));
     }
   });
 
@@ -39,12 +46,56 @@ web::http::http_response HttpServer::GetCurrentSimulationTime(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
   
-  web::json::value response_body =  web::json::value::object();
+  web::json::value response_body = web::json::value::object();
   response_body["current"] = storage_->GetCurrentSimulationTime();
   response_body["begin"] = storage_->GetSimulationEndTime();
   response_body["end"] = storage_->GetSimulationBeginTime();
   response_body["step_size"] = nest::Time(nest::Time::step(1)).get_ms();
   response.set_body(response_body);
+  return response;
+}
+  
+web::http::http_response HttpServer::GetCollections(const web::http::http_request& request) {
+  web::http::http_response response(web::http::status_codes::OK);
+  
+  const auto node_collections = storage_->GetNodeCollections();
+
+  web::json::value response_body =  web::json::value::array(node_collections.size());
+  for (size_t i = 0; i < node_collections.size(); ++i) {
+    response_body[i] = web::json::value::object();
+    response_body[i]["id"] = i;
+    response_body[i]["firstNodeId"] = node_collections[i].first_node_id;
+    response_body[i]["nodeCount"] = node_collections[i].node_count;
+    response_body[i]["modelName"] = web::json::value(node_collections[i].model_name);
+  }
+  response.set_body(response_body);
+
+  return response;
+}
+  
+web::http::http_response HttpServer::GetSpikeDetectors(const web::http::http_request& request) {
+  web::http::http_response response(web::http::status_codes::OK);
+  
+  const auto spike_detectors = storage_->GetSpikeDetectors();
+
+  web::json::value response_body =  web::json::value::array();
+  std::vector<std::uint64_t> connected_node_ids;
+
+  for (const auto& spikedetector_id_storage : spike_detectors) {
+    web::json::value spikedetector_data = web::json::value::object();
+    spikedetector_data["id"] = spikedetector_id_storage.first;
+
+    spikedetector_id_storage.second->ExtractConnectedNodeIds(&connected_node_ids);
+    spikedetector_data["connectedNodes"] = web::json::value::array(connected_node_ids.size());
+    for (size_t i = 0; i < connected_node_ids.size(); ++i) {
+      spikedetector_data["connectedNodes"][i] = connected_node_ids[i];
+    }
+
+    response_body[response_body.size()] = spikedetector_data;
+  }
+
+  response.set_body(response_body);
+
   return response;
 }
 
@@ -53,66 +104,84 @@ web::http::http_response HttpServer::GetSpikes(
   const auto parameters = web::uri::split_query(request.request_uri().query());
 
   web::http::http_response response(web::http::status_codes::OK);
-  auto spikes = storage_->GetSpikes();
 
-  const auto from = parameters.find("from");
-  const auto to = parameters.find("to");
-  const auto population = parameters.find("population");
+  const auto from_time_parameter = parameters.find("fromTime");
+  const double from_time = from_time_parameter == parameters.end()
+                               ? 0.0
+                               : std::stod(from_time_parameter->second);
 
-    std::unordered_set<uint64_t> population_node_ids;
-  if (population != parameters.end()) {
-    pqxx::connection connection(database_uri_);
-    pqxx::work txn(connection);
-    const auto population_node_ids_result = txn.exec(
-        "SELECT id FROM nest_neuron WHERE nest_neuron.population_id = " +
-        population->second);
-    txn.commit();
+  const auto to_time_parameter = parameters.find("toTime");
+  const double to_time = to_time_parameter == parameters.end()
+                             ? std::numeric_limits<double>::infinity()
+                             : std::stod(to_time_parameter->second);
 
-    population_node_ids.reserve(population_node_ids_result.size());
+  const auto node_collection_parameter = parameters.find("nodeCollection");
+  std::uint64_t from_node_id = 0;
+  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
+  if (node_collection_parameter != parameters.end()) {
+    const std::uint64_t node_collection_id = std::stoull(node_collection_parameter->second);
+    if (node_collection_id < storage_->GetNodeCollectionCount()) {
+      const NodeCollection node_collection = storage_->GetNodeCollection(node_collection_id);
+      from_node_id = node_collection.first_node_id;
+      to_node_id = node_collection.first_node_id + node_collection.node_count;
+    } else {
+      return CreateErrorResponse(web::http::status_codes::BadRequest,
+                                 {"InvalidNodeCollectionIndex"});
+    }
+  }
 
-    for (const auto& node_id : population_node_ids_result) {
-      population_node_ids.insert(node_id[0].as<uint64_t>());
+  const auto spike_detector_id_parameter = parameters.find("spikedetectorId");
+  
+  std::vector<Spike> spikes;
+
+  if (spike_detector_id_parameter == parameters.end()) {
+  std::cout << "Querying spikes: [" << from_time << "," << to_time << " ["
+            << from_node_id << "," << to_node_id << ")" << std::endl;
+            
+    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>>
+        spike_detectors = storage_->GetSpikeDetectors();
+    for (const auto& spike_detector_id_storage : spike_detectors) {
+      spike_detector_id_storage.second->ExtractSpikes(
+          &spikes, from_time, to_time, from_node_id, to_node_id);
     }
 
-    spikes.erase(std::remove_if(spikes.begin(), spikes.end(), [&population_node_ids](const Spike& spike) {
-      return population_node_ids.count(spike.gid) == 0;
-    }), spikes.end());
+  } else {
+    const auto spike_detector_id = std::stoll(spike_detector_id_parameter->second);
+    const auto spike_detector = storage_->GetSpikeDetectorStorage(spike_detector_id);
+
+    std::cout << "Querying spikes: [" << from_time << "," << to_time << " ["
+              << from_node_id << "," << to_node_id
+              << "), spikedetector=" << spike_detector_id << std::endl;
+
+    if (spike_detector == nullptr) {
+      return CreateErrorResponse(web::http::status_codes::BadRequest,
+                                 {"InvalidSpikeDetectorId"});
+    } else {
+      spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id, to_node_id);
+    }
   }
 
-  const auto spike_happened_before = [](const Spike& spike,
-                                        double simulation_time) {
-    return spike.simulation_time < simulation_time;
-  };
-
-  auto spikes_begin = spikes.begin();
-  auto spikes_end = spikes.end();
-  if (from != parameters.end()) {
-    const auto from_number = std::stoll(from->second);
-    spikes_begin = std::lower_bound(spikes.begin(), spikes.end(), from_number,
-                                    spike_happened_before);
-  }
-
-  if (to != parameters.end()) {
-    const auto to_number = std::stoll(to->second);
-    spikes_end = std::lower_bound(spikes.begin(), spikes.end(), to_number,
-                                  spike_happened_before);
-  }
-
-
-  const auto element_count = spikes_end - spikes_begin;
-  web::json::value gids = web::json::value::array(element_count);
-  web::json::value simulation_times = web::json::value::array(element_count);
+  web::json::value node_ids = web::json::value::array(spikes.size());
+  web::json::value simulation_times = web::json::value::array(spikes.size());
 
   {
     size_t index = 0;
-    for (auto spike = spikes_begin; spike != spikes_end; ++spike, ++index) {
-      gids[index] = spike->gid;
-      simulation_times[index] = spike->simulation_time;
+    for (const auto& spike : spikes) {
+      node_ids[index] = spike.node_id;
+      simulation_times[index] = spike.simulation_time;
+      index++;
     }
   }
 
   response.set_body(web::json::value::object(
-      {{"simulation_times", simulation_times}, {"gids", gids}}));
+      {{"simulationTimes", simulation_times}, {"nodeIds", node_ids}}));
+
+  // const auto spike_happened_before = [](const Spike& spike,
+  //                                       double simulation_time) {
+  //   return spike.simulation_time < simulation_time;
+  // };
+
+
   return response;
 }
 
@@ -206,4 +275,22 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   response.set_body(body);
   return response;
 }
+
+web::json::value HttpServer::Error::Serialize() const {
+  web::json::value error = web::json::value::object();
+  error["code"] = web::json::value(code);
+  error["message"] = web::json::value(message);
+  return error;
+}
+
+web::http::http_response HttpServer::CreateErrorResponse(web::http::status_code status_code, const Error& error) {
+  web::http::http_response response(status_code);
+
+  web::json::value body = web::json::value::object();
+  body["error"] = error.Serialize();
+  response.set_body(body);
+
+  return response;
+}
+
 }  // namespace insite

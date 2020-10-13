@@ -1,7 +1,12 @@
 #include "data_storage.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
+#include <set>
+
+#include "node.h"
+#include "kernel_manager.h"
 
 namespace insite {
 
@@ -16,68 +21,67 @@ constexpr size_t TIME_DIMENSION = 0;
 constexpr size_t NEURON_DIMENSION = 1;
 }  // namespace
 
-DataStorage::DataStorage(
-    const std::string& filename
-    /*, hsize_t time_chunk_size, hsize_t neuronids_chunk_size*/) {
-  // h5_file_ = make_unique<H5::H5File>(filename.c_str(), H5F_ACC_TRUNC);
+DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
-  // // Create dataset for spikes
-  // constexpr hsize_t spikes_initial_size[] = {0};
-  // constexpr hsize_t spikes_max_size[] = {H5S_UNLIMITED};
-  // const H5::DataSpace spikes_data_space{1, spikes_initial_size,
-  //                                       spikes_max_size};
+void DataStorage::SetNodesFromCollection(
+    const nest::NodeCollectionPTR& node_collection) {
+  std::unique_lock<std::mutex> lock(node_collections_mutex_);
+  std::set<nest::NodeCollection*> node_handles_node_connections;
+  node_collections_.clear();
 
-  // const hsize_t spikes_chunk_size[] = {time_chunk_size};
-  // H5::DSetCreatPropList spikes_set_properties_;
-  // spikes_set_properties_.setChunk(1, spikes_chunk_size);
+  for (const nest::NodeIDTriple& node_id_triple : *node_collection.get()) {
+    nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+    nest::NodeCollectionPTR node_collection = node->get_nc();
 
-  // spikes_times_dataset_ =
-  //     h5_file_->createDataSet("spikes/times", H5::PredType::NATIVE_DOUBLE,
-  //                             spikes_data_space, spikes_set_properties_);
+    if (node_handles_node_connections.count(node_collection.get()) == 0) {
+      assert(node_collection->is_range());
+      assert(node_collection->size() > 0);
 
-  // spikes_neurons_dataset_ =
-  //     h5_file_->createDataSet("spikes/neurons", H5::PredType::NATIVE_UINT64,
-  //                             spikes_data_space, spikes_set_properties_);
-  buffered_spikes_.reserve(32 * 1024 * 1024 / sizeof(Spike)); // Reserve 32mb
-  SetCurrentSimulationTime(0.0);
-}
+      std::string model =
+          node_id_triple.model_id != nest::invalid_index
+              ? nest::kernel().model_manager.get_model(node_id_triple.model_id)->get_name()
+              : "none";
 
-void DataStorage::AddNeuronId(uint64_t neuron_id) {
-  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
-  const auto insert_position =
-      std::lower_bound(neuron_ids_.begin(), neuron_ids_.end(), neuron_id);
-  if (insert_position == neuron_ids_.end() || *insert_position != neuron_id) {
-    neuron_ids_.insert(insert_position, neuron_id);
-  }
-}
+      node_collections_.push_back({
+        (*node_collection)[0],
+        node_collection->size(),
+        model
+      });
 
-std::vector<uint64_t> DataStorage::GetNeuronIds() {
-  std::unique_lock<std::mutex> lock(neuron_ids_mutex_);
-  std::vector<uint64_t> temp_neuron_ids = neuron_ids_;
-  return temp_neuron_ids;
-}
+      std::cout << "Node collection: [" << (*node_collection)[0] << ","
+                << (*node_collection)[0] + node_collection->size()
+                << "): " << model << std::endl;
 
-void DataStorage::AddSpike(double simulation_time, std::uint64_t gid) {
-  std::unique_lock<std::mutex> lock(spike_mutex_);
-  const auto spike_occured_before = [](const Spike& lhs, const Spike& rhs) {
-    return lhs.simulation_time < rhs.simulation_time;
-  };
-  const Spike spike{simulation_time, gid};
-  const auto equal_range =
-      std::equal_range(buffered_spikes_.begin(), buffered_spikes_.end(), spike,
-                       spike_occured_before);
-  for (auto i = equal_range.first; i != equal_range.second; ++i) {
-    if (i->gid == gid) {
-      return;
+      node_handles_node_connections.insert(node_collection.get());
     }
   }
-  buffered_spikes_.insert(equal_range.second, spike);
 }
 
-std::vector<Spike> DataStorage::GetSpikes() {
-  std::unique_lock<std::mutex> lock(spike_mutex_);
-  std::vector<Spike> spikes = buffered_spikes_;
-  return spikes;
+std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(std::uint64_t spike_detector_id) {
+  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+  auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
+  if (spike_detector_iterator == spikedetectors_.end()) {
+    auto insert_result = spikedetectors_.insert(
+        std::make_pair(spike_detector_id,
+                       std::make_shared<SpikedetectorStorage>(spike_detector_id)));
+    assert(insert_result.second);
+    return insert_result.first->second;
+  } else {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<SpikedetectorStorage> DataStorage::GetSpikeDetectorStorage(
+    std::uint64_t spike_detector_id) {
+  std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
+  auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
+  return spike_detector_iterator == spikedetectors_.end() ? nullptr : spike_detector_iterator->second;
+}
+
+void DataStorage::AddSpike(std::uint64_t spikedetector_id,
+                           double simulation_time, std::uint64_t neuron_id) {
+  GetSpikeDetectorStorage(spikedetector_id)
+      ->AddSpike(simulation_time, neuron_id);
 }
 
 void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,

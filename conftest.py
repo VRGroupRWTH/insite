@@ -28,7 +28,7 @@ def nest_simulation(request):
     while True:
         time.sleep(1.0)
         try:
-            r = requests.get("http://localhost:8080/nest/simulation_time_info")
+            r = requests.get("http://localhost:8080/v1/nest/simulationTimeInfo")
             if r.status_code == 200:
                 break
         except requests.exceptions.ConnectionError:

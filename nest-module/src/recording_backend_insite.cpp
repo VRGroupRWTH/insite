@@ -41,8 +41,7 @@ namespace insite
   } // namespace
 
   RecordingBackendInsite::RecordingBackendInsite()
-      : data_storage_("tgest"),
-        database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
+      : database_connection_("postgresql://postgres@" + ReadDatabaseHost()),
         http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_, "postgresql://postgres@" + ReadDatabaseHost())
   {
 
@@ -52,19 +51,16 @@ namespace insite
 
       txn.exec(R"db_query(
 DROP TABLE IF EXISTS nest_simulation_node CASCADE;
-DROP TABLE IF EXISTS nest_multimeter CASCADE;
 DROP TABLE IF EXISTS nest_neuron CASCADE;
+DROP TABLE IF EXISTS nest_multimeter CASCADE;
 DROP TABLE IF EXISTS nest_neuron_multimeter CASCADE;
+DROP TABLE IF EXISTS nest_spikedetector CASCADE;
+DROP TABLE IF EXISTS nest_neuron_spikedetector CASCADE;
 
 CREATE TABLE nest_simulation_node (
   id                      SERIAL PRIMARY KEY NOT NULL UNIQUE,
   address                 VARCHAR(50),
   current_simulation_time FLOAT
-);
-
-CREATE TABLE nest_multimeter (
-  id         INT PRIMARY KEY NOT NULL UNIQUE,
-  attributes VARCHAR(50) ARRAY
 );
 
 CREATE TABLE nest_neuron (
@@ -73,6 +69,23 @@ CREATE TABLE nest_neuron (
   population_id      INT,
   position           FLOAT[],
   FOREIGN KEY (simulation_node_id) REFERENCES nest_simulation_node (id)
+);
+
+CREATE TABLE nest_spikedetector (
+  id INT PRIMARY KEY NOT NULL UNIQUE
+);
+
+CREATE TABLE nest_neuron_spikedetector (
+  neuron_id        INT NOT NULL,
+  spikedetector_id INT NOT NULL,
+  PRIMARY KEY (neuron_id,spikedetector_id),
+  FOREIGN KEY (neuron_id) REFERENCES nest_neuron (id),
+  FOREIGN KEY (spikedetector_id) REFERENCES nest_spikedetector (id)
+);
+
+CREATE TABLE nest_multimeter (
+  id         INT PRIMARY KEY NOT NULL UNIQUE,
+  attributes VARCHAR(50) ARRAY
 );
 
 CREATE TABLE nest_neuron_multimeter (
@@ -156,7 +169,10 @@ CREATE TABLE arbor_probe (
   {
     std::cout << "RecordingBackendInsite::enroll(" << device.get_label() << ")\n";
 
-    if (device.get_type() == nest::RecordingDevice::MULTIMETER)
+    if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR)
+    {
+      data_storage_.CreateSpikeDetectorStorage(device.get_node_id());
+    } else if (device.get_type() == nest::RecordingDevice::MULTIMETER)
     {
       auto id = device.get_node_id();
       multimeter_infos_.emplace(std::make_pair(id, MultimeterInfo{id, true}));
@@ -211,7 +227,15 @@ CREATE TABLE arbor_probe (
     }
   }
 
-  void RecordingBackendInsite::prepare() {}
+  void RecordingBackendInsite::prepare() {
+    DictionaryDatum properties(new Dictionary());
+    nest::NodeCollectionPTR nodes = nest::kernel().node_manager.get_nodes(properties, false);
+    data_storage_.SetNodesFromCollection(nodes);
+
+    for (const auto& spike_detector : data_storage_.GetSpikeDetectors()) {
+      spike_detector.second->Prepare(nodes);
+    }
+  }
 
   void RecordingBackendInsite::cleanup()
   {
@@ -337,54 +361,54 @@ CREATE TABLE arbor_probe (
     const auto time_stamp = event.get_stamp().get_ms();
     if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR)
     {
-      data_storage_.AddSpike(time_stamp, sender_gid);
+      data_storage_.AddSpike(device.get_node_id(), time_stamp, sender_gid);
     }
-    if (device.get_type() == nest::RecordingDevice::MULTIMETER)
-    {
-      auto device_id = device.get_node_id();
-      auto &multimeter = multimeter_infos_.at(device_id);
-      auto &gids = multimeter.gids;
+    // if (device.get_type() == nest::RecordingDevice::MULTIMETER)
+    // {
+    //   auto device_id = device.get_node_id();
+    //   auto &multimeter = multimeter_infos_.at(device_id);
+    //   auto &gids = multimeter.gids;
 
-      // If the measurement is from a GID we previously do not know, add.
-      if (!binary_search(gids.begin(), gids.end(), sender_gid))
-      {
-        gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid),
-                    sender_gid);
-        multimeter.needs_update = true;
-      }
+    //   // If the measurement is from a GID we previously do not know, add.
+    //   if (!binary_search(gids.begin(), gids.end(), sender_gid))
+    //   {
+    //     gids.insert(std::lower_bound(gids.begin(), gids.end(), sender_gid),
+    //                 sender_gid);
+    //     multimeter.needs_update = true;
+    //   }
 
-      for (std::size_t i = 0; i < double_values.size(); ++i)
-        data_storage_.AddMultimeterMeasurement(
-            device_id, multimeter.double_attributes[i], time_stamp, sender_gid,
-            double_values[i]);
-      for (std::size_t i = 0; i < long_values.size(); ++i)
-        data_storage_.AddMultimeterMeasurement(
-            device_id, multimeter.long_attributes[i], time_stamp, sender_gid,
-            double(long_values[i]));
-    }
-    latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
+    //   for (std::size_t i = 0; i < double_values.size(); ++i)
+    //     data_storage_.AddMultimeterMeasurement(
+    //         device_id, multimeter.double_attributes[i], time_stamp, sender_gid,
+    //         double_values[i]);
+    //   for (std::size_t i = 0; i < long_values.size(); ++i)
+    //     data_storage_.AddMultimeterMeasurement(
+    //         device_id, multimeter.long_attributes[i], time_stamp, sender_gid,
+    //         double(long_values[i]));
+    // }
+    // latest_simulation_time_ = std::max(latest_simulation_time_, time_stamp);
 
-    NeuronInfo neuron_info;
-    neuron_info.gid = sender_gid;
-    if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&
-        !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(),
-                       neuron_info))
-    {
-      neuron_info.gid_collection = event.get_sender().get_nc();
+    // NeuronInfo neuron_info;
+    // neuron_info.gid = sender_gid;
+    // if (!binary_search(neuron_infos_.begin(), neuron_infos_.end(), neuron_info) &&
+    //     !binary_search(new_neuron_infos_.begin(), new_neuron_infos_.end(),
+    //                    neuron_info))
+    // {
+    //   neuron_info.gid_collection = event.get_sender().get_nc();
 
-      const auto layer = nest::get_layer(neuron_info.gid_collection);
-      if (layer.get())
-      {
-        neuron_info.position = layer->get_position_vector(
-            neuron_info.gid_collection->find(sender_gid));
-      }
+    //   const auto layer = nest::get_layer(neuron_info.gid_collection);
+    //   if (layer.get())
+    //   {
+    //     neuron_info.position = layer->get_position_vector(
+    //         neuron_info.gid_collection->find(sender_gid));
+    //   }
 
-      new_neuron_infos_.insert(
-          std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
-                           neuron_info),
-          neuron_info);
-      data_storage_.AddNeuronId(neuron_info.gid);
-    }
+    //   new_neuron_infos_.insert(
+    //       std::lower_bound(new_neuron_infos_.begin(), new_neuron_infos_.end(),
+    //                        neuron_info),
+    //       neuron_info);
+    //   data_storage_.AddNeuronId(neuron_info.gid);
+    // }
   }
 
   void RecordingBackendInsite::set_status(const DictionaryDatum &params)
