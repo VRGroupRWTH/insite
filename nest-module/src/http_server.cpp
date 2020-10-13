@@ -115,7 +115,7 @@ web::http::http_response HttpServer::GetSpikes(
                              ? std::numeric_limits<double>::infinity()
                              : std::stod(to_time_parameter->second);
 
-  const auto node_collection_parameter = parameters.find("nodeCollection");
+  const auto node_collection_parameter = parameters.find("nodeCollectionId");
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
   if (node_collection_parameter != parameters.end()) {
@@ -126,7 +126,7 @@ web::http::http_response HttpServer::GetSpikes(
       to_node_id = node_collection.first_node_id + node_collection.node_count;
     } else {
       return CreateErrorResponse(web::http::status_codes::BadRequest,
-                                 {"InvalidNodeCollectionIndex"});
+                                 {"InvalidNodeCollectionID"});
     }
   }
 
