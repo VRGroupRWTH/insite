@@ -1,0 +1,137 @@
+openapi: 3.0.1
+info:
+  description: This is the REST API for the NEST module of Insite.
+  title: Insite NEST Module API
+  version: 1.0.0
+servers:
+- url: http://localhost/
+paths:
+  # /version:
+  #   get:
+  #     operationId: get_version
+  #     responses:
+  #       "200":
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Version'
+  #         description: Operation successful.
+  #       "500":
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorResponse'
+  #         description: Operation failed due to server error.
+  #     summary: Returns the deployed insite version.
+  #     tags:
+  #       - NEST Module
+  /spikes:
+    get:
+      operationId: get_spikes
+      parameters:
+      - description: The ID of the spike detector to query.
+        in: query
+        name: spikedetectorId
+        schema:
+          format: uint64
+          type: integer
+      - description: The identifier of the population.
+        in: query
+        name: nodeCollectionId
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The start time (including) to be queried.
+        in: query
+        name: fromTime
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time (excluding) to be queried.
+        in: query
+        name: toTime
+        schema:
+          format: double
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Returns the deployed insite version.
+      tags:
+        - NEST Module
+components:
+  schemas:
+    Version:
+      example:
+        insite: "1.0"
+      properties:
+        insite:
+          type: string
+      required:
+      - insite
+      type: object
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+      required:
+      - error
+      type: object
+    Error:
+      properties:
+        code:
+          description: 'One of the error codes defined here: [...]'
+          type: string
+        message:
+          description: A human-readable representation of the error.
+          type: string
+        innererror:
+          $ref: '#/components/schemas/InnerError'
+      required:
+      - code
+      - message
+      type: object
+    InnerError:
+      properties:
+        code:
+          description: 'One of the error codes defined here: [...]'
+          type: string
+        innererror:
+          $ref: '#/components/schemas/InnerError'
+      required:
+      - code
+      type: object
+    Spikes:
+      example:
+        simulationTimes:
+        - 0.8
+        - 0.9
+        neuronIds:
+        - 1
+        - 2
+      properties:
+        simulationTimes:
+          description: This array is always sorted.
+          items:
+            format: double
+            type: number
+          type: array
+        neuronIds:
+          items:
+            format: uint64
+            type: integer
+          type: array
+      type: object
