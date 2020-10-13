@@ -7,6 +7,7 @@
 
 #include "storage/data_storage.hpp"
 #include "nest_time.h"
+#include "kernel_manager.h"
 
 namespace insite {
 
@@ -17,6 +18,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
       database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
+        request.relative_uri().path() == "/kernelStatus") {
+      request.reply(GetKernelStatus(request));
+    } else if (request.method() == "GET" &&
         request.relative_uri().path() == "/nodeCollections") {
       request.reply(GetCollections(request));
     } else if (request.method() == "GET" &&
@@ -40,6 +44,91 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
 
   http_listener_.open().wait();
   std::cout << "HTTP server is listening...\n";
+}
+
+web::http::http_response HttpServer::GetKernelStatus(const web::http::http_request& request) {
+
+  DictionaryDatum kernel_status(new Dictionary());
+  nest::kernel().get_status(kernel_status);
+
+  for (const auto& datum : *kernel_status) {
+    std::cout << datum.first << ": ";
+    datum.second->print(std::cout);
+    std::cout << std::endl;
+  }
+
+  try {
+    web::http::http_response response;
+    web::json::value response_body = web::json::value::object();
+    response_body["resolution"] =
+        getValue<double>(kernel_status->lookup2("resolution"));
+    response_body["time"] = getValue<double>(kernel_status->lookup2("time"));
+    response_body["to_do"] = getValue<long>(kernel_status->lookup2("to_do"));
+    response_body["max_delay"] =
+        getValue<double>(kernel_status->lookup2("max_delay"));
+    response_body["min_delay"] =
+        getValue<double>(kernel_status->lookup2("min_delay"));
+    response_body["ms_per_tic"] =
+        getValue<double>(kernel_status->lookup2("ms_per_tic"));
+    response_body["tics_per_ms"] =
+        getValue<double>(kernel_status->lookup2("tics_per_ms"));
+    response_body["tics_per_step"] =
+        getValue<long>(kernel_status->lookup2("tics_per_step"));
+    response_body["T_max"] = getValue<double>(kernel_status->lookup2("T_max"));
+    response_body["T_min"] = getValue<double>(kernel_status->lookup2("T_min"));
+    response_body["total_num_virtual_procs"] =
+        getValue<long>(kernel_status->lookup2("total_num_virtual_procs"));
+    response_body["local_num_threads"] =
+        getValue<long>(kernel_status->lookup2("local_num_threads"));
+    response_body["num_processes"] =
+        getValue<long>(kernel_status->lookup2("num_processes"));
+    response_body["off_grid_spiking"] =
+        getValue<bool>(kernel_status->lookup2("off_grid_spiking"));
+    // response_body["initial_connector_capacity"] =
+    //     getValue<long>(kernel_status->lookup2("initial_connector_capacity"));
+    // response_body["large_connector_limit"] =
+    //     getValue<long>(kernel_status->lookup2("large_connector_limit"));
+    // response_body["large_connector_growth_factor"] = getValue<double>(
+    //     kernel_status->lookup2("large_connector_growth_factor"));
+    response_body["grng_seed"] =
+        getValue<long>(kernel_status->lookup2("grng_seed"));
+    // response_body["rng_seeds"] =
+    //     getValue<array>(kernel_status->lookup2("rng_seeds"));
+    // response_body["data_path"] =
+    //     getValue<string>(kernel_status->lookup2("data_path"));
+    // response_body["data_prefix"] =
+    //     getValue<string>(kernel_status->lookup2("data_prefix"));
+    response_body["overwrite_files"] =
+        getValue<bool>(kernel_status->lookup2("overwrite_files"));
+    response_body["print_time"] =
+        getValue<bool>(kernel_status->lookup2("print_time"));
+    response_body["network_size"] =
+        getValue<long>(kernel_status->lookup2("network_size"));
+    response_body["num_connections"] =
+        getValue<long>(kernel_status->lookup2("num_connections"));
+    response_body["use_wfr"] =
+        getValue<bool>(kernel_status->lookup2("use_wfr"));
+    response_body["wfr_comm_interval"] =
+        getValue<double>(kernel_status->lookup2("wfr_comm_interval"));
+    response_body["wfr_tol"] =
+        getValue<double>(kernel_status->lookup2("wfr_tol"));
+    response_body["wfr_max_iterations"] =
+        getValue<long>(kernel_status->lookup2("wfr_max_iterations"));
+    response_body["wfr_interpolation_order"] =
+        getValue<long>(kernel_status->lookup2("wfr_interpolation_order"));
+    response_body["dict_miss_is_error"] =
+        getValue<bool>(kernel_status->lookup2("dict_miss_is_error"));
+
+    response.set_status_code(web::http::status_codes::OK);
+    response.set_body(response_body);
+    return response;
+  } catch (const UndefinedName& exception) {
+    return CreateErrorResponse(web::http::status_codes::InternalError,
+                               {"UndefinedName", exception.message()});
+  } catch (...) {
+    return CreateErrorResponse(web::http::status_codes::InternalError,
+                               {"UnknownError"});
+  }
 }
 
 web::http::http_response HttpServer::GetCurrentSimulationTime(
