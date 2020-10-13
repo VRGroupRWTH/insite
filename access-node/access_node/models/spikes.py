@@ -15,26 +15,26 @@ class Spikes(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_times=None, neuron_ids=None):  # noqa: E501
+    def __init__(self, simulation_times=None, node_ids=None):  # noqa: E501
         """Spikes - a model defined in OpenAPI
 
         :param simulation_times: The simulation_times of this Spikes.  # noqa: E501
         :type simulation_times: List[float]
-        :param neuron_ids: The neuron_ids of this Spikes.  # noqa: E501
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this Spikes.  # noqa: E501
+        :type node_ids: List[int]
         """
         self.openapi_types = {
             'simulation_times': List[float],
-            'neuron_ids': List[int]
+            'node_ids': List[int]
         }
 
         self.attribute_map = {
             'simulation_times': 'simulationTimes',
-            'neuron_ids': 'neuronIds'
+            'node_ids': 'nodeIds'
         }
 
         self._simulation_times = simulation_times
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids
 
     @classmethod
     def from_dict(cls, dikt) -> 'Spikes':
@@ -71,22 +71,22 @@ class Spikes(Model):
         self._simulation_times = simulation_times
 
     @property
-    def neuron_ids(self):
-        """Gets the neuron_ids of this Spikes.
+    def node_ids(self):
+        """Gets the node_ids of this Spikes.
 
 
-        :return: The neuron_ids of this Spikes.
+        :return: The node_ids of this Spikes.
         :rtype: List[int]
         """
-        return self._neuron_ids
+        return self._node_ids
 
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids):
-        """Sets the neuron_ids of this Spikes.
+    @node_ids.setter
+    def node_ids(self, node_ids):
+        """Sets the node_ids of this Spikes.
 
 
-        :param neuron_ids: The neuron_ids of this Spikes.
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this Spikes.
+        :type node_ids: List[int]
         """
 
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids

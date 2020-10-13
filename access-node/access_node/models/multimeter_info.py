@@ -15,31 +15,31 @@ class MultimeterInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id=None, attributes=None, neuron_ids=None):  # noqa: E501
+    def __init__(self, multimeter_id=None, attributes=None, node_ids=None):  # noqa: E501
         """MultimeterInfo - a model defined in OpenAPI
 
-        :param id: The id of this MultimeterInfo.  # noqa: E501
-        :type id: int
+        :param multimeter_id: The multimeter_id of this MultimeterInfo.  # noqa: E501
+        :type multimeter_id: int
         :param attributes: The attributes of this MultimeterInfo.  # noqa: E501
         :type attributes: List[str]
-        :param neuron_ids: The neuron_ids of this MultimeterInfo.  # noqa: E501
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this MultimeterInfo.  # noqa: E501
+        :type node_ids: List[int]
         """
         self.openapi_types = {
-            'id': int,
+            'multimeter_id': int,
             'attributes': List[str],
-            'neuron_ids': List[int]
+            'node_ids': List[int]
         }
 
         self.attribute_map = {
-            'id': 'id',
+            'multimeter_id': 'multimeterId',
             'attributes': 'attributes',
-            'neuron_ids': 'neuronIds'
+            'node_ids': 'nodeIds'
         }
 
-        self._id = id
+        self._multimeter_id = multimeter_id
         self._attributes = attributes
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids
 
     @classmethod
     def from_dict(cls, dikt) -> 'MultimeterInfo':
@@ -53,25 +53,25 @@ class MultimeterInfo(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def id(self):
-        """Gets the id of this MultimeterInfo.
+    def multimeter_id(self):
+        """Gets the multimeter_id of this MultimeterInfo.
 
 
-        :return: The id of this MultimeterInfo.
+        :return: The multimeter_id of this MultimeterInfo.
         :rtype: int
         """
-        return self._id
+        return self._multimeter_id
 
-    @id.setter
-    def id(self, id):
-        """Sets the id of this MultimeterInfo.
+    @multimeter_id.setter
+    def multimeter_id(self, multimeter_id):
+        """Sets the multimeter_id of this MultimeterInfo.
 
 
-        :param id: The id of this MultimeterInfo.
-        :type id: int
+        :param multimeter_id: The multimeter_id of this MultimeterInfo.
+        :type multimeter_id: int
         """
 
-        self._id = id
+        self._multimeter_id = multimeter_id
 
     @property
     def attributes(self):
@@ -95,22 +95,22 @@ class MultimeterInfo(Model):
         self._attributes = attributes
 
     @property
-    def neuron_ids(self):
-        """Gets the neuron_ids of this MultimeterInfo.
+    def node_ids(self):
+        """Gets the node_ids of this MultimeterInfo.
 
 
-        :return: The neuron_ids of this MultimeterInfo.
+        :return: The node_ids of this MultimeterInfo.
         :rtype: List[int]
         """
-        return self._neuron_ids
+        return self._node_ids
 
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids):
-        """Sets the neuron_ids of this MultimeterInfo.
+    @node_ids.setter
+    def node_ids(self, node_ids):
+        """Sets the node_ids of this MultimeterInfo.
 
 
-        :param neuron_ids: The neuron_ids of this MultimeterInfo.
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this MultimeterInfo.
+        :type node_ids: List[int]
         """
 
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids

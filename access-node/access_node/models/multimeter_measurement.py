@@ -15,30 +15,30 @@ class MultimeterMeasurement(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, simulation_times=None, neuron_ids=None, values=None):  # noqa: E501
+    def __init__(self, simulation_times=None, node_ids=None, values=None):  # noqa: E501
         """MultimeterMeasurement - a model defined in OpenAPI
 
         :param simulation_times: The simulation_times of this MultimeterMeasurement.  # noqa: E501
         :type simulation_times: List[float]
-        :param neuron_ids: The neuron_ids of this MultimeterMeasurement.  # noqa: E501
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this MultimeterMeasurement.  # noqa: E501
+        :type node_ids: List[int]
         :param values: The values of this MultimeterMeasurement.  # noqa: E501
         :type values: List[float]
         """
         self.openapi_types = {
             'simulation_times': List[float],
-            'neuron_ids': List[int],
+            'node_ids': List[int],
             'values': List[float]
         }
 
         self.attribute_map = {
             'simulation_times': 'simulationTimes',
-            'neuron_ids': 'neuronIds',
+            'node_ids': 'nodeIds',
             'values': 'values'
         }
 
         self._simulation_times = simulation_times
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids
         self._values = values
 
     @classmethod
@@ -76,31 +76,31 @@ class MultimeterMeasurement(Model):
         self._simulation_times = simulation_times
 
     @property
-    def neuron_ids(self):
-        """Gets the neuron_ids of this MultimeterMeasurement.
+    def node_ids(self):
+        """Gets the node_ids of this MultimeterMeasurement.
 
 
-        :return: The neuron_ids of this MultimeterMeasurement.
+        :return: The node_ids of this MultimeterMeasurement.
         :rtype: List[int]
         """
-        return self._neuron_ids
+        return self._node_ids
 
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids):
-        """Sets the neuron_ids of this MultimeterMeasurement.
+    @node_ids.setter
+    def node_ids(self, node_ids):
+        """Sets the node_ids of this MultimeterMeasurement.
 
 
-        :param neuron_ids: The neuron_ids of this MultimeterMeasurement.
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this MultimeterMeasurement.
+        :type node_ids: List[int]
         """
 
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids
 
     @property
     def values(self):
         """Gets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each neuron ID and time to get the value for neuron ID n at time t you have to use the index n * length(simulationTimes) + t  # noqa: E501
+        This array contains the measured values for each node ID and time to get the value for node ID n at time t you have to use the index n * length(simulationTimes) + t  # noqa: E501
 
         :return: The values of this MultimeterMeasurement.
         :rtype: List[float]
@@ -111,7 +111,7 @@ class MultimeterMeasurement(Model):
     def values(self, values):
         """Sets the values of this MultimeterMeasurement.
 
-        This array contains the measured values for each neuron ID and time to get the value for neuron ID n at time t you have to use the index n * length(simulationTimes) + t  # noqa: E501
+        This array contains the measured values for each node ID and time to get the value for node ID n at time t you have to use the index n * length(simulationTimes) + t  # noqa: E501
 
         :param values: The values of this MultimeterMeasurement.
         :type values: List[float]

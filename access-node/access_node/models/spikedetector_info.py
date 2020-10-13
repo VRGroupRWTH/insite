@@ -15,26 +15,26 @@ class SpikedetectorInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id=None, neuron_ids=None):  # noqa: E501
+    def __init__(self, spikedetector_id=None, node_ids=None):  # noqa: E501
         """SpikedetectorInfo - a model defined in OpenAPI
 
-        :param id: The id of this SpikedetectorInfo.  # noqa: E501
-        :type id: int
-        :param neuron_ids: The neuron_ids of this SpikedetectorInfo.  # noqa: E501
-        :type neuron_ids: List[int]
+        :param spikedetector_id: The spikedetector_id of this SpikedetectorInfo.  # noqa: E501
+        :type spikedetector_id: int
+        :param node_ids: The node_ids of this SpikedetectorInfo.  # noqa: E501
+        :type node_ids: List[int]
         """
         self.openapi_types = {
-            'id': int,
-            'neuron_ids': List[int]
+            'spikedetector_id': int,
+            'node_ids': List[int]
         }
 
         self.attribute_map = {
-            'id': 'id',
-            'neuron_ids': 'neuronIds'
+            'spikedetector_id': 'spikedetectorId',
+            'node_ids': 'nodeIds'
         }
 
-        self._id = id
-        self._neuron_ids = neuron_ids
+        self._spikedetector_id = spikedetector_id
+        self._node_ids = node_ids
 
     @classmethod
     def from_dict(cls, dikt) -> 'SpikedetectorInfo':
@@ -48,43 +48,45 @@ class SpikedetectorInfo(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def id(self):
-        """Gets the id of this SpikedetectorInfo.
+    def spikedetector_id(self):
+        """Gets the spikedetector_id of this SpikedetectorInfo.
 
 
-        :return: The id of this SpikedetectorInfo.
+        :return: The spikedetector_id of this SpikedetectorInfo.
         :rtype: int
         """
-        return self._id
+        return self._spikedetector_id
 
-    @id.setter
-    def id(self, id):
-        """Sets the id of this SpikedetectorInfo.
+    @spikedetector_id.setter
+    def spikedetector_id(self, spikedetector_id):
+        """Sets the spikedetector_id of this SpikedetectorInfo.
 
 
-        :param id: The id of this SpikedetectorInfo.
-        :type id: int
+        :param spikedetector_id: The spikedetector_id of this SpikedetectorInfo.
+        :type spikedetector_id: int
         """
 
-        self._id = id
+        self._spikedetector_id = spikedetector_id
 
     @property
-    def neuron_ids(self):
-        """Gets the neuron_ids of this SpikedetectorInfo.
+    def node_ids(self):
+        """Gets the node_ids of this SpikedetectorInfo.
 
+        These are the nodes connected to the spike detector.  # noqa: E501
 
-        :return: The neuron_ids of this SpikedetectorInfo.
+        :return: The node_ids of this SpikedetectorInfo.
         :rtype: List[int]
         """
-        return self._neuron_ids
+        return self._node_ids
 
-    @neuron_ids.setter
-    def neuron_ids(self, neuron_ids):
-        """Sets the neuron_ids of this SpikedetectorInfo.
+    @node_ids.setter
+    def node_ids(self, node_ids):
+        """Sets the node_ids of this SpikedetectorInfo.
 
+        These are the nodes connected to the spike detector.  # noqa: E501
 
-        :param neuron_ids: The neuron_ids of this SpikedetectorInfo.
-        :type neuron_ids: List[int]
+        :param node_ids: The node_ids of this SpikedetectorInfo.
+        :type node_ids: List[int]
         """
 
-        self._neuron_ids = neuron_ids
+        self._node_ids = node_ids

@@ -4,11 +4,23 @@ import six
 from access_node.models.error_response import ErrorResponse  # noqa: E501
 from access_node.models.multimeter_info import MultimeterInfo  # noqa: E501
 from access_node.models.multimeter_measurement import MultimeterMeasurement  # noqa: E501
-from access_node.models.nest_neuron_properties import NestNeuronProperties  # noqa: E501
+from access_node.models.nest_node_collection_properties import NestNodeCollectionProperties  # noqa: E501
+from access_node.models.nest_node_properties import NestNodeProperties  # noqa: E501
 from access_node.models.simulation_time_info import SimulationTimeInfo  # noqa: E501
 from access_node.models.spikedetector_info import SpikedetectorInfo  # noqa: E501
 from access_node.models.spikes import Spikes  # noqa: E501
 from access_node import util
+
+
+def nest_get_kernel_status():  # noqa: E501
+    """Retreives the current status of the NEST kernel.
+
+     # noqa: E501
+
+
+    :rtype: List[MultimeterInfo]
+    """
+    return 'do some magic!'
 
 
 def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
@@ -24,8 +36,8 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
     return 'do some magic!'
 
 
-def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
-    """Retrieves the measurements for a multimeter, attribute and neuron IDs (optional).
+def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the measurements for a multimeter, attribute and node IDs (optional).
 
      # noqa: E501
 
@@ -37,8 +49,8 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     :type from_time: float
     :param to_time: The end time (excluding) to be queried.
     :type to_time: float
-    :param neuron_ids: A list of neuron IDs queried for attribute data.
-    :type neuron_ids: List[int]
+    :param node_ids: A list of node IDs queried for attribute data.
+    :type node_ids: List[int]
     :param skip: The offset into the result.
     :type skip: int
     :param top: The maximum number of entries to be returned.
@@ -60,21 +72,32 @@ def nest_get_multimeters():  # noqa: E501
     return 'do some magic!'
 
 
-def nest_get_neuron_by_id(neuron_id):  # noqa: E501
-    """Retrieves the properties of the specified neuron.
+def nest_get_node_by_id(node_id):  # noqa: E501
+    """Retrieves the properties of the specified node.
 
      # noqa: E501
 
-    :param neuron_id: The ID of the queried neuron.
-    :type neuron_id: int
+    :param node_id: The ID of the queried node.
+    :type node_id: int
 
-    :rtype: NestNeuronProperties
+    :rtype: NestNodeProperties
     """
     return 'do some magic!'
 
 
-def nest_get_neuron_ids():  # noqa: E501
-    """Retrieves a list of all neuron IDs accessable via the pipeline.
+def nest_get_node_collections():  # noqa: E501
+    """Retrieves a list of all node collection IDs.
+
+     # noqa: E501
+
+
+    :rtype: List[NestNodeCollectionProperties]
+    """
+    return 'do some magic!'
+
+
+def nest_get_node_ids():  # noqa: E501
+    """Retrieves a list of all node IDs.
 
      # noqa: E501
 
@@ -84,50 +107,39 @@ def nest_get_neuron_ids():  # noqa: E501
     return 'do some magic!'
 
 
-def nest_get_neuron_ids_by_population(population_id):  # noqa: E501
-    """Retrieves the list of all neuron ids within the population.
+def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
+    """Retrieves the list of all node ids within the node collection.
 
      # noqa: E501
 
-    :param population_id: The identifier of the population
-    :type population_id: int
+    :param node_collection_id: The identifier of the node collection
+    :type node_collection_id: int
 
     :rtype: List[int]
     """
     return 'do some magic!'
 
 
-def nest_get_neurons():  # noqa: E501
-    """Retrieves the properties of the specified neurons.
+def nest_get_nodes():  # noqa: E501
+    """Retrieves all nodes of the simulation.
 
      # noqa: E501
 
 
-    :rtype: List[NestNeuronProperties]
+    :rtype: List[NestNodeProperties]
     """
     return 'do some magic!'
 
 
-def nest_get_neurons_by_population(population_id):  # noqa: E501
-    """Retrieves the neurons that belong to the specified population.
+def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
+    """Retrieves the list of all node within the node collection.
 
      # noqa: E501
 
-    :param population_id: The population ID to query the neurons for.
-    :type population_id: List[int]
+    :param node_collection_id: The identifier of the node collection
+    :type node_collection_id: int
 
-    :rtype: List[NestNeuronProperties]
-    """
-    return 'do some magic!'
-
-
-def nest_get_populations():  # noqa: E501
-    """Retrieves a list of all accessable population IDs.
-
-     # noqa: E501
-
-
-    :rtype: List[int]
+    :rtype: List[NestNodeProperties]
     """
     return 'do some magic!'
 
@@ -154,8 +166,8 @@ def nest_get_spikedetectors():  # noqa: E501
     return 'do some magic!'
 
 
-def nest_get_spikes(from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
-    """Retrieves the spikes for the given time range (optional) and neuron IDs (optional). If no time range or neuron list is specified, it will return the spikes for whole time or all neurons respectively. This request merges the spikes recorded by all spike detectors and removes duplicates.
+def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given time range (optional) and node IDs (optional). If no time range or node list is specified, it will return the spikes for whole time or all nodes respectively. This request merges the spikes recorded by all spike detectors and removes duplicates.
 
      # noqa: E501
 
@@ -163,8 +175,8 @@ def nest_get_spikes(from_time=None, to_time=None, neuron_ids=None, skip=None, to
     :type from_time: float
     :param to_time: The end time in milliseconds (excluding) to be queried.
     :type to_time: float
-    :param neuron_ids: A list of neuron IDs queried for spike data.
-    :type neuron_ids: List[int]
+    :param node_ids: A list of node IDs queried for spike data.
+    :type node_ids: List[int]
     :param skip: The offset into the result.
     :type skip: int
     :param top: The maximum number of entries to be returned.
@@ -175,13 +187,13 @@ def nest_get_spikes(from_time=None, to_time=None, neuron_ids=None, skip=None, to
     return 'do some magic!'
 
 
-def nest_get_spikes_by_population(population_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
-    """Retrieves the spikes for the given simulation steps (optional) and population. This request merges the spikes recorded by all spike detectors and removes duplicates.
+def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given simulation steps (optional) and node collection. This request merges the spikes recorded by all spike detectors and removes duplicates.
 
      # noqa: E501
 
-    :param population_id: The identifier of the population.
-    :type population_id: int
+    :param node_collection_id: The identifier of the node collection.
+    :type node_collection_id: int
     :param from_time: The start time (including) to be queried.
     :type from_time: float
     :param to_time: The end time (excluding) to be queried.
@@ -196,8 +208,8 @@ def nest_get_spikes_by_population(population_id, from_time=None, to_time=None, s
     return 'do some magic!'
 
 
-def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, neuron_ids=None, skip=None, top=None):  # noqa: E501
-    """Retrieves the spikes for the given time range (optional) and neuron IDs (optional) from one spike detector. If no time range or neuron list is specified, it will return the spikes for whole time or all neurons respectively.
+def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
+    """Retrieves the spikes for the given time range (optional) and node IDs (optional) from one spike detector. If no time range or node list is specified, it will return the spikes for whole time or all nodes respectively.
 
      # noqa: E501
 
@@ -207,8 +219,8 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     :type from_time: float
     :param to_time: The end time in milliseconds (excluding) to be queried.
     :type to_time: float
-    :param neuron_ids: A list of neuron IDs queried for spike data.
-    :type neuron_ids: List[int]
+    :param node_ids: A list of node IDs queried for spike data.
+    :type node_ids: List[int]
     :param skip: The offset into the result.
     :type skip: int
     :param top: The maximum number of entries to be returned.
