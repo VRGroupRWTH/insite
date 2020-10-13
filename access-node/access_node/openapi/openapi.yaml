@@ -773,12 +773,29 @@ components:
             type: integer
           type: array
         values:
-          description: This array contains the measured values for each node ID
-            and time to get the value for node ID n at time t you have to use the
-            index n * length(simulationTimes) + t
+          description: This array contains the measured values for each node ID and
+            time to get the value for node ID n at time t you have to use the index
+            n * length(simulationTimes) + t
           items:
             type: number
           type: array
+      type: object
+    NestNodeModel:
+      example:
+        name: iaf_psc_delta
+        parameters:
+        - C_m
+        - tau_m
+        - t_ref
+        - E_L
+        - V_reset
+        - V_m
+        - V_th
+      properties:
+        name:
+          type: string
+        parameters:
+          type: object
       type: object
     NestNodeProperties:
       example:
@@ -786,18 +803,18 @@ components:
         nodeCollectionId: 0
         simulationNodeId: 0
         position:
-          - 0.1
-          - 0.2
+        - 0.1
+        - 0.2
         model:
-          name: 'iaf_psc_delta'
+          name: iaf_psc_delta
           parameters:
-            "C_m": 1.0
-            "tau_m": 20.0
-            "t_ref": 2.0
-            "E_L": 0.0
-            "V_reset": 0.0
-            "V_m": 0.0
-            "V_th": 20.0
+            C_m: 1.0
+            tau_m: 20.0
+            t_ref: 2.0
+            E_L: 0.0
+            V_reset: 0.0
+            V_m: 0.0
+            V_th: 20.0
       properties:
         nodeId:
           format: uint64
@@ -825,32 +842,39 @@ components:
           lastId: 100
           count: 100
         model:
-          name: "iaf_psc_delta"
+          name: iaf_psc_delta
           parameters:
-            - "C_m"
-            - "tau_m"
-            - "t_ref"
-            - "E_L"
-            - "V_reset"
-            - "V_m"
-            - "V_th"
+          - C_m
+          - tau_m
+          - t_ref
+          - E_L
+          - V_reset
+          - V_m
+          - V_th
       properties:
         nodeCollectionId:
           format: uint64
           type: integer
         nodes:
-          type: object
-          properties:
-            firstId:
-              format: uint64
-              type: integer
-            lastId:
-              format: uint64
-              type: integer
-            count:
-              format: uint64
-              type: integer
+          $ref: '#/components/schemas/NestNodeCollectionNodes'
+        model:
+          $ref: '#/components/schemas/NestNodeModel'
       type: object
+    NestNodeCollectionNodes:
+      example:
+        firstId: 1
+        lastId: 100
+        count: 100
+      properties:
+        firstId:
+          format: uint64
+          type: integer
+        lastId:
+          format: uint64
+          type: integer
+        count:
+          format: uint64
+          type: integer
     SimulationTimeInfo:
       example:
         stepSize: 0.1
