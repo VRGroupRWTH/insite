@@ -5,29 +5,61 @@
 #include <regex>
 #include <unordered_set>
 
-#include "storage/data_storage.hpp"
-#include "nest_time.h"
 #include "kernel_manager.h"
+#include "nest_time.h"
+#include "stringdatum.h"
+#include "booldatum.h"
+#include "storage/data_storage.hpp"
 
 namespace insite {
 
+namespace {
+
+web::json::value SerializeDatum(Datum* datum) {
+  if (IntegerDatum* integer_datum = dynamic_cast<IntegerDatum*>(datum)) {
+    return web::json::value::number(*integer_datum);
+  } else if (DoubleDatum* double_datum = dynamic_cast<DoubleDatum*>(datum)) {
+    return web::json::value::number(*double_datum);
+  } else if (StringDatum* string_datum = dynamic_cast<StringDatum*>(datum)) {
+    return web::json::value::string(*string_datum);
+  } else if (NameDatum* name_datum = dynamic_cast<NameDatum*>(datum)) {
+    return web::json::value::string(name_datum->toString());
+  } else if (BoolDatum* bool_datum = dynamic_cast<BoolDatum*>(datum)) {
+    return web::json::value::boolean(*bool_datum);
+  } else if (ArrayDatum* array_datum = dynamic_cast<ArrayDatum*>(datum)) {
+    web::json::value array = web::json::value::array();
+    for (const auto& datum : *array_datum) {
+      array.push_back(SerializeDatum(datum.datum()));
+    }
+    return array;
+  } else if (DictionaryDatum* dictionary_datum = dynamic_cast<DictionaryDatum*>(datum)) {
+    web::json::value object = web::json::value::object();
+    for (const auto& datum : **dictionary_datum) {
+      object[datum.first.toString()] = SerializeDatum(datum.second.datum());
+    }
+    return object;
+  } else {
+    return web::json::value::null();
+  }
+}
+
+}  // namespace
+
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
                        std::string database_uri)
-    : http_listener_{address},
-      storage_(storage),
-      database_uri_(database_uri) {
+    : http_listener_{address}, storage_(storage), database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/kernelStatus") {
       request.reply(GetKernelStatus(request));
     } else if (request.method() == "GET" &&
-        request.relative_uri().path() == "/nodeCollections") {
+               request.relative_uri().path() == "/nodeCollections") {
       request.reply(GetCollections(request));
     } else if (request.method() == "GET" &&
-        request.relative_uri().path() == "/spikedetectors") {
+               request.relative_uri().path() == "/spikedetectors") {
       request.reply(GetSpikeDetectors(request));
     } else if (request.method() == "GET" &&
-        request.relative_uri().path() == "/spikes") {
+               request.relative_uri().path() == "/spikes") {
       request.reply(GetSpikes(request));
     } else if (request.method() == "GET" &&
                request.relative_uri().path() == "/multimeter_measurement") {
@@ -46,95 +78,21 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
   std::cout << "HTTP server is listening...\n";
 }
 
-web::http::http_response HttpServer::GetKernelStatus(const web::http::http_request& request) {
-
+web::http::http_response HttpServer::GetKernelStatus(
+    const web::http::http_request& request) {
   DictionaryDatum kernel_status(new Dictionary());
   nest::kernel().get_status(kernel_status);
 
-  for (const auto& datum : *kernel_status) {
-    std::cout << datum.first << ": ";
-    datum.second->print(std::cout);
-    std::cout << std::endl;
-  }
+  web::http::http_response response(web::http::status_codes::OK);
+  response.set_body(SerializeDatum(&kernel_status));
 
-  try {
-    web::http::http_response response;
-    web::json::value response_body = web::json::value::object();
-    response_body["resolution"] =
-        getValue<double>(kernel_status->lookup2("resolution"));
-    response_body["time"] = getValue<double>(kernel_status->lookup2("time"));
-    response_body["to_do"] = getValue<long>(kernel_status->lookup2("to_do"));
-    response_body["max_delay"] =
-        getValue<double>(kernel_status->lookup2("max_delay"));
-    response_body["min_delay"] =
-        getValue<double>(kernel_status->lookup2("min_delay"));
-    response_body["ms_per_tic"] =
-        getValue<double>(kernel_status->lookup2("ms_per_tic"));
-    response_body["tics_per_ms"] =
-        getValue<double>(kernel_status->lookup2("tics_per_ms"));
-    response_body["tics_per_step"] =
-        getValue<long>(kernel_status->lookup2("tics_per_step"));
-    response_body["T_max"] = getValue<double>(kernel_status->lookup2("T_max"));
-    response_body["T_min"] = getValue<double>(kernel_status->lookup2("T_min"));
-    response_body["total_num_virtual_procs"] =
-        getValue<long>(kernel_status->lookup2("total_num_virtual_procs"));
-    response_body["local_num_threads"] =
-        getValue<long>(kernel_status->lookup2("local_num_threads"));
-    response_body["num_processes"] =
-        getValue<long>(kernel_status->lookup2("num_processes"));
-    response_body["off_grid_spiking"] =
-        getValue<bool>(kernel_status->lookup2("off_grid_spiking"));
-    // response_body["initial_connector_capacity"] =
-    //     getValue<long>(kernel_status->lookup2("initial_connector_capacity"));
-    // response_body["large_connector_limit"] =
-    //     getValue<long>(kernel_status->lookup2("large_connector_limit"));
-    // response_body["large_connector_growth_factor"] = getValue<double>(
-    //     kernel_status->lookup2("large_connector_growth_factor"));
-    response_body["grng_seed"] =
-        getValue<long>(kernel_status->lookup2("grng_seed"));
-    // response_body["rng_seeds"] =
-    //     getValue<array>(kernel_status->lookup2("rng_seeds"));
-    // response_body["data_path"] =
-    //     getValue<string>(kernel_status->lookup2("data_path"));
-    // response_body["data_prefix"] =
-    //     getValue<string>(kernel_status->lookup2("data_prefix"));
-    response_body["overwrite_files"] =
-        getValue<bool>(kernel_status->lookup2("overwrite_files"));
-    response_body["print_time"] =
-        getValue<bool>(kernel_status->lookup2("print_time"));
-    response_body["network_size"] =
-        getValue<long>(kernel_status->lookup2("network_size"));
-    response_body["num_connections"] =
-        getValue<long>(kernel_status->lookup2("num_connections"));
-    response_body["use_wfr"] =
-        getValue<bool>(kernel_status->lookup2("use_wfr"));
-    response_body["wfr_comm_interval"] =
-        getValue<double>(kernel_status->lookup2("wfr_comm_interval"));
-    response_body["wfr_tol"] =
-        getValue<double>(kernel_status->lookup2("wfr_tol"));
-    response_body["wfr_max_iterations"] =
-        getValue<long>(kernel_status->lookup2("wfr_max_iterations"));
-    response_body["wfr_interpolation_order"] =
-        getValue<long>(kernel_status->lookup2("wfr_interpolation_order"));
-    response_body["dict_miss_is_error"] =
-        getValue<bool>(kernel_status->lookup2("dict_miss_is_error"));
-
-    response.set_status_code(web::http::status_codes::OK);
-    response.set_body(response_body);
-    return response;
-  } catch (const UndefinedName& exception) {
-    return CreateErrorResponse(web::http::status_codes::InternalError,
-                               {"UndefinedName", exception.message()});
-  } catch (...) {
-    return CreateErrorResponse(web::http::status_codes::InternalError,
-                               {"UnknownError"});
-  }
+  return response;
 }
 
 web::http::http_response HttpServer::GetCurrentSimulationTime(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
-  
+
   web::json::value response_body = web::json::value::object();
   response_body["current"] = storage_->GetCurrentSimulationTime();
   response_body["begin"] = storage_->GetSimulationEndTime();
@@ -143,39 +101,45 @@ web::http::http_response HttpServer::GetCurrentSimulationTime(
   response.set_body(response_body);
   return response;
 }
-  
-web::http::http_response HttpServer::GetCollections(const web::http::http_request& request) {
+
+web::http::http_response HttpServer::GetCollections(
+    const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
-  
+
   const auto node_collections = storage_->GetNodeCollections();
 
-  web::json::value response_body =  web::json::value::array(node_collections.size());
+  web::json::value response_body =
+      web::json::value::array(node_collections.size());
   for (size_t i = 0; i < node_collections.size(); ++i) {
     response_body[i] = web::json::value::object();
     response_body[i]["id"] = i;
     response_body[i]["firstNodeId"] = node_collections[i].first_node_id;
     response_body[i]["nodeCount"] = node_collections[i].node_count;
-    response_body[i]["modelName"] = web::json::value(node_collections[i].model_name);
+    response_body[i]["modelName"] =
+        web::json::value(node_collections[i].model_name);
   }
   response.set_body(response_body);
 
   return response;
 }
-  
-web::http::http_response HttpServer::GetSpikeDetectors(const web::http::http_request& request) {
+
+web::http::http_response HttpServer::GetSpikeDetectors(
+    const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
-  
+
   const auto spike_detectors = storage_->GetSpikeDetectors();
 
-  web::json::value response_body =  web::json::value::array();
+  web::json::value response_body = web::json::value::array();
   std::vector<std::uint64_t> connected_node_ids;
 
   for (const auto& spikedetector_id_storage : spike_detectors) {
     web::json::value spikedetector_data = web::json::value::object();
     spikedetector_data["id"] = spikedetector_id_storage.first;
 
-    spikedetector_id_storage.second->ExtractConnectedNodeIds(&connected_node_ids);
-    spikedetector_data["connectedNodes"] = web::json::value::array(connected_node_ids.size());
+    spikedetector_id_storage.second->ExtractConnectedNodeIds(
+        &connected_node_ids);
+    spikedetector_data["connectedNodes"] =
+        web::json::value::array(connected_node_ids.size());
     for (size_t i = 0; i < connected_node_ids.size(); ++i) {
       spikedetector_data["connectedNodes"][i] = connected_node_ids[i];
     }
@@ -208,9 +172,11 @@ web::http::http_response HttpServer::GetSpikes(
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
   if (node_collection_parameter != parameters.end()) {
-    const std::uint64_t node_collection_id = std::stoull(node_collection_parameter->second);
+    const std::uint64_t node_collection_id =
+        std::stoull(node_collection_parameter->second);
     if (node_collection_id < storage_->GetNodeCollectionCount()) {
-      const NodeCollection node_collection = storage_->GetNodeCollection(node_collection_id);
+      const NodeCollection node_collection =
+          storage_->GetNodeCollection(node_collection_id);
       from_node_id = node_collection.first_node_id;
       to_node_id = node_collection.first_node_id + node_collection.node_count;
     } else {
@@ -220,13 +186,13 @@ web::http::http_response HttpServer::GetSpikes(
   }
 
   const auto spike_detector_id_parameter = parameters.find("spikedetectorId");
-  
+
   std::vector<Spike> spikes;
 
   if (spike_detector_id_parameter == parameters.end()) {
-  std::cout << "Querying spikes: [" << from_time << "," << to_time << " ["
-            << from_node_id << "," << to_node_id << ")" << std::endl;
-            
+    std::cout << "Querying spikes: [" << from_time << "," << to_time << " ["
+              << from_node_id << "," << to_node_id << ")" << std::endl;
+
     std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>>
         spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
@@ -235,8 +201,10 @@ web::http::http_response HttpServer::GetSpikes(
     }
 
   } else {
-    const auto spike_detector_id = std::stoll(spike_detector_id_parameter->second);
-    const auto spike_detector = storage_->GetSpikeDetectorStorage(spike_detector_id);
+    const auto spike_detector_id =
+        std::stoll(spike_detector_id_parameter->second);
+    const auto spike_detector =
+        storage_->GetSpikeDetectorStorage(spike_detector_id);
 
     std::cout << "Querying spikes: [" << from_time << "," << to_time << " ["
               << from_node_id << "," << to_node_id
@@ -246,7 +214,8 @@ web::http::http_response HttpServer::GetSpikes(
       return CreateErrorResponse(web::http::status_codes::BadRequest,
                                  {"InvalidSpikeDetectorId"});
     } else {
-      spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id, to_node_id);
+      spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id,
+                                    to_node_id);
     }
   }
 
@@ -269,7 +238,6 @@ web::http::http_response HttpServer::GetSpikes(
   //                                       double simulation_time) {
   //   return spike.simulation_time < simulation_time;
   // };
-
 
   return response;
 }
@@ -372,7 +340,8 @@ web::json::value HttpServer::Error::Serialize() const {
   return error;
 }
 
-web::http::http_response HttpServer::CreateErrorResponse(web::http::status_code status_code, const Error& error) {
+web::http::http_response HttpServer::CreateErrorResponse(
+    web::http::status_code status_code, const Error& error) {
   web::http::http_response response(status_code);
 
   web::json::value body = web::json::value::object();
