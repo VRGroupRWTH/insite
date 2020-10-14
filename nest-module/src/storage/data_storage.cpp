@@ -37,20 +37,36 @@ void DataStorage::SetNodesFromCollection(
       assert(node_collection->is_range());
       assert(node_collection->size() > 0);
 
-      std::string model =
-          node_id_triple.model_id != nest::invalid_index
-              ? nest::kernel().model_manager.get_model(node_id_triple.model_id)->get_name()
-              : "none";
+      std::string model_name;
+      std::vector<std::string> model_parameters;
+      //  =
+      //     node_id_triple.model_id != nest::invalid_index
+      //         ? nest::kernel().model_manager.get_model(node_id_triple.model_id)->get_name()
+      //         : "none";
+      if (node_id_triple.model_id != nest::invalid_index) {
+        nest::Model* model =
+            nest::kernel().model_manager.get_model(node_id_triple.model_id);
+        if (model != nullptr) {
+          model_name = model->get_name();
+
+          // segfaults for some reason:
+          // auto model_status = model->get_status();
+          // if (model_status.valid()) {
+          //   for (const auto& datum : *model->get_status()) {
+          //     std::cout << datum.first << ": ";
+          //     datum.second.pprint(std::cout);
+          //     std::cout << std::endl;
+          //   }
+          // }
+        }
+      }
 
       node_collections_.push_back({
         (*node_collection)[0],
         node_collection->size(),
-        model
+        model_name,
+        model_parameters
       });
-
-      std::cout << "Node collection: [" << (*node_collection)[0] << ","
-                << (*node_collection)[0] + node_collection->size()
-                << "): " << model << std::endl;
 
       node_handles_node_connections.insert(node_collection.get());
     }

@@ -29,7 +29,7 @@ web::json::value SerializeDatum(Datum* datum) {
   } else if (ArrayDatum* array_datum = dynamic_cast<ArrayDatum*>(datum)) {
     web::json::value array = web::json::value::array();
     for (const auto& datum : *array_datum) {
-      array.push_back(SerializeDatum(datum.datum()));
+      array[array.size()] = SerializeDatum(datum.datum());
     }
     return array;
   } else if (DictionaryDatum* dictionary_datum = dynamic_cast<DictionaryDatum*>(datum)) {
@@ -112,11 +112,24 @@ web::http::http_response HttpServer::GetCollections(
       web::json::value::array(node_collections.size());
   for (size_t i = 0; i < node_collections.size(); ++i) {
     response_body[i] = web::json::value::object();
-    response_body[i]["id"] = i;
-    response_body[i]["firstNodeId"] = node_collections[i].first_node_id;
-    response_body[i]["nodeCount"] = node_collections[i].node_count;
-    response_body[i]["modelName"] =
-        web::json::value(node_collections[i].model_name);
+    response_body[i]["nodeCollectionId"] = i;
+    
+    auto nodes = web::json::value::object();
+    nodes["firstId"] = node_collections[i].first_node_id;
+    nodes["lastId"] = node_collections[i].first_node_id + node_collections[i].node_count - 1;
+    nodes["count"] = node_collections[i].node_count;
+    response_body[i]["nodes"] = nodes;
+
+    auto model = web::json::value::object();
+    model["name"] = web::json::value(node_collections[i].model_name);
+
+    auto model_parameters = web::json::value::array();
+    for (const auto& model_parameter : node_collections[i].model_parameters) {
+      model_parameters[model_parameters.size()] = web::json::value(model_parameter);
+    }
+    model["parameters"] = model_parameters;
+
+    response_body[i]["model"] = model;
   }
   response.set_body(response_body);
 

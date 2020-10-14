@@ -46,6 +46,27 @@ paths:
       summary: Retreives the current status of the NEST kernel.
       tags:
         - NEST Module
+  /nest/nodeCollections:
+    get:
+      operationId: nest_get_node_collections
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestNodeCollectionProperties'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves a list of all node collection IDs.
+      tags:
+        - NEST Module
   /spikes:
     get:
       operationId: get_spikes

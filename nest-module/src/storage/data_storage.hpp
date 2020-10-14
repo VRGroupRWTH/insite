@@ -31,6 +31,7 @@ struct NodeCollection {
   std::uint64_t first_node_id;
   std::uint64_t node_count;
   std::string model_name;
+  std::vector<std::string> model_parameters;
 };
 
 class DataStorage {
