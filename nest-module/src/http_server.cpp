@@ -65,7 +65,7 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
                request.relative_uri().path() == "/multimeter_measurement") {
       request.reply(GetMultimeterMeasurement(request));
     } else if (request.method() == "GET" &&
-               request.relative_uri().path() == "/simulation_time_info") {
+               request.relative_uri().path() == "/simulationTimeInfo") {
       request.reply(GetCurrentSimulationTime(request));
     } else {
       request.reply(CreateErrorResponse(
@@ -97,7 +97,7 @@ web::http::http_response HttpServer::GetCurrentSimulationTime(
   response_body["current"] = storage_->GetCurrentSimulationTime();
   response_body["begin"] = storage_->GetSimulationEndTime();
   response_body["end"] = storage_->GetSimulationBeginTime();
-  response_body["step_size"] = nest::Time(nest::Time::step(1)).get_ms();
+  response_body["stepSize"] = nest::Time(nest::Time::step(1)).get_ms();
   response.set_body(response_body);
   return response;
 }
