@@ -50,6 +50,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
     : http_listener_{address}, storage_(storage), database_uri_(database_uri) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
+        request.relative_uri().path() == "/version") {
+      request.reply(GetVersion(request));
+    } else if (request.method() == "GET" &&
         request.relative_uri().path() == "/kernelStatus") {
       request.reply(GetKernelStatus(request));
     } else if (request.method() == "GET" &&
@@ -76,6 +79,17 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
 
   http_listener_.open().wait();
   std::cout << "HTTP server is listening...\n";
+}
+
+web::http::http_response HttpServer::GetVersion(
+    const web::http::http_request& request) {
+  DictionaryDatum kernel_status(new Dictionary());
+  nest::kernel().get_status(kernel_status);
+
+  web::http::http_response response(web::http::status_codes::OK);
+  response.set_body(web::json::value::string("1.0"));
+
+  return response;
 }
 
 web::http::http_response HttpServer::GetKernelStatus(
