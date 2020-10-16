@@ -3,21 +3,10 @@ networks:
   internal:
       driver: bridge
 services:
-  database:
-    build: ./database
-    container_name: "insite_pg-database"
-    ports:
-      - "5432:5432"
-    networks:
-      internal:
-         aliases:
-           - database
   access-node:
     build: ./access-node
     ports:
       - "8080:8080"
-    depends_on:
-      - "database"
     networks:
       internal:
          aliases:
@@ -26,7 +15,6 @@ services:
     build: ./nest-module
     depends_on:
       - "access-node"
-      - "database"
     ports:
       - "8000-8079:8000-8079"
     networks:

@@ -12,12 +12,11 @@ class DataStorage;
 
 class HttpServer {
  public:
-  HttpServer(web::http::uri address, DataStorage* storage, std::string database_uri);
+  HttpServer(web::http::uri address, DataStorage* storage);
 
  private:
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;
-  std::string database_uri_;
   
   web::http::http_response GetVersion(const web::http::http_request& request);
   web::http::http_response GetKernelStatus(const web::http::http_request& request);

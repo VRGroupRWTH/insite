@@ -45,9 +45,8 @@ web::json::value SerializeDatum(Datum* datum) {
 
 }  // namespace
 
-HttpServer::HttpServer(web::http::uri address, DataStorage* storage,
-                       std::string database_uri)
-    : http_listener_{address}, storage_(storage), database_uri_(database_uri) {
+HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
+    : http_listener_{address}, storage_(storage) {
   http_listener_.support([this](web::http::http_request request) {
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/version") {
