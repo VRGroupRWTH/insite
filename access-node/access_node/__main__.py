@@ -18,11 +18,15 @@ def load_simulation_nodes(path):
 def main():
     load_simulation_nodes("simulation_nodes.txt")
     app = connexion.App("access_node", specification_dir='./openapi/')
-    # run acces_node
+    # run access_node
     app.app.json_encoder = encoder.JSONEncoder
-    app.add_api('openapi.yaml',
-                arguments={'title': 'In-Situ Pipeline REST API'},
+    app.add_api('v1.yaml',
+                arguments={'title': 'Insite'},
                 pythonic_params=True)
+    app.add_api('v1.yaml',
+                arguments={'title': 'Insite'},
+                pythonic_params=True,
+                base_path='/')
     app.run(port=8080)
 
 
