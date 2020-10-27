@@ -11,6 +11,6 @@ COPY . /usr/src/app
 
 EXPOSE 8080
 
-ENTRYPOINT ["python3"]
+ENTRYPOINT ["python3", "-m", "access_node"]
 
-CMD ["-m", "access_node"]
+CMD []

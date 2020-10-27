@@ -7,14 +7,15 @@ services:
     build: ./access-node
     ports:
       - "8080:8080"
+    depends_on:
+      - "insite-nest-module"
+    command: "http://insite-nest-module:8000"
     networks:
       internal:
          aliases:
            - access-node
   insite-nest-module:
     build: ./nest-module
-    depends_on:
-      - "access-node"
     ports:
       - "8000-8079:8000-8079"
     networks:

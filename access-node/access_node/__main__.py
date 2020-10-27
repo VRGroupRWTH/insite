@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import connexion
+import sys
 
 from access_node import encoder
 
@@ -16,7 +17,11 @@ def load_simulation_nodes(path):
         pass
 
 def main():
-    load_simulation_nodes("simulation_nodes.txt")
+    if len(sys.argv) == 1:
+        load_simulation_nodes("simulation_nodes.txt")
+    else:
+        simulation_nodes.nest_simulation_nodes = sys.argv[1:]
+
     app = connexion.App("access_node", specification_dir='./openapi/')
     # run access_node
     app.app.json_encoder = encoder.JSONEncoder
