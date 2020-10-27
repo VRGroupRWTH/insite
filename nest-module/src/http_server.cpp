@@ -160,14 +160,14 @@ web::http::http_response HttpServer::GetSpikeDetectors(
 
   for (const auto& spikedetector_id_storage : spike_detectors) {
     web::json::value spikedetector_data = web::json::value::object();
-    spikedetector_data["id"] = spikedetector_id_storage.first;
+    spikedetector_data["spikedetectorId"] = spikedetector_id_storage.first;
 
     spikedetector_id_storage.second->ExtractConnectedNodeIds(
         &connected_node_ids);
-    spikedetector_data["connectedNodes"] =
+    spikedetector_data["nodeIds"] =
         web::json::value::array(connected_node_ids.size());
     for (size_t i = 0; i < connected_node_ids.size(); ++i) {
-      spikedetector_data["connectedNodes"][i] = connected_node_ids[i];
+      spikedetector_data["nodeIds"][i] = connected_node_ids[i];
     }
 
     response_body[response_body.size()] = spikedetector_data;

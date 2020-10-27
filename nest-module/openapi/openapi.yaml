@@ -25,7 +25,7 @@ paths:
   #     summary: Returns the deployed insite version.
   #     tags:
   #       - NEST Module
-  /nest/kernelStatus:
+  /kernelStatus:
     get:
       operationId: nest_get_kernel_status
       responses:
@@ -46,7 +46,7 @@ paths:
       summary: Retreives the current status of the NEST kernel.
       tags:
         - NEST Module
-  /nest/nodeCollections:
+  /nodeCollections:
     get:
       operationId: nest_get_node_collections
       responses:
@@ -67,6 +67,27 @@ paths:
       summary: Retrieves a list of all node collection IDs.
       tags:
         - NEST Module
+  /spikedetectors/:
+    get:
+      operationId: nest_get_spikedetectors
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpikedetectorInfo'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Queries all spike detectors accessable to the pipeline.
+      tags:
+      - NEST Module
   /spikes:
     get:
       operationId: get_spikes
@@ -172,6 +193,82 @@ components:
             type: number
           type: array
         neuronIds:
+          items:
+            format: uint64
+            type: integer
+          type: array
+      type: object
+    NestNodeCollectionProperties:
+      example:
+        nodeCollectionId: 0
+        nodes:
+          firstId: 1
+          lastId: 100
+          count: 100
+        model:
+          name: iaf_psc_delta
+          parameters:
+          - C_m
+          - tau_m
+          - t_ref
+          - E_L
+          - V_reset
+          - V_m
+          - V_th
+      properties:
+        nodeCollectionId:
+          format: uint64
+          type: integer
+        nodes:
+          $ref: '#/components/schemas/NestNodeCollectionNodes'
+        model:
+          $ref: '#/components/schemas/NestNodeModel'
+      type: object
+    NestNodeModel:
+      example:
+        name: iaf_psc_delta
+        parameters:
+        - C_m
+        - tau_m
+        - t_ref
+        - E_L
+        - V_reset
+        - V_m
+        - V_th
+      properties:
+        name:
+          type: string
+        parameters:
+          type: object
+      type: object
+    NestNodeCollectionNodes:
+      example:
+        firstId: 1
+        lastId: 100
+        count: 100
+      properties:
+        firstId:
+          format: uint64
+          type: integer
+        lastId:
+          format: uint64
+          type: integer
+        count:
+          format: uint64
+          type: integer
+    SpikedetectorInfo:
+      example:
+        spikedetectorId: 0
+        nodeIds:
+        - 1
+        - 3
+        - 5
+      properties:
+        spikedetectorId:
+          format: uint64
+          type: integer
+        nodeIds:
+          description: These are the nodes connected to the spike detector.
           items:
             format: uint64
             type: integer
