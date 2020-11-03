@@ -28,7 +28,7 @@ def nest_get_kernel_status():  # noqa: E501
     :rtype: List[MultimeterInfo]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/kernelStatus")
+    return requests.get(simulation_node+"/kernelStatus").json()
 
 
 def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
@@ -41,6 +41,7 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
 
     :rtype: MultimeterInfo
     """
+    # Multimeterendpoint doesnt exist in nest module yet
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
     return requests.get(simulation_node+"/multimeters", params={"multimeter_id": multimeter_id})
 
@@ -67,6 +68,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
 
     :rtype: MultimeterMeasurement
     """
+    # Multimeterendpoint doesnt exist in nest module yet
     #TODO Cache this
     mult_info = nest_get_multimeters()
 
@@ -126,6 +128,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
 
     return measurement
 
+
 def nest_get_multimeters():  # noqa: E501
     """Retreives the available multimeters and their properties.
 
@@ -134,6 +137,7 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
+    # Multimeterendpoint doesnt exist in nest module yet
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
     return requests.get(simulation_node+"/multimeters")
 
@@ -161,7 +165,7 @@ def nest_get_node_collections():  # noqa: E501
     :rtype: List[NestNodeCollectionProperties]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodeCollection")
+    return requests.get(simulation_node+"/nodeCollections").json()
     
 
 def nest_get_node_ids():  # noqa: E501
@@ -173,7 +177,7 @@ def nest_get_node_ids():  # noqa: E501
     :rtype: List[int]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+'/nodes/ids')
+    return requests.get(simulation_node+'/nodes/ids').json()
 
 
 def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
@@ -186,8 +190,10 @@ def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
 
     :rtype: List[int]
     """
+    node_collections = nest_get_node_collections()
+
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodeCollection/ids", params={"node_collection_id": node_collection_id})
+    return requests.get(simulation_node+"/nodeCollection/ids", params={"node_collection_id": node_collection_id}).json()
 
 
 def nest_get_nodes():  # noqa: E501
@@ -199,7 +205,7 @@ def nest_get_nodes():  # noqa: E501
     :rtype: List[NestNodeProperties]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes")
+    return requests.get(simulation_node+"/nodes").json()
 
 
 def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
@@ -213,7 +219,7 @@ def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
     :rtype: List[NestNodeProperties]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes", params={"node_collection_id": node_collection_id})
+    return requests.get(simulation_node+"/nodes", params={"node_collection_id": node_collection_id}).json()
 
 
 def nest_get_simulation_time_info():  # noqa: E501
@@ -230,11 +236,11 @@ def nest_get_simulation_time_info():  # noqa: E501
         end = 0
         step_size = 0
         for node in simulation_nodes.nest_simulation_nodes:
-            response = requests.get(node+"/simulation_time_info").json()
+            response = requests.get(node+"/simulationTimeInfo").json()
             current_time = min(current_time, response["current"])
             begin = max(begin, response["begin"])
             end = max(end, response["end"])
-            step_size = response["step_size"]
+            step_size = response["stepSize"]
 
         time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end, step_size=step_size)
         return time_info, 200
@@ -253,7 +259,7 @@ def nest_get_spikedetectors():  # noqa: E501
     :rtype: List[SpikedetectorInfo]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/spikedetectors")
+    return requests.get(simulation_node+"/spikedetectors").json()
 
 
 def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
@@ -277,10 +283,15 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/spikes", params={"from_time": from_time, "to_time": to_time, "node_ids": node_ids}).json()
-        for x in range(len(response["simulation_times"])):
-            spikes.simulation_times.append(response["simulation_times"][x])
-            spikes.node_ids.append(response["node_ids"][x])
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids}).json()
+        for x in range(len(response["simulationTimes"])):
+            if node_ids is not None:
+                if response["nodeIds"][x] in node_ids:
+                    spikes.simulation_times.append(response["simulationTimes"][x])
+                    spikes.node_ids.append(response["nodeIds"][x])
+            else:
+                spikes.simulation_times.append(response["simulationTimes"][x])
+                spikes.node_ids.append(response["nodeIds"][x])
 
     # sort
     sorted_ids = [x for _, x in sorted(
@@ -320,10 +331,10 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/spikes", params={"from_time": from_time, "to_time": to_time, "node_collection_id": node_collection_id}).json()
-        for x in range(len(response["simulation_times"])):
-            spikes.simulation_times.append(response["simulation_times"][x])
-            spikes.node_ids.append(response["node_ids"][x])
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeCollectionId": node_collection_id}).json()
+        for x in range(len(response["simulationTimes"])):
+            spikes.simulation_times.append(response["simulationTimes"][x])
+            spikes.node_ids.append(response["nodeIds"][x])
 
     # sort
     sorted_ids = [x for _, x in sorted(
@@ -365,10 +376,15 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/spikes", params={"from_time": from_time, "to_time": to_time, "node_ids": node_ids, "spikedetector_id": spikedetector_id}).json()
-        for x in range(len(response["simulation_times"])):
-            spikes.simulation_times.append(response["simulation_times"][x])
-            spikes.node_ids.append(response["node_ids"][x])
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids, "spikedetectorId": spikedetector_id}).json()
+        for x in range(len(response["simulationTimes"])):
+            if node_ids is not None:
+                if response["nodeIds"][x] in node_ids:
+                    spikes.simulation_times.append(response["simulationTimes"][x])
+                    spikes.node_ids.append(response["nodeIds"][x])
+            else:
+                spikes.simulation_times.append(response["simulationTimes"][x])
+                spikes.node_ids.append(response["nodeIds"][x])
 
     # sort
     sorted_ids = [x for _, x in sorted(
