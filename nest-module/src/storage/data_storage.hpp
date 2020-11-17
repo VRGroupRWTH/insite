@@ -11,6 +11,7 @@
 
 #include "spikedetector_storage.hpp"
 #include "node_collection.h"
+#include <cpprest/json.h>
 
 namespace insite {
 struct MultimeterInfo {
@@ -51,6 +52,9 @@ class DataStorage {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_;
   }
+  inline std::unordered_map<uint64_t, web::json::value> GetNodes() const {
+    return nodes_;
+  }
 
   std::shared_ptr<SpikedetectorStorage> CreateSpikeDetectorStorage(std::uint64_t spike_detector_id);
   std::shared_ptr<SpikedetectorStorage> GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
@@ -76,6 +80,7 @@ class DataStorage {
  private:
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
+  std::unordered_map<uint64_t, web::json::value> nodes_;
 
   std::atomic_uint64_t current_simulation_time_;
   std::atomic_uint64_t simulation_begin_time_;

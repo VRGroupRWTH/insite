@@ -43,6 +43,7 @@ set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
      recording_backend_insite.h recording_backend_insite.cpp
      http_server.hpp http_server.cpp
+     serialize.hpp serialize.cpp
      storage/data_storage.hpp storage/data_storage.cpp
      storage/spikedetector_storage.hpp storage/spikedetector_storage.cpp
    )

@@ -7,6 +7,7 @@
 
 #include "node.h"
 #include "kernel_manager.h"
+#include "../serialize.hpp"
 
 namespace insite {
 
@@ -28,10 +29,28 @@ void DataStorage::SetNodesFromCollection(
   std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
   node_collections_.clear();
+  nodes_.clear();
+  nodes_.reserve(node_collection->size());
+
+  DictionaryDatum node_properties(new Dictionary());
 
   for (const nest::NodeIDTriple& node_id_triple : *node_collection.get()) {
     nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
     nest::NodeCollectionPTR node_collection = node->get_nc();
+
+    auto model = web::json::value::object();
+    model["name"] = web::json::value(node->get_name());
+    node->get_status(node_properties);
+    model["parameters"] = SerializeDatum(&node_properties);
+
+    auto serialized_node = web::json::value::object();
+
+    serialized_node["nodeId"] = node_id_triple.node_id;
+    serialized_node["nodeCollectionId"] = 0;
+    serialized_node["position"] = 0;
+    serialized_node["model"] = model;
+
+    nodes_.insert(std::make_pair(node_id_triple.node_id, std::move(serialized_node)));
 
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
       assert(node_collection->is_range());

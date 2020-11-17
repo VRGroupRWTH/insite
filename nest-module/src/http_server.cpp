@@ -7,43 +7,10 @@
 
 #include "kernel_manager.h"
 #include "nest_time.h"
-#include "stringdatum.h"
-#include "booldatum.h"
 #include "storage/data_storage.hpp"
+#include "serialize.hpp"
 
 namespace insite {
-
-namespace {
-
-web::json::value SerializeDatum(Datum* datum) {
-  if (IntegerDatum* integer_datum = dynamic_cast<IntegerDatum*>(datum)) {
-    return web::json::value::number(*integer_datum);
-  } else if (DoubleDatum* double_datum = dynamic_cast<DoubleDatum*>(datum)) {
-    return web::json::value::number(*double_datum);
-  } else if (StringDatum* string_datum = dynamic_cast<StringDatum*>(datum)) {
-    return web::json::value::string(*string_datum);
-  } else if (NameDatum* name_datum = dynamic_cast<NameDatum*>(datum)) {
-    return web::json::value::string(name_datum->toString());
-  } else if (BoolDatum* bool_datum = dynamic_cast<BoolDatum*>(datum)) {
-    return web::json::value::boolean(*bool_datum);
-  } else if (ArrayDatum* array_datum = dynamic_cast<ArrayDatum*>(datum)) {
-    web::json::value array = web::json::value::array();
-    for (const auto& datum : *array_datum) {
-      array[array.size()] = SerializeDatum(datum.datum());
-    }
-    return array;
-  } else if (DictionaryDatum* dictionary_datum = dynamic_cast<DictionaryDatum*>(datum)) {
-    web::json::value object = web::json::value::object();
-    for (const auto& datum : **dictionary_datum) {
-      object[datum.first.toString()] = SerializeDatum(datum.second.datum());
-    }
-    return object;
-  } else {
-    return web::json::value::null();
-  }
-}
-
-}  // namespace
 
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     : http_listener_{address}, storage_(storage) {
@@ -57,6 +24,9 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     } else if (request.method() == "GET" &&
                request.relative_uri().path() == "/nodeCollections") {
       request.reply(GetCollections(request));
+    } else if (request.method() == "GET" &&
+               request.relative_uri().path() == "/nodes") {
+      request.reply(GetNodes(request));
     } else if (request.method() == "GET" &&
                request.relative_uri().path() == "/spikedetectors") {
       request.reply(GetSpikeDetectors(request));
@@ -148,6 +118,82 @@ web::http::http_response HttpServer::GetCollections(
 
   return response;
 }
+
+
+web::http::http_response HttpServer::GetNodes(const web::http::http_request& request) {
+  web::http::http_response response(web::http::status_codes::OK);
+
+  const auto parameters = web::uri::split_query(request.request_uri().query());
+  const auto local_only_parameter = parameters.find("localOnly");
+  const bool local_only = local_only_parameter == parameters.end()
+                              ? false
+                              : (local_only_parameter->second == "false" ||
+                                 local_only_parameter->second == "0");
+
+  std::unordered_map<uint64_t, web::json::value> nodes = storage_->GetNodes();
+  web::json::value response_body = web::json::value::array(nodes.size());
+
+  unsigned int current_node_index = 0;
+  for (const auto& node : nodes) {
+    response_body[current_node_index] = node.second;
+    ++current_node_index;
+  }
+
+  
+  // DictionaryDatum node_properties(new Dictionary());
+
+  // for (const nest::NodeIDTriple& node_id_triple : *nodes.get()) {
+  //   nest::Node* node =
+  //       nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+
+  //   // auto model = web::json::value::object();
+  //   // model["name"] = web::json::value(node->get_name());
+  //   // node->get_status(node_properties);
+  //   // model["parameters"] = SerializeDatum(&node_properties);
+
+  //   auto serialized_node = web::json::value::object();
+
+  //   serialized_node["nodeId"] = node_id_triple.node_id;
+  //   serialized_node["nodeCollectionId"] = 0;
+  //   serialized_node["position"] = 0;
+  //   // serialized_node["model"] = model;
+
+  //   response_body[current_node] = serialized_node;
+  //   ++current_node;
+  // }
+
+    // for (size_t i = 0; i < node_collections.size(); ++i) {
+    //   for (size_t j = 0; j < node_collections[i].node_count; ++j) {
+    //     auto node = web::json::value::object();
+
+    //     node["nodeId"] = node_collections[i].first_node_id + j;
+    //     node["nodeCollectionId"] = i;
+    //     node["position"] =
+
+    //     response_body[current_node] = node;
+    //   }
+
+    //   auto nodes = web::json::value::object();
+    //   nodes["firstId"] = node_collections[i].first_node_id;
+    //   nodes["lastId"] = node_collections[i].first_node_id +
+    //   node_collections[i].node_count - 1; nodes["count"] =
+    //   node_collections[i].node_count; response_body[i]["nodes"] = nodes;
+
+
+    //   auto model_parameters = web::json::value::array();
+    //   for (const auto& model_parameter :
+    //   node_collections[i].model_parameters) {
+    //     model_parameters[model_parameters.size()] =
+    //     web::json::value(model_parameter);
+    //   }
+    //   model["parameters"] = model_parameters;
+
+    //   response_body[i]["model"] = model;
+    // }
+    response.set_body(response_body);
+
+    return response;
+  }
 
 web::http::http_response HttpServer::GetSpikeDetectors(
     const web::http::http_request& request) {

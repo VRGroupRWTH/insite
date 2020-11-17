@@ -21,6 +21,7 @@ class HttpServer {
   web::http::http_response GetVersion(const web::http::http_request& request);
   web::http::http_response GetKernelStatus(const web::http::http_request& request);
   web::http::http_response GetCollections(const web::http::http_request& request);
+  web::http::http_response GetNodes(const web::http::http_request& request);
   web::http::http_response GetSpikeDetectors(const web::http::http_request& request);
 
   web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
