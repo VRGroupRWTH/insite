@@ -7,6 +7,7 @@
 
 #include "node.h"
 #include "kernel_manager.h"
+#include "topology.h"
 #include "../serialize.hpp"
 
 namespace insite {
@@ -76,6 +77,21 @@ void DataStorage::SetNodesFromCollection(
       node_handles_node_connections.insert(node_collection.get());
     }
 
+    web::json::value position = web::json::value::null();
+    try {
+      const auto layer = nest::get_layer(node_collection);
+      if (layer) {
+        std::vector<double> position_vector =
+          layer->get_position_vector(node_collection->find(node_id_triple.node_id));
+        position = web::json::value::array(position_vector.size());
+        for (size_t i = 0; i < position_vector.size(); ++i) {
+          position[i] = position_vector[i];
+        }
+      }
+    } catch (nest::LayerExpected&) {
+      // Node collection does not have a layer
+    }
+
     auto model = web::json::value::object();
     model["name"] = web::json::value(node->get_name());
     node->get_status(node_properties);
@@ -85,8 +101,9 @@ void DataStorage::SetNodesFromCollection(
 
     serialized_node["nodeId"] = node_id_triple.node_id;
     serialized_node["nodeCollectionId"] = GetNodeCollectionIdForNodeIdNoLock(node_id_triple.node_id);
-    serialized_node["position"] = 0;
+    serialized_node["position"] = position;
     serialized_node["model"] = model;
+    serialized_node["name"] = web::json::value::string(node->get_name());
 
     nodes_.insert(std::make_pair(node_id_triple.node_id, std::move(serialized_node)));
   }
