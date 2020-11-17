@@ -38,20 +38,6 @@ void DataStorage::SetNodesFromCollection(
     nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
     nest::NodeCollectionPTR node_collection = node->get_nc();
 
-    auto model = web::json::value::object();
-    model["name"] = web::json::value(node->get_name());
-    node->get_status(node_properties);
-    model["parameters"] = SerializeDatum(&node_properties);
-
-    auto serialized_node = web::json::value::object();
-
-    serialized_node["nodeId"] = node_id_triple.node_id;
-    serialized_node["nodeCollectionId"] = 0;
-    serialized_node["position"] = 0;
-    serialized_node["model"] = model;
-
-    nodes_.insert(std::make_pair(node_id_triple.node_id, std::move(serialized_node)));
-
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
       assert(node_collection->is_range());
       assert(node_collection->size() > 0);
@@ -89,7 +75,26 @@ void DataStorage::SetNodesFromCollection(
 
       node_handles_node_connections.insert(node_collection.get());
     }
+
+    auto model = web::json::value::object();
+    model["name"] = web::json::value(node->get_name());
+    node->get_status(node_properties);
+    model["parameters"] = SerializeDatum(&node_properties);
+
+    auto serialized_node = web::json::value::object();
+
+    serialized_node["nodeId"] = node_id_triple.node_id;
+    serialized_node["nodeCollectionId"] = GetNodeCollectionIdForNodeIdNoLock(node_id_triple.node_id);
+    serialized_node["position"] = 0;
+    serialized_node["model"] = model;
+
+    nodes_.insert(std::make_pair(node_id_triple.node_id, std::move(serialized_node)));
   }
+}
+
+uint64_t DataStorage::GetNodeCollectionIdForNodeId(uint64_t node_id) const {
+  std::unique_lock<std::mutex> lock(node_collections_mutex_);
+  return GetNodeCollectionIdForNodeIdNoLock(node_id);
 }
 
 std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(std::uint64_t spike_detector_id) {
@@ -207,6 +212,17 @@ double DataStorage::GetSimulationEndTime() const {
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;
+}
+
+uint64_t DataStorage::GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const {
+  for (uint64_t node_collection_id = 0; node_collection_id < node_collections_.size(); ++node_collection_id) {
+    const auto& node_collection = node_collections_[node_collection_id];
+    if (node_collection.first_node_id <= node_id &&
+        node_id < node_collection.first_node_id + node_collection.node_count) {
+      return node_collection_id;
+    }
+  }
+  return 0xffffffffffffffff;
 }
 
 }  // namespace insite

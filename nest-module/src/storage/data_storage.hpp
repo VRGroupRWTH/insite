@@ -53,8 +53,10 @@ class DataStorage {
     return node_collections_;
   }
   inline std::unordered_map<uint64_t, web::json::value> GetNodes() const {
+    std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return nodes_;
   }
+  uint64_t GetNodeCollectionIdForNodeId(uint64_t node_id) const;
 
   std::shared_ptr<SpikedetectorStorage> CreateSpikeDetectorStorage(std::uint64_t spike_detector_id);
   std::shared_ptr<SpikedetectorStorage> GetSpikeDetectorStorage(std::uint64_t spike_detector_id);
@@ -78,6 +80,8 @@ class DataStorage {
   double GetSimulationEndTime() const;
 
  private:
+  uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
+
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
   std::unordered_map<uint64_t, web::json::value> nodes_;
