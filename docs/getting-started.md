@@ -1,5 +1,4 @@
-# Insite
-This is the main repository for the in-situ-pipeline developed in Task 5.7 for the HBP.
+# Getting Started
 
 ## Installation
 1. For easy deployment of the pipeline we use docker containers, so make sure you have the [docker engine](https://www.docker.com) installed.
