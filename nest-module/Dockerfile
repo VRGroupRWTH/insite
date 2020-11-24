@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev \
     libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
     libwebsocketpp-dev openssl libssl-dev ninja-build \
-    openmpi-bin libopenmpi-dev libpq-dev postgresql-server-dev-all
+    openmpi-bin libopenmpi-dev
 RUN pip3 install Cython
 
 RUN git clone --single-branch --branch v2.10.16 --recurse-submodules https://github.com/microsoft/cpprestsdk.git /cpprestsdk
@@ -16,15 +16,6 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_TESTS=OFF \
     /cpprestsdk
-RUN ninja && ninja install
-
-RUN git clone --single-branch --branch 6.4.6 https://github.com/jtv/libpqxx.git /libpqxx
-WORKDIR /libpqxx-build
-RUN cmake \
-    -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_TESTS=OFF \
-    /libpqxx
 RUN ninja && ninja install
 
 RUN git clone --single-branch --branch make-time-information-accessable https://github.com/VRGroupRWTH/nest-simulator.git /nest
