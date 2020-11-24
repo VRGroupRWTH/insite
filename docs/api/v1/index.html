@@ -282,8 +282,8 @@ font-style: italic;
 
     <h3 class="field-label">Return type</h3>
     <div class="return-type">
-      array[<a href="#MultimeterInfo">MultimeterInfo</a>]
       
+      Object
     </div>
 
     <!--Todo: process Response Object and its headers, schema, examples -->
@@ -291,9 +291,57 @@ font-style: italic;
     <h3 class="field-label">Example data</h3>
     <div class="example-data-content-type">Content-Type: application/json</div>
     <pre class="example"><code>{
-  "multimeterId" : 10,
-  "attributes" : [ "V_m" ],
-  "nodeIds" : [ 1, 3, 5 ]
+  "T_max" : 1.1529215046068468E15,
+  "T_min" : -1.1529215046068468E15,
+  "adaptive_spike_buffers" : true,
+  "adaptive_target_buffers" : true,
+  "buffer_size_secondary_events" : 0,
+  "buffer_size_spike_data" : 42,
+  "buffer_size_target_data" : 125,
+  "data_path" : "",
+  "data_prefix" : "",
+  "dict_miss_is_error" : true,
+  "grng_seed" : 0,
+  "growth_factor_buffer_spike_data" : 1.5,
+  "growth_factor_buffer_target_data" : 1.5,
+  "keep_source_table" : true,
+  "local_num_threads" : 1,
+  "local_spike_counter" : 745,
+  "max_buffer_size_spike_data" : 8388608,
+  "max_buffer_size_target_data" : 16777216,
+  "max_delay" : 1.5,
+  "max_num_syn_models" : 512,
+  "min_delay" : 1.5,
+  "ms_per_tic" : 0.001,
+  "network_size" : 128,
+  "num_connections" : 1750,
+  "num_processes" : 1,
+  "off_grid_spiking" : false,
+  "overwrite_files" : true,
+  "print_time" : false,
+  "recording_backends" : {
+    "ascii" : { },
+    "insite" : { },
+    "memory" : { },
+    "screen" : { }
+  },
+  "resolution" : 0.1,
+  "rng_seeds" : [ 1 ],
+  "sort_connections_by_source" : true,
+  "structural_plasticity_synapses" : { },
+  "structural_plasticity_update_interval" : 10000,
+  "tics_per_ms" : 1000,
+  "tics_per_step" : 100,
+  "time" : 100,
+  "time_collocate" : 0,
+  "time_communicate" : 0,
+  "to_do" : 0,
+  "total_num_virtual_procs" : 1,
+  "use_wfr" : true,
+  "wfr_comm_interval" : 1,
+  "wfr_interpolation_order" : 3,
+  "wfr_max_iterations" : 15,
+  "wfr_tol" : 1.0E-4
 }</code></pre>
 
     <h3 class="field-label">Produces</h3>
@@ -306,7 +354,7 @@ font-style: italic;
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
     Operation successful.
-        
+        <a href="#Object">Object</a>
     <h4 class="field-label">500</h4>
     Operation failed due to server error.
         <a href="#ErrorResponse">ErrorResponse</a>
@@ -1110,7 +1158,6 @@ font-style: italic;
     <li><a href="#InnerError"><code>InnerError</code> - </a></li>
     <li><a href="#MultimeterInfo"><code>MultimeterInfo</code> - </a></li>
     <li><a href="#MultimeterMeasurement"><code>MultimeterMeasurement</code> - </a></li>
-    <li><a href="#NestKernelStatus"><code>NestKernelStatus</code> - </a></li>
     <li><a href="#NestNodeCollectionNodes"><code>NestNodeCollectionNodes</code> - </a></li>
     <li><a href="#NestNodeCollectionProperties"><code>NestNodeCollectionProperties</code> - </a></li>
     <li><a href="#NestNodeModel"><code>NestNodeModel</code> - </a></li>
@@ -1161,43 +1208,6 @@ font-style: italic;
       <div class="param">simulationTimes (optional)</div><div class="param-desc"><span class="param-type"><a href="#double">array[Double]</a></span> This array is always sorted. format: double</div>
 <div class="param">nodeIds (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">array[Integer]</a></span>  format: uint64</div>
 <div class="param">values (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">array[BigDecimal]</a></span> This array contains the measured values for each node ID and time to get the value for node ID n at time t you have to use the index n * length(simulationTimes) + t </div>
-    </div>  <!-- field-items -->
-  </div>
-  <div class="model">
-    <h3><a name="NestKernelStatus"><code>NestKernelStatus</code> - </a> <a class="up" href="#__Models">Up</a></h3>
-    <div class='model-description'></div>
-    <div class="field-items">
-      <div class="param">resolution (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The resolution of the simulation (in ms) </div>
-<div class="param">time (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The current simulation time </div>
-<div class="param">to_do (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The number of steps yet to be simulated (read only) </div>
-<div class="param">max_delay (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The maximum delay in the network </div>
-<div class="param">min_delay (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The minimum delay in the network </div>
-<div class="param">ms_per_tic (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The number of milliseconds per tic </div>
-<div class="param">tics_per_ms (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The number of tics per millisecond </div>
-<div class="param">tics_per_step (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The number of tics per simulation time step </div>
-<div class="param">T_max (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The largest representable time value (read only) </div>
-<div class="param">T_min (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> The smallest representable time value (read only) </div>
-<div class="param">total_num_virtual_procs (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The total number of virtual processes </div>
-<div class="param">local_num_threads (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The local number of threads </div>
-<div class="param">num_processes (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The number of MPI processes (read only) </div>
-<div class="param">off_grid_spiking (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether to transmit precise spike times in MPI communication (read only) </div>
-<div class="param">initial_connector_capacity (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> When a connector is first created, it starts with this capacity (if &gt;= connector_cutoff) </div>
-<div class="param">large_connector_limit (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Capacity doubling is used up to this limit </div>
-<div class="param">large_connector_growth_factor (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> Capacity growth factor to use beyond the limit </div>
-<div class="param">grng_seed (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Seed for global random number generator used synchronously by all virtual processes to create, e.g., fixed fan-out connections (write only). </div>
-<div class="param">rng_seeds (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">array[Integer]</a></span> Seeds for the per-virtual-process random number generators used for most purposes. Array with one integer per virtual process, all must be unique and differ from grng_seed (write only). </div>
-<div class="param">data_path (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> A path, where all data is written to (default is the current directory) </div>
-<div class="param">data_prefix (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> A common prefix for all data files </div>
-<div class="param">overwrite_files (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether to overwrite existing data files </div>
-<div class="param">print_time (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether to print progress information during the simulation </div>
-<div class="param">network_size (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The number of nodes in the network (read only) </div>
-<div class="param">num_connections (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The number of connections in the network (read only, local only) </div>
-<div class="param">use_wfr (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether to use waveform relaxation method </div>
-<div class="param">wfr_comm_interval (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> Desired waveform relaxation communication interval </div>
-<div class="param">wfr_tol (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> Convergence tolerance of waveform relaxation method </div>
-<div class="param">wfr_max_iterations (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Maximal number of iterations used for waveform relaxation </div>
-<div class="param">wfr_interpolation_order (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Interpolation order of polynomial used in wfr iterations </div>
-<div class="param">dict_miss_is_error (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether missed dictionary entries are treated as errors </div>
     </div>  <!-- field-items -->
   </div>
   <div class="model">
