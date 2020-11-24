@@ -3,7 +3,6 @@
 
 #include <unordered_map>
 #include <cpprest/http_client.h>
-#include <pqxx/pqxx>
 
 #include "storage/data_storage.hpp"
 #include "http_server.hpp"

@@ -4,7 +4,6 @@
 #include <cpprest/http_listener.h>
 #include <string>
 #include <memory>
-#include <pqxx/pqxx>
 
 namespace insite {
 
