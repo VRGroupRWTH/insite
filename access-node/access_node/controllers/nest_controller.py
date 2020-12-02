@@ -42,9 +42,14 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
     :rtype: MultimeterInfo
     """
     # Multimeterendpoint doesnt exist in nest module yet
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters", params={"multimeter_id": multimeter_id})
-
+    multimeters = nest_get_multimeters()
+    for multimeter in multimeters:
+        if multimeter['multimeterId'] is multimeter_id:
+            return multimeter
+    error = Error(code ="invalidMultimeterID", message = "Multimeter ID doesnt exist.")
+    response = ErrorResponse(error)
+    return response, 500
+    
 
 def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
     """Retrieves the measurements for a multimeter, attribute and node IDs (optional).
@@ -75,13 +80,13 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     mult_node_ids = []
     multimeter_exists = False
     for mult in mult_info:
-        if mult["multimeter_id"] == multimeter_id:
+        if mult["multimeterId"] == multimeter_id:
             multimeter_exists = True
             if attribute_name not in mult['attributes']:
                 error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not measure given attribute")
                 error_response = ErrorResponse(error)
                 return error_response, 400
-            mult_node_ids = mult['node_ids']
+            mult_node_ids = mult['nodeIds']
             break
     if not multimeter_exists:
         error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not exist")
@@ -152,8 +157,13 @@ def nest_get_node_by_id(node_id):  # noqa: E501
 
     :rtype: NestNodeProperties
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes", params={"node_id": node_id})
+    nodes = nest_get_nodes()
+    for node in nodes:
+        if node['nodeId'] is node_id:
+            return node
+    error = Error(code ="invalidNodeID", message = "Node ID doesnt exist.")
+    response = ErrorResponse(error)
+    return response, 500
 
 
 def nest_get_node_collections():  # noqa: E501
@@ -176,8 +186,12 @@ def nest_get_node_ids():  # noqa: E501
 
     :rtype: List[int]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+'/nodes/ids').json()
+    nodes = nest_get_nodes()
+    ids = []
+    for node in nodes:
+        ids.append(node['nodeId'])
+    ids.sort()
+    return ids
 
 
 def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
@@ -190,10 +204,17 @@ def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    node_collections = nest_get_node_collections()
-
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodeCollection/ids", params={"node_collection_id": node_collection_id}).json()
+    nodes = nest_get_nodes()
+    ids = []
+    for node in nodes:
+        if node['nodeCollectionId'] is node_collection_id:
+            ids.append(node['nodeId'])
+    if len(ids) is 0:
+        error = Error(code ="invalidNodeCollectionID", message = "Node Collection ID doesnt exist.")
+        response = ErrorResponse(error)
+        return response, 500
+    ids.sort()
+    return ids
 
 
 def nest_get_nodes():  # noqa: E501
@@ -218,8 +239,16 @@ def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
 
     :rtype: List[NestNodeProperties]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes", params={"node_collection_id": node_collection_id}).json()
+    all_nodes = nest_get_nodes()
+    nodes = []
+    for node in all_nodes:
+        if node['nodeCollectionId'] is node_collection_id:
+            nodes.append(node)
+    if len(nodes) is 0:
+        error = Error(code ="invalidNodeCollectionID", message = "Node Collection ID doesnt exist.")
+        response = ErrorResponse(error)
+        return response, 500
+    return nodes
 
 
 def nest_get_simulation_time_info():  # noqa: E501
