@@ -1,4 +1,5 @@
 #include "spikedetector_storage.hpp"
+
 #include "kernel_manager.h"
 
 namespace insite {
@@ -14,8 +15,6 @@ void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
   nest::NodeCollectionPTR spike_detector_collection =
       std::make_shared<nest::NodeCollectionPrimitive>(id_, id_);
 
-  std::cout << "SpikeDetector connections:" << std::endl;
-
   std::deque<nest::ConnectionID> connections;
   for (nest::synindex synapse_id = 0;
        synapse_id < nest::kernel().model_manager.get_num_synapse_prototypes();
@@ -23,7 +22,7 @@ void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
     nest::kernel().connection_manager.get_connections(
         connections, all_nodes, spike_detector_collection, synapse_id, -1);
   }
-  
+
   connected_nodes_.resize(0);
   connected_nodes_.reserve(connections.size());
   for (const auto& connection : connections) {
@@ -59,7 +58,7 @@ void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
                                          std::uint64_t from_neuron_id,
                                          std::uint64_t to_neuron_id) {
   if (spikes_.size() == 0) {
-      return;
+    return;
   }
 
   std::uint64_t current_index = first_spike_index_;
@@ -79,7 +78,7 @@ void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
 
     ++current_index;
     if (current_index == spikes_.size()) {
-        current_index = 0;
+      current_index = 0;
     }
   } while (current_index != end_index);
 }

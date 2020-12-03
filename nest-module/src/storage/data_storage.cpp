@@ -5,10 +5,10 @@
 #include <cstring>
 #include <set>
 
-#include "node.h"
-#include "kernel_manager.h"
-#include "topology.h"
 #include "../serialize.hpp"
+#include "kernel_manager.h"
+#include "node.h"
+#include "topology.h"
 
 namespace insite {
 
@@ -25,8 +25,7 @@ constexpr size_t NEURON_DIMENSION = 1;
 
 DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
-void DataStorage::SetNodesFromCollection(
-    const nest::NodeCollectionPTR& node_collection) {
+void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection) {
   std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
   node_collections_.clear();
@@ -39,16 +38,22 @@ void DataStorage::SetNodesFromCollection(
     nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
     nest::NodeCollectionPTR node_collection = node->get_nc();
 
+    // This is a null pointer for nodes simulated on other MPI ranks
+    if (node_collection) {
+      std::cout << "[insite] ";
+      node_collection->print_me(std::cout);
+      std::cout << std::endl;
+    } else {
+      std::cout << "[insite] No node collection!" << std::endl;
+      continue;
+    }
+
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
       assert(node_collection->is_range());
       assert(node_collection->size() > 0);
 
       std::string model_name;
       std::vector<std::string> model_parameters;
-      //  =
-      //     node_id_triple.model_id != nest::invalid_index
-      //         ? nest::kernel().model_manager.get_model(node_id_triple.model_id)->get_name()
-      //         : "none";
       if (node_id_triple.model_id != nest::invalid_index) {
         nest::Model* model =
             nest::kernel().model_manager.get_model(node_id_triple.model_id);
@@ -67,45 +72,12 @@ void DataStorage::SetNodesFromCollection(
         }
       }
 
-      node_collections_.push_back({
-        (*node_collection)[0],
-        node_collection->size(),
-        model_name,
-        model_parameters
-      });
+      node_collections_.push_back({(*node_collection)[0],
+                                   node_collection->size(), model_name,
+                                   model_parameters});
 
       node_handles_node_connections.insert(node_collection.get());
     }
-
-    web::json::value position = web::json::value::null();
-    try {
-      const auto layer = nest::get_layer(node_collection);
-      if (layer) {
-        std::vector<double> position_vector =
-          layer->get_position_vector(node_collection->find(node_id_triple.node_id));
-        position = web::json::value::array(position_vector.size());
-        for (size_t i = 0; i < position_vector.size(); ++i) {
-          position[i] = position_vector[i];
-        }
-      }
-    } catch (nest::LayerExpected&) {
-      // Node collection does not have a layer
-    }
-
-    auto model = web::json::value::object();
-    model["name"] = web::json::value(node->get_name());
-    node->get_status(node_properties);
-    model["parameters"] = SerializeDatum(&node_properties);
-
-    auto serialized_node = web::json::value::object();
-
-    serialized_node["nodeId"] = node_id_triple.node_id;
-    serialized_node["nodeCollectionId"] = GetNodeCollectionIdForNodeIdNoLock(node_id_triple.node_id);
-    serialized_node["position"] = position;
-    serialized_node["model"] = model;
-    serialized_node["name"] = web::json::value::string(node->get_name());
-
-    nodes_.insert(std::make_pair(node_id_triple.node_id, std::move(serialized_node)));
   }
 }
 
@@ -114,13 +86,14 @@ uint64_t DataStorage::GetNodeCollectionIdForNodeId(uint64_t node_id) const {
   return GetNodeCollectionIdForNodeIdNoLock(node_id);
 }
 
-std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(std::uint64_t spike_detector_id) {
+std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(
+    std::uint64_t spike_detector_id) {
   std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
   auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
   if (spike_detector_iterator == spikedetectors_.end()) {
-    auto insert_result = spikedetectors_.insert(
-        std::make_pair(spike_detector_id,
-                       std::make_shared<SpikedetectorStorage>(spike_detector_id)));
+    auto insert_result = spikedetectors_.insert(std::make_pair(
+        spike_detector_id,
+        std::make_shared<SpikedetectorStorage>(spike_detector_id)));
     assert(insert_result.second);
     return insert_result.first->second;
   } else {
@@ -132,67 +105,44 @@ std::shared_ptr<SpikedetectorStorage> DataStorage::GetSpikeDetectorStorage(
     std::uint64_t spike_detector_id) {
   std::unique_lock<std::mutex> lock(spikedetectors_mutex_);
   auto spike_detector_iterator = spikedetectors_.find(spike_detector_id);
-  return spike_detector_iterator == spikedetectors_.end() ? nullptr : spike_detector_iterator->second;
+  return spike_detector_iterator == spikedetectors_.end()
+             ? nullptr
+             : spike_detector_iterator->second;
+}
+
+std::shared_ptr<MultimeterStorage> DataStorage::CreateMultimeterStorage(
+    std::uint64_t multimeter_id) {
+  std::unique_lock<std::mutex> lock(multimeters_mutex_);
+  auto multimeter_iterator = multimeters_.find(multimeter_id);
+  if (multimeter_iterator == multimeters_.end()) {
+    auto insert_result = multimeters_.insert(std::make_pair(
+        multimeter_id,
+        std::make_shared<MultimeterStorage>(multimeter_id)));
+    assert(insert_result.second);
+    return insert_result.first->second;
+  } else {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<MultimeterStorage> DataStorage::GetMultimeterStorage(
+    std::uint64_t multimeter_id) {
+  std::unique_lock<std::mutex> lock(multimeters_mutex_);
+  auto multimeter_iterator = multimeters_.find(multimeter_id);
+  return multimeter_iterator == multimeters_.end()
+             ? nullptr
+             : multimeter_iterator->second;
 }
 
 void DataStorage::AddSpike(std::uint64_t spikedetector_id,
-                           double simulation_time, std::uint64_t neuron_id) {
+                           double simulation_time, std::uint64_t node_id) {
   GetSpikeDetectorStorage(spikedetector_id)
-      ->AddSpike(simulation_time, neuron_id);
+      ->AddSpike(simulation_time, node_id);
 }
 
-void DataStorage::AddMultimeterMeasurement(std::uint64_t device_id,
-                                           const std::string& attribute_name,
-                                           const double simulation_time,
-                                           const std::uint64_t gid,
-                                           const double value) {
-  std::unique_lock<std::mutex> lock(measurement_mutex_);
-  auto& measurement = buffered_measurements_[device_id][attribute_name];
-  auto& simulation_times = measurement.simulation_times;
-  auto& gids = measurement.gids;
-  auto& values = measurement.values;
-
-  auto time_iterator = std::lower_bound(
-      simulation_times.begin(), simulation_times.end(), simulation_time);
-  auto time_index = std::distance(simulation_times.begin(), time_iterator);
-  if (time_iterator == simulation_times.end() ||
-      *time_iterator != simulation_time) {
-    simulation_times.insert(time_iterator, simulation_time);
-
-    auto new_values =
-        std::vector<double>(simulation_times.size() * gids.size(), 0.0);
-    for (std::size_t t = 0; t < simulation_times.size(); ++t)
-      for (std::size_t g = 0; g < gids.size(); ++g)
-        if (t != time_index)
-          new_values[t * gids.size() + g] =
-              values[(t > time_index ? t - 1 : t) * gids.size() + g];
-    values = new_values;
-  }
-
-  auto gid_iterator = std::lower_bound(gids.begin(), gids.end(), gid);
-  auto gid_index = std::distance(gids.begin(), gid_iterator);
-  if (gid_iterator == gids.end() || *gid_iterator != gid) {
-    gids.insert(gid_iterator, gid);
-
-    auto new_values =
-        std::vector<double>(simulation_times.size() * gids.size(), 0.0);
-    for (std::size_t t = 0; t < simulation_times.size(); ++t)
-      for (std::size_t g = 0; g < gids.size(); ++g)
-        if (g != gid_index)
-          new_values[t * gids.size() + g] =
-              values[t * gids.size() + (g > gid_index ? g - 1 : g)];
-    values = new_values;
-  }
-
-  values[time_index * gids.size() + gid_index] = value;
-}
-
-std::unordered_map<std::uint64_t,
-                   std::unordered_map<std::string, MultimeterMeasurements>>
-DataStorage::GetMultimeterMeasurements() {
-  std::unique_lock<std::mutex> lock(measurement_mutex_);
-  auto measurements = buffered_measurements_;
-  return measurements;
+void DataStorage::AddMultimeterMeasurement(std::uint64_t multimeter_id, double simulation_time, std::uint64_t node_id,
+                                           const std::vector<double>& double_values, const std::vector<long>& long_values) {
+  GetMultimeterStorage(multimeter_id)->AddMeasurement(simulation_time, node_id, double_values, long_values);
 }
 
 void DataStorage::SetCurrentSimulationTime(double simulation_time) {
@@ -231,8 +181,10 @@ double DataStorage::GetSimulationEndTime() const {
   return simulation_time;
 }
 
-uint64_t DataStorage::GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const {
-  for (uint64_t node_collection_id = 0; node_collection_id < node_collections_.size(); ++node_collection_id) {
+uint64_t DataStorage::GetNodeCollectionIdForNodeIdNoLock(
+    uint64_t node_id) const {
+  for (uint64_t node_collection_id = 0;
+       node_collection_id < node_collections_.size(); ++node_collection_id) {
     const auto& node_collection = node_collections_[node_collection_id];
     if (node_collection.first_node_id <= node_id &&
         node_id < node_collection.first_node_id + node_collection.node_count) {
