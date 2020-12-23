@@ -35,7 +35,12 @@ struct NodeCollection {
   std::uint64_t node_count;
   std::string model_name;
   std::vector<std::string> model_parameters;
+
 };
+
+std::ostream& operator<<(std::ostream& os, const NodeCollection c);
+bool operator<(NodeCollection c1, NodeCollection c2);
+bool operator==(NodeCollection c1, NodeCollection c2);
 
 class DataStorage {
  public:
@@ -87,6 +92,7 @@ class DataStorage {
  private:
   uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
 
+  std::vector<NodeCollection> ReceiveCollectionsFromAllNodes();
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
   std::unordered_map<uint64_t, web::json::value> nodes_;
