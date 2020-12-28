@@ -36,11 +36,19 @@ struct NodeCollection {
   std::string model_name;
   std::vector<std::string> model_parameters;
 
+  bool operator<(const NodeCollection& c2) const
+  {
+    return this->first_node_id < c2.first_node_id;
+  }
+
+  bool operator==(const NodeCollection& c2) const
+  {
+    return this->first_node_id == c2.first_node_id && this->node_count == c2.node_count && this->model_name == c2.model_name;
+  }
 };
 
-std::ostream& operator<<(std::ostream& os, const NodeCollection c);
-bool operator<(NodeCollection c1, NodeCollection c2);
-bool operator==(NodeCollection c1, NodeCollection c2);
+std::ostream& operator<<(std::ostream& os, const NodeCollection& c);
+
 
 class DataStorage {
  public:
@@ -92,7 +100,7 @@ class DataStorage {
  private:
   uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
 
-  std::vector<NodeCollection> ReceiveCollectionsFromAllNodes();
+  std::vector<NodeCollection> ReceiveCollectionsFromNode(int source);
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
   std::unordered_map<uint64_t, web::json::value> nodes_;
