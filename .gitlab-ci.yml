@@ -18,4 +18,4 @@ test:
     script:
         - docker-compose build
         - pip3 install --user -r test-requirements.txt
-        - pytest --ignore=access-node/access-node --count=30 --repeat-scope=session -x
+        - pytest --ignore=access-node/access_node --count=30 --repeat-scope=session -x
