@@ -37,4 +37,16 @@ def nest_simulation(request):
         if current_time - begin_time > 20:
             pytest.fail('Timeout during container start')
 
+    while True:
+        time.sleep(1.0)
+        try:
+            r = requests.get("http://localhost:8080/version")
+            if r.status_code == 200:
+                break
+        except requests.exceptions.ConnectionError:
+            pass
+        current_time = time.time()
+        if current_time - begin_time > 20:
+            pytest.fail('Timeout during container start')
+
     return process
