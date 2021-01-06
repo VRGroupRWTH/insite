@@ -16,19 +16,6 @@
 #include "spikedetector_storage.hpp"
 
 namespace insite {
-struct MultimeterInfo {
-  std::uint64_t device_id;
-  bool needs_update;
-  std::vector<std::string> double_attributes;
-  std::vector<std::string> long_attributes;
-  std::vector<std::uint64_t> gids;
-};
-
-struct MultimeterMeasurements {
-  std::vector<double> simulation_times;
-  std::vector<std::uint64_t> gids;
-  std::vector<double> values;
-};
 
 struct NodeCollection {
   std::uint64_t first_node_id;
