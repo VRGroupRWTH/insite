@@ -87,6 +87,30 @@ void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t nod
   }
 }
 
+web::json::value MultimeterStorage::Serialize() const {
+  web::json::value serialized_object = web::json::value::object();
+  serialized_object["multimeterId"] = id_;
+
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    serialized_object["attributes"] = web::json::value::array(double_attributes_.size() + long_attributes_.size());
+    for (size_t i = 0; i < double_attributes_.size(); ++i) {
+      serialized_object["attributes"][i] = web::json::value(double_attributes_[i].name());
+    }
+    for (size_t i = 0; i < long_attributes_.size(); ++i) {
+      serialized_object["attributes"][double_attributes_.size() + i] = web::json::value(long_attributes_[i].name());
+    }
+
+    serialized_object["nodeIds"] = web::json::value::array(connected_nodes_.size());
+    for (size_t i = 0; i < connected_nodes_.size(); ++i) {
+      serialized_object["nodeIds"][i] = connected_nodes_[i];
+    }
+  }
+
+  return serialized_object;
+}
+
 double MultimeterStorage::GetLatestSimulationTimeNoLock() const {
   if (simulation_times_.size() == 0) {
     return -std::numeric_limits<double>::infinity();

@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <cpprest/json.h>
 #include "nest_types.h"
 #include "node_collection.h"
 
@@ -37,6 +38,8 @@ class AttributeStorage {
     assert(time_offset < timestep_ring_buffer_size_);
   }
 
+  inline std::string name() const { return name_; }
+
  private:
   std::string name_;
   uint64_t timestep_ring_buffer_size_;
@@ -61,6 +64,8 @@ class MultimeterStorage {
                       const std::vector<double>& double_values,
                       const std::vector<long>& long_values);
 
+  web::json::value Serialize() const;
+
  private:
   std::uint64_t id_;
 
@@ -71,7 +76,7 @@ class MultimeterStorage {
 
   std::vector<AttributeStorage<double>> double_attributes_;
   std::vector<AttributeStorage<long>> long_attributes_;
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
 
   double GetLatestSimulationTimeNoLock() const;
   uint64_t GetTimeOffsetNoLock(double simulation_time);

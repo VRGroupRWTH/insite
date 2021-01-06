@@ -278,16 +278,7 @@ web::http::http_response HttpServer::GetMultimeters(
   std::vector<std::uint64_t> connected_node_ids;
 
   for (const auto& multimeter_id_storage : multimeters) {
-    web::json::value multimeter_data = web::json::value::object();
-    multimeter_data["multimeterId"] = multimeter_id_storage.first;
-
-    multimeter_id_storage.second->ExtractConnectedNodeIds(&connected_node_ids);
-    multimeter_data["nodeIds"] = web::json::value::array(connected_node_ids.size());
-    for (size_t i = 0; i < connected_node_ids.size(); ++i) {
-      multimeter_data["nodeIds"][i] = connected_node_ids[i];
-    }
-
-    response_body[response_body.size()] = multimeter_data;
+    response_body[response_body.size()] = multimeter_id_storage.second->Serialize();
   }
 
   response.set_body(response_body);
