@@ -11,7 +11,7 @@ def spikes_sorted_by_time(spikes):
         assert(time >= previous_time)
         previous_time = time
 
-def test_spikes(nest_simulation):
+def test_nest_spikes(nest_simulation):
     r = requests.get("http://localhost:8080/nest/spikes")
     assert(r.status_code == 200)
     spikes = r.json()
