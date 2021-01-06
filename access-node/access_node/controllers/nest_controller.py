@@ -142,9 +142,8 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    # Multimeterendpoint doesnt exist in nest module yet
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters")
+    return requests.get(simulation_node+"/multimeters").json()
 
 
 def nest_get_node_by_id(node_id):  # noqa: E501
