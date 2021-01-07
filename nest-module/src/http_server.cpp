@@ -129,11 +129,11 @@ web::http::http_response HttpServer::GetNodes(
   web::http::http_response response(web::http::status_codes::OK);
 
   const auto parameters = web::uri::split_query(request.request_uri().query());
-  const auto local_only_parameter = parameters.find("localOnly");
-  const bool local_only = local_only_parameter == parameters.end()
-                              ? false
-                              : (local_only_parameter->second == "false" ||
-                                 local_only_parameter->second == "0");
+  // const auto local_only_parameter = parameters.find("localOnly");
+  // const bool local_only = local_only_parameter == parameters.end()
+  //                             ? false
+  //                             : (local_only_parameter->second == "false" ||
+  //                                local_only_parameter->second == "0");
 
   std::unordered_map<uint64_t, web::json::value> nodes = storage_->GetNodes();
   web::json::value response_body = web::json::value::array(nodes.size());
@@ -143,7 +143,7 @@ web::http::http_response HttpServer::GetNodes(
     response_body[current_node_index] = node.second;
     ++current_node_index;
   }
-  
+
   response.set_body(response_body);
 
   return response;
@@ -288,12 +288,34 @@ web::http::http_response HttpServer::GetMultimeters(
 
 web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
+  const auto parameters = web::uri::split_query(request.request_uri().query());
+
+  const auto from_time_parameter = parameters.find("fromTime");
+  const double from_time = from_time_parameter == parameters.end() ? 0.0 : std::stod(from_time_parameter->second);
+
+  const auto to_time_parameter = parameters.find("toTime");
+  const double to_time = to_time_parameter == parameters.end() ? std::numeric_limits<double>::infinity() : std::stod(to_time_parameter->second);
+
+  const auto attribute_name_parameter = parameters.find("attributeName");
+  if (attribute_name_parameter == parameters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'attributeName' parameter is missing from the request."});
+  }
+  const std::string attribute_name = attribute_name_parameter->second;
+  
+  const auto multimeter_id_parameter = parameters.find("multimeterId");
+  if (multimeter_id_parameter == parameters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'multimeterId' parameter is missing from the request."});
+  }
+  const uint64_t multimeter_id = std::stoull(multimeter_id_parameter->second);
+
+  const auto multimeters = storage_->GetMultimeters();
+  const auto multimeter = multimeters.find(multimeter_id);
+  if (multimeter == multimeters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"InvalidMultimeterId"});
+  }
+
   web::http::http_response response(web::http::status_codes::OK);
-  web::json::value body = web::json::value::object();
-
-
-
-  response.set_body(body);
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, {}, from_time, to_time));
   return response;
 }
 

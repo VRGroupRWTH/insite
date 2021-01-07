@@ -73,7 +73,6 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
 
     :rtype: MultimeterMeasurement
     """
-    # Multimeterendpoint doesnt exist in nest module yet
     #TODO Cache this
     mult_info = nest_get_multimeters()
 
