@@ -4,6 +4,7 @@
 #include <iostream>
 #include <regex>
 #include <unordered_set>
+#include <sstream>
 
 #include "kernel_manager.h"
 #include "nest_time.h"
@@ -296,6 +297,19 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   const auto to_time_parameter = parameters.find("toTime");
   const double to_time = to_time_parameter == parameters.end() ? std::numeric_limits<double>::infinity() : std::stod(to_time_parameter->second);
 
+  const auto node_ids_parameter = parameters.find("nodeIds");
+  std::vector<uint64_t> node_ids;
+  if (node_ids_parameter != parameters.end()) {
+    std::stringstream stream(node_ids_parameter->second);
+    for (uint64_t node_id; stream >> node_id; ) {
+      node_ids.push_back(node_id);
+      const char next_charactor = stream.peek();
+      if (next_charactor == ',' || std::isspace(next_charactor)) {
+        stream.ignore();
+      }
+    }
+  }
+
   const auto attribute_name_parameter = parameters.find("attributeName");
   if (attribute_name_parameter == parameters.end()) {
     return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'attributeName' parameter is missing from the request."});
@@ -315,7 +329,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   }
 
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, {}, from_time, to_time));
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, node_ids, from_time, to_time));
   return response;
 }
 
