@@ -161,6 +161,21 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& node_col
     node_collections_.clear();
     node_collections_.insert(node_collections_.end(), node_collections_complete.begin(), node_collections_complete.end());
   }
+
+  web::json::value node = web::json::value::object();
+  node["model"] = web::json::value::object();
+  uint64_t node_collection_id = 0;
+  for (const NodeCollection& node_collection : node_collections_) {
+    for (uint64_t i = 0; i < node_collection.node_count; ++i) {
+      node["nodeId"] = node_collection.first_node_id + i;
+      node["nodeCollectionId"] = node_collection_id;
+      node["simulationNodeId"] = 0;
+      node["model"]["name"] = web::json::value(node_collection.model_name);
+
+      nodes_.insert(std::make_pair(node_collection.first_node_id + i, node));
+    }
+    node_collection_id++;
+  }
 }
 
 uint64_t DataStorage::GetNodeCollectionIdForNodeId(uint64_t node_id) const {
