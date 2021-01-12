@@ -26,8 +26,7 @@ constexpr size_t NEURON_DIMENSION = 1;
 }  // namespace
 
 std::ostream& operator<<(std::ostream& os, const NodeCollection& c) {
-  os << "first node: " << c.first_node_id << " node count: " << c.node_count << " model name: " << c.model_name << " model parameters: ";
-  for (const auto param : c.model_parameters) os << param << " ";
+  os << "first node: " << c.first_node_id << " node count: " << c.node_count << " model name: " << c.model_name << " model status: " << c.model_status;
   return os;
 }
 
@@ -38,8 +37,8 @@ NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   MPI_Status status;
 
   // Fixed upper length for string for simplicity. If needed use MPI_Probe to get actual size and alloc correct amount of memory.
-  char string_buffer[512] = {};
-  int parameter_vector_size;
+  char string_buffer[1024] = {};
+  // int parameter_vector_size;
 
   MPI_Recv(&received_collection.first_node_id, 1, MPI_UINT64_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   MPI_Recv(&received_collection.node_count, 1, MPI_UINT64_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -48,13 +47,17 @@ NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
   received_collection.model_name = std::string(string_buffer);
 
+  memset(string_buffer, 0, sizeof(string_buffer));  // Clear the receive buffer before reusing the buffer
+  MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
+  received_collection.model_status = web::json::value::parse(string_buffer);
+
   // First receive the number of parameters and afterwards receive each parameter one by one
-  MPI_Recv(&parameter_vector_size, 1, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  for (int i = 0; i < parameter_vector_size; i++) {
-    memset(string_buffer, 0, sizeof(string_buffer));  // Clear the receive buffer before reusing the buffer
-    MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
-    received_collection.model_parameters.push_back(std::string(string_buffer));
-  }
+  // MPI_Recv(&parameter_vector_size, 1, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  // for (int i = 0; i < parameter_vector_size; i++) {
+  //   memset(string_buffer, 0, sizeof(string_buffer));  // Clear the receive buffer before reusing the buffer
+  //   MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
+  //   received_collection.model_parameters.push_back(std::string(string_buffer));
+  // }
 
   return received_collection;
 }
@@ -65,12 +68,15 @@ void SendNodeCollection(const NodeCollection& node_collection, int dest = 0, int
   MPI_Send(&node_collection.node_count, 1, MPI_UINT64_T, dest, tag, MPI_COMM_WORLD);
   MPI_Send(node_collection.model_name.c_str(), node_collection.model_name.size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
 
-  auto param_size = node_collection.model_parameters.size();
-  MPI_Send(&param_size, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
+  const auto serialized_model_status = node_collection.model_status.serialize();
+  MPI_Send(serialized_model_status.c_str(), serialized_model_status.size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
 
-  for (size_t i = 0; i < param_size; i++) {
-    MPI_Send(node_collection.model_parameters[i].c_str(), node_collection.model_parameters[i].size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
-  }
+  // auto param_size = node_collection.model_parameters.size();
+  // MPI_Send(&param_size, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
+
+  // for (size_t i = 0; i < param_size; i++) {
+  //   MPI_Send(node_collection.model_parameters[i].c_str(), node_collection.model_parameters[i].size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
+  // }
 }
 
 void SendNodeCollections(const std::vector<NodeCollection>& node_collections, int dest = 0, int tag = 0) {
@@ -105,31 +111,27 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
       continue;
     }
 
+    // Check if we already handles this node collection
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
       assert(node_collection->is_range());
       assert(node_collection->size() > 0);
 
       std::string model_name;
-      std::vector<std::string> model_parameters;
+      web::json::value serialized_model_status;
       if (node_id_triple.model_id != nest::invalid_index) {
         nest::Model* model = nest::kernel().model_manager.get_model(node_id_triple.model_id);
         if (model != nullptr) {
           model_name = model->get_name();
 
           // segfaults for some reason:
-          // auto model_status = model->get_status();
-          // if (model_status.valid()) {
-          //   for (const auto& datum : *model->get_status()) {
-          //     std::cout << datum.first << ": ";
-          //     datum.second.pprint(std::cout);
-          //     std::cout << std::endl;
-          //   }
-          // }
+          auto model_status = model->get_status();
+          if (model_status.valid()) {
+            serialized_model_status = SerializeDatum(model_status);
+          }
         }
       }
 
-      node_collections_.push_back({(*node_collection)[0], node_collection->size(), model_name, model_parameters});
-
+      node_collections_.push_back({(*node_collection)[0], node_collection->size(), model_name, serialized_model_status});
       node_handles_node_connections.insert(node_collection.get());
     }
   }
@@ -149,7 +151,9 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     node_collections_.erase(std::unique(node_collections_.begin(), node_collections_.end()), node_collections_.end());
 
     for (int i = 1; i < comm_size_world; i++) {
-      { SendNodeCollections(node_collections_, i); }
+      {
+        SendNodeCollections(node_collections_, i);
+      }
     }
   } else {
     SendNodeCollections(node_collections_);
@@ -167,21 +171,20 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     }
     throw std::runtime_error("Invalid node id");
   };
-  node["model"] = web::json::value::object();
 
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
     const NodeCollection& node_collection = node_collections_[node_collection_index];
 
-      node["nodeId"] = node_id_triple.node_id;
-      node["nodeCollectionId"] = node_collection_index;
-      node["simulationNodeId"] = mpi_rank;
-      node["model"]["name"] = web::json::value(node_collection.model_name);
+    node["nodeId"] = node_id_triple.node_id;
+    node["nodeCollectionId"] = node_collection_index;
+    node["simulationNodeId"] = mpi_rank;
+    node["model"] = web::json::value(node_collection.model_name);
 
-      DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
-      node["model"]["parameters"] = SerializeDatum(node_status);
+    DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
+    node["status"] = SerializeDatum(node_status);
 
-      nodes_.insert(std::make_pair(node_id_triple.node_id, node));
+    nodes_.insert(std::make_pair(node_id_triple.node_id, node));
   }
 }
 

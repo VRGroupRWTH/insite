@@ -21,7 +21,7 @@ struct NodeCollection {
   std::uint64_t first_node_id;
   std::uint64_t node_count;
   std::string model_name;
-  std::vector<std::string> model_parameters;
+  web::json::value model_status;
 
   bool operator<(const NodeCollection& c2) const
   {

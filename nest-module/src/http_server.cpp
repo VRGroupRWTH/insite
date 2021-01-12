@@ -112,13 +112,7 @@ web::http::http_response HttpServer::GetCollections(
 
     auto model = web::json::value::object();
     model["name"] = web::json::value(node_collections[i].model_name);
-
-    auto model_parameters = web::json::value::array();
-    for (const auto& model_parameter : node_collections[i].model_parameters) {
-      model_parameters[model_parameters.size()] =
-          web::json::value(model_parameter);
-    }
-    model["parameters"] = model_parameters;
+    model["status"] = node_collections[i].model_status;
 
     response_body[i]["model"] = model;
   }
