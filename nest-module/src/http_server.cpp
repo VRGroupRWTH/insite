@@ -16,6 +16,8 @@ namespace insite {
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     : http_listener_{address}, storage_(storage) {
   http_listener_.support([this](web::http::http_request request) {
+    std::cout << "Incoming request: " << request.request_uri().to_string() << std::endl;
+
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/version") {
       request.reply(GetVersion(request));
@@ -297,6 +299,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   const auto to_time_parameter = parameters.find("toTime");
   const double to_time = to_time_parameter == parameters.end() ? std::numeric_limits<double>::infinity() : std::stod(to_time_parameter->second);
 
+  std::cout << "Query: " << request.request_uri().query() << std::endl;
   const auto node_ids_parameter = parameters.find("nodeIds");
   std::vector<uint64_t> node_ids;
   if (node_ids_parameter != parameters.end()) {
@@ -310,7 +313,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
     }
   }
 
-  const auto attribute_name_parameter = parameters.find("attributeName");
+  const auto attribute_name_parameter = parameters.find("attribute");
   if (attribute_name_parameter == parameters.end()) {
     return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'attributeName' parameter is missing from the request."});
   }
