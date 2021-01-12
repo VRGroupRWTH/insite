@@ -60,8 +60,6 @@ NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
 }
 
 void SendNodeCollection(const NodeCollection& node_collection, int dest = 0, int tag = 0) {
-  MPI_Status status;
-
   MPI_Send(&node_collection.first_node_id, 1, MPI_UINT64_T, dest, tag, MPI_COMM_WORLD);
 
   MPI_Send(&node_collection.node_count, 1, MPI_UINT64_T, dest, tag, MPI_COMM_WORLD);
@@ -70,7 +68,7 @@ void SendNodeCollection(const NodeCollection& node_collection, int dest = 0, int
   auto param_size = node_collection.model_parameters.size();
   MPI_Send(&param_size, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
 
-  for (int i = 0; i < param_size; i++) {
+  for (size_t i = 0; i < param_size; i++) {
     MPI_Send(node_collection.model_parameters[i].c_str(), node_collection.model_parameters[i].size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
   }
 }
@@ -137,8 +135,6 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
   }
   int comm_size_world;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size_world);
-  int number_of_collections_overall = 0;
-  int number_of_collections;
 
   std::sort(node_collections_.begin(), node_collections_.end());
   node_collections_.erase(std::unique(node_collections_.begin(), node_collections_.end()), node_collections_.end());
