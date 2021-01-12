@@ -81,19 +81,19 @@ void SendNodeCollections(const std::vector<NodeCollection>& node_collections, in
   for (const auto node_collection : node_collections) SendNodeCollection(node_collection, dest, tag);
 }
 
-void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection) {
+void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection) {
   std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
   node_collections_.clear();
   nodes_.clear();
-  nodes_.reserve(node_collection->size());
+  nodes_.reserve(local_node_collection->size());
 
   DictionaryDatum node_properties(new Dictionary());
 
   int mpi_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-  for (const nest::NodeIDTriple& node_id_triple : *node_collection.get()) {
+  for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
     nest::NodeCollectionPTR node_collection = node->get_nc();
 
@@ -163,18 +163,29 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& node_col
   }
 
   web::json::value node = web::json::value::object();
+  const auto find_node_collection_index_for_node_id = [this](uint64_t node_id) {
+    for (size_t i = 0; i < node_collections_.size(); ++i) {
+      if (node_id >= node_collections_[i].first_node_id && node_id < node_collections_[i].first_node_id + node_collections_[i].node_count) {
+        return i;
+      }
+    }
+    throw std::runtime_error("Invalid node id");
+  };
   node["model"] = web::json::value::object();
-  uint64_t node_collection_id = 0;
-  for (const NodeCollection& node_collection : node_collections_) {
-    for (uint64_t i = 0; i < node_collection.node_count; ++i) {
-      node["nodeId"] = node_collection.first_node_id + i;
-      node["nodeCollectionId"] = node_collection_id;
-      node["simulationNodeId"] = 0;
+
+  for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
+    const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
+    const NodeCollection& node_collection = node_collections_[node_collection_index];
+
+      node["nodeId"] = node_id_triple.node_id;
+      node["nodeCollectionId"] = node_collection_index;
+      node["simulationNodeId"] = mpi_rank;
       node["model"]["name"] = web::json::value(node_collection.model_name);
 
-      nodes_.insert(std::make_pair(node_collection.first_node_id + i, node));
-    }
-    node_collection_id++;
+      DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
+      node["model"]["parameters"] = SerializeDatum(node_status);
+
+      nodes_.insert(std::make_pair(node_id_triple.node_id, node));
   }
 }
 

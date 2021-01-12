@@ -41,7 +41,7 @@ class DataStorage {
  public:
   DataStorage();
 
-  void SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection);
+  void SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection);
   inline size_t GetNodeCollectionCount() const {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_.size();
