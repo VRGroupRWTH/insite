@@ -223,8 +223,11 @@ def nest_get_nodes():  # noqa: E501
 
     :rtype: List[NestNodeProperties]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes").json()
+    nodes = []
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        sys.stdout.flush()
+        nodes.extend(requests.get(simulation_node+"/nodes").json())
+    return nodes
 
 
 def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
