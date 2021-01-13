@@ -14,9 +14,7 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/MultimeterInfo'
-                type: array
+                $ref: '#/components/schemas/NestKernelStatus'
           description: Operation successful.
         "500":
           content:
@@ -936,108 +934,58 @@ components:
           type: array
       type: object
     NestKernelStatus:
-      properties:
-        resolution:
-          description: The resolution of the simulation (in ms)
-          type: number
-        time:
-          description: The current simulation time
-          type: number
-        to_do:
-          description: The number of steps yet to be simulated (read only)
-          type: integer
-        max_delay:
-          description: The maximum delay in the network
-          type: number
-        min_delay:
-          description: The minimum delay in the network
-          type: number
-        ms_per_tic:
-          description: The number of milliseconds per tic
-          type: number
-        tics_per_ms:
-          description: The number of tics per millisecond
-          type: number
-        tics_per_step:
-          description: The number of tics per simulation time step
-          type: integer
-        T_max:
-          description: The largest representable time value (read only)
-          type: number
-        T_min:
-          description: The smallest representable time value (read only)
-          type: number
-        total_num_virtual_procs:
-          description: The total number of virtual processes
-          type: integer
-        local_num_threads:
-          description: The local number of threads
-          type: integer
-        num_processes:
-          description: The number of MPI processes (read only)
-          type: integer
-        off_grid_spiking:
-          description: Whether to transmit precise spike times in MPI communication
-            (read only)
-          type: boolean
-        initial_connector_capacity:
-          description: When a connector is first created, it starts with this capacity
-            (if >= connector_cutoff)
-          type: integer
-        large_connector_limit:
-          description: Capacity doubling is used up to this limit
-          type: integer
-        large_connector_growth_factor:
-          description: Capacity growth factor to use beyond the limit
-          type: number
-        grng_seed:
-          description: Seed for global random number generator used synchronously
-            by all virtual processes to create, e.g., fixed fan-out connections (write
-            only).
-          type: integer
-        rng_seeds:
-          description: Seeds for the per-virtual-process random number generators
-            used for most purposes. Array with one integer per virtual process, all
-            must be unique and differ from grng_seed (write only).
-          items:
-            type: integer
-          type: array
-        data_path:
-          description: A path, where all data is written to (default is the current
-            directory)
-          type: string
-        data_prefix:
-          description: A common prefix for all data files
-          type: string
-        overwrite_files:
-          description: Whether to overwrite existing data files
-          type: boolean
-        print_time:
-          description: Whether to print progress information during the simulation
-          type: boolean
-        network_size:
-          description: The number of nodes in the network (read only)
-          type: integer
-        num_connections:
-          description: The number of connections in the network (read only, local
-            only)
-          type: integer
-        use_wfr:
-          description: Whether to use waveform relaxation method
-          type: boolean
-        wfr_comm_interval:
-          description: Desired waveform relaxation communication interval
-          type: number
-        wfr_tol:
-          description: Convergence tolerance of waveform relaxation method
-          type: number
-        wfr_max_iterations:
-          description: Maximal number of iterations used for waveform relaxation
-          type: integer
-        wfr_interpolation_order:
-          description: Interpolation order of polynomial used in wfr iterations
-          type: integer
-        dict_miss_is_error:
-          description: Whether missed dictionary entries are treated as errors
-          type: boolean
       type: object
+      example:
+        "T_max": 1152921504606846.8
+        "T_min": -1152921504606846.8
+        "adaptive_spike_buffers": true
+        "adaptive_target_buffers": true
+        "buffer_size_secondary_events": 0
+        "buffer_size_spike_data": 42
+        "buffer_size_target_data": 125
+        "data_path": ""
+        "data_prefix": ""
+        "dict_miss_is_error": true
+        "grng_seed": 0
+        "growth_factor_buffer_spike_data": 1.5
+        "growth_factor_buffer_target_data": 1.5
+        "keep_source_table": true
+        "local_num_threads": 1
+        "local_spike_counter": 745
+        "max_buffer_size_spike_data": 8388608
+        "max_buffer_size_target_data": 16777216
+        "max_delay": 1.5
+        "max_num_syn_models": 512
+        "min_delay": 1.5
+        "ms_per_tic": 0.001
+        "network_size": 128
+        "num_connections": 1750
+        "num_processes": 1
+        "off_grid_spiking": false
+        "overwrite_files": true
+        "print_time": false
+        "recording_backends": {
+          "ascii": {},
+          "insite": {},
+          "memory": {},
+          "screen": {}
+        }
+        "resolution": 0.1
+        "rng_seeds": [
+          1
+        ]
+        "sort_connections_by_source": true
+        "structural_plasticity_synapses": {}
+        "structural_plasticity_update_interval": 10000
+        "tics_per_ms": 1000
+        "tics_per_step": 100
+        "time": 100
+        "time_collocate": 0
+        "time_communicate": 0
+        "to_do": 0
+        "total_num_virtual_procs": 1
+        "use_wfr": true
+        "wfr_comm_interval": 1
+        "wfr_interpolation_order": 3
+        "wfr_max_iterations": 15
+        "wfr_tol": 0.0001
