@@ -840,14 +840,15 @@ components:
           count: 100
         model:
           name: iaf_psc_delta
-          parameters:
-          - C_m
-          - tau_m
-          - t_ref
-          - E_L
-          - V_reset
-          - V_m
-          - V_th
+          status:
+            C_m: 1,
+            Ca: 0,
+            E_L: 0,
+            I_e: 0,
+            V_m: 0,
+            V_min: -1.7976931348623157e+308,
+            V_reset: 0,
+            V_th: 20,
       properties:
         nodeCollectionId:
           format: uint64
@@ -857,21 +858,24 @@ components:
         model:
           $ref: '#/components/schemas/NestNodeModel'
       type: object
-    NestNodeCollectionNodes:
+    NestNodeModel:
       example:
-        firstId: 1
-        lastId: 100
-        count: 100
+        name: iaf_psc_delta
+        status:
+          C_m: 1,
+          Ca: 0,
+          E_L: 0,
+          I_e: 0,
+          V_m: 0,
+          V_min: -1.7976931348623157e+308,
+          V_reset: 0,
+          V_th: 20,
       properties:
-        firstId:
-          format: uint64
-          type: integer
-        lastId:
-          format: uint64
-          type: integer
-        count:
-          format: uint64
-          type: integer
+        name:
+          type: string
+        status:
+          type: object
+      type: object
     SimulationTimeInfo:
       example:
         stepSize: 0.1
