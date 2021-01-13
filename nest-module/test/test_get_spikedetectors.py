@@ -2,7 +2,7 @@ import requests
 import numbers
 
 def test_get_spikedetectors(nest_simulation):
-    request = requests.get("http://localhost:8000/spikedetectors")
+    request = requests.get("http://localhost:9000/spikedetectors")
     assert(request.status_code == 200)
     
     spike_detectors = request.json()

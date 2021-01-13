@@ -13,7 +13,7 @@ def simulation_time(request):
     return NestSimulationTime()
 
 def test_simulation_time_info(nest_simulation, simulation_time):
-    r = requests.get("http://localhost:8000/simulationTimeInfo")
+    r = requests.get("http://localhost:9000/simulationTimeInfo")
     simulation_time_info = r.json()
 
     assert(r.status_code == 200)
