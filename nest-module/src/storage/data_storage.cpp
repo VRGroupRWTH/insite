@@ -51,14 +51,6 @@ NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
   received_collection.model_status = web::json::value::parse(string_buffer);
 
-  // First receive the number of parameters and afterwards receive each parameter one by one
-  // MPI_Recv(&parameter_vector_size, 1, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  // for (int i = 0; i < parameter_vector_size; i++) {
-  //   memset(string_buffer, 0, sizeof(string_buffer));  // Clear the receive buffer before reusing the buffer
-  //   MPI_Recv(&string_buffer, sizeof(string_buffer), MPI_CHAR, source, 0, MPI_COMM_WORLD, &status);
-  //   received_collection.model_parameters.push_back(std::string(string_buffer));
-  // }
-
   return received_collection;
 }
 
@@ -70,13 +62,6 @@ void SendNodeCollection(const NodeCollection& node_collection, int dest = 0, int
 
   const auto serialized_model_status = node_collection.model_status.serialize();
   MPI_Send(serialized_model_status.c_str(), serialized_model_status.size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
-
-  // auto param_size = node_collection.model_parameters.size();
-  // MPI_Send(&param_size, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
-
-  // for (size_t i = 0; i < param_size; i++) {
-  //   MPI_Send(node_collection.model_parameters[i].c_str(), node_collection.model_parameters[i].size(), MPI_CHAR, dest, tag, MPI_COMM_WORLD);
-  // }
 }
 
 void SendNodeCollections(const std::vector<NodeCollection>& node_collections, int dest = 0, int tag = 0) {
@@ -182,7 +167,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     node["model"] = web::json::value(node_collection.model_name);
 
     DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
-    node["status"] = SerializeDatum(node_status);
+    node["nodeStatus"] = SerializeDatum(node_status);
 
     nodes_.insert(std::make_pair(node_id_triple.node_id, node));
   }
