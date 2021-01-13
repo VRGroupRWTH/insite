@@ -13,7 +13,7 @@ def test_get_nest_node_collections(nest_simulation):
       
       assert('model' in collection)
       assert('name' in collection["model"])
-      assert('parameters' in collection["model"])
+      assert('status' in collection["model"])
 
       assert('nodes' in collection)
       assert('count' in collection["nodes"])
