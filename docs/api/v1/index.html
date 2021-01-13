@@ -207,9 +207,9 @@ font-style: italic;
   <li><a href="#nestGetNodeById"><code><span class="http-method">get</span> /nest/nodes/{nodeId}</code></a></li>
   <li><a href="#nestGetNodeCollections"><code><span class="http-method">get</span> /nest/nodeCollections</code></a></li>
   <li><a href="#nestGetNodeIds"><code><span class="http-method">get</span> /nest/nodes/ids</code></a></li>
-  <li><a href="#nestGetNodeIdsByNodeCollection"><code><span class="http-method">get</span> /nest/nodeCollections/${nodeCollectionId}/nodes/ids</code></a></li>
+  <li><a href="#nestGetNodeIdsByNodeCollection"><code><span class="http-method">get</span> /nest/nodeCollections/{nodeCollectionId}/nodes/ids</code></a></li>
   <li><a href="#nestGetNodes"><code><span class="http-method">get</span> /nest/nodes</code></a></li>
-  <li><a href="#nestGetNodesByNodeCollection"><code><span class="http-method">get</span> /nest/nodeCollections/${nodeCollectionId}/nodes</code></a></li>
+  <li><a href="#nestGetNodesByNodeCollection"><code><span class="http-method">get</span> /nest/nodeCollections/{nodeCollectionId}/nodes</code></a></li>
   <li><a href="#nestGetSimulationTimeInfo"><code><span class="http-method">get</span> /nest/simulationTimeInfo</code></a></li>
   <li><a href="#nestGetSpikedetectors"><code><span class="http-method">get</span> /nest/spikedetectors/</code></a></li>
   <li><a href="#nestGetSpikes"><code><span class="http-method">get</span> /nest/spikes</code></a></li>
@@ -563,17 +563,18 @@ font-style: italic;
   "nodeCollectionId" : 0,
   "simulationNodeId" : 0,
   "position" : [ 0.1, 0.2 ],
-  "model" : {
-    "name" : "iaf_psc_delta",
-    "parameters" : {
-      "C_m" : 1.0,
-      "tau_m" : 20.0,
-      "t_ref" : 2.0,
-      "E_L" : 0.0,
-      "V_reset" : 0.0,
-      "V_m" : 0.0,
-      "V_th" : 20.0
-    }
+  "model" : "iaf_psc_delta",
+  "status" : {
+    "C_m" : 1,
+    "Ca" : 0,
+    "E_L" : 0,
+    "I_e" : 0,
+    "V_m" : 0,
+    "V_min" : -1.7976931348623157E308,
+    "V_reset" : 0,
+    "V_th" : 20,
+    "archiver_length" : 0,
+    "beta_Ca" : 0.001
   }
 }</code></pre>
 
@@ -628,7 +629,16 @@ font-style: italic;
   },
   "model" : {
     "name" : "iaf_psc_delta",
-    "parameters" : [ "C_m", "tau_m", "t_ref", "E_L", "V_reset", "V_m", "V_th" ]
+    "status" : {
+      "C_m" : "1,",
+      "Ca" : "0,",
+      "E_L" : "0,",
+      "I_e" : "0,",
+      "V_m" : "0,",
+      "V_min" : "-1.7976931348623157e+308,",
+      "V_reset" : "0,",
+      "V_th" : "20,"
+    }
   }
 }</code></pre>
 
@@ -692,7 +702,7 @@ font-style: italic;
   <div class="method"><a name="nestGetNodeIdsByNodeCollection"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /nest/nodeCollections/${nodeCollectionId}/nodes/ids</code></pre></div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /nest/nodeCollections/{nodeCollectionId}/nodes/ids</code></pre></div>
     <div class="method-summary">Retrieves the list of all node ids within the node collection. (<span class="nickname">nestGetNodeIdsByNodeCollection</span>)</div>
     <div class="method-notes"></div>
 
@@ -767,17 +777,18 @@ font-style: italic;
   "nodeCollectionId" : 0,
   "simulationNodeId" : 0,
   "position" : [ 0.1, 0.2 ],
-  "model" : {
-    "name" : "iaf_psc_delta",
-    "parameters" : {
-      "C_m" : 1.0,
-      "tau_m" : 20.0,
-      "t_ref" : 2.0,
-      "E_L" : 0.0,
-      "V_reset" : 0.0,
-      "V_m" : 0.0,
-      "V_th" : 20.0
-    }
+  "model" : "iaf_psc_delta",
+  "status" : {
+    "C_m" : 1,
+    "Ca" : 0,
+    "E_L" : 0,
+    "I_e" : 0,
+    "V_m" : 0,
+    "V_min" : -1.7976931348623157E308,
+    "V_reset" : 0,
+    "V_th" : 20,
+    "archiver_length" : 0,
+    "beta_Ca" : 0.001
   }
 }</code></pre>
 
@@ -800,7 +811,7 @@ font-style: italic;
   <div class="method"><a name="nestGetNodesByNodeCollection"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /nest/nodeCollections/${nodeCollectionId}/nodes</code></pre></div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /nest/nodeCollections/{nodeCollectionId}/nodes</code></pre></div>
     <div class="method-summary">Retrieves the list of all node within the node collection. (<span class="nickname">nestGetNodesByNodeCollection</span>)</div>
     <div class="method-notes"></div>
 
@@ -831,17 +842,18 @@ font-style: italic;
   "nodeCollectionId" : 0,
   "simulationNodeId" : 0,
   "position" : [ 0.1, 0.2 ],
-  "model" : {
-    "name" : "iaf_psc_delta",
-    "parameters" : {
-      "C_m" : 1.0,
-      "tau_m" : 20.0,
-      "t_ref" : 2.0,
-      "E_L" : 0.0,
-      "V_reset" : 0.0,
-      "V_m" : 0.0,
-      "V_th" : 20.0
-    }
+  "model" : "iaf_psc_delta",
+  "status" : {
+    "C_m" : 1,
+    "Ca" : 0,
+    "E_L" : 0,
+    "I_e" : 0,
+    "V_m" : 0,
+    "V_min" : -1.7976931348623157E308,
+    "V_reset" : 0,
+    "V_th" : 20,
+    "archiver_length" : 0,
+    "beta_Ca" : 0.001
   }
 }</code></pre>
 
@@ -1233,7 +1245,7 @@ font-style: italic;
     <div class='model-description'></div>
     <div class="field-items">
       <div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
-<div class="param">parameters (optional)</div><div class="param-desc"><span class="param-type"><a href="#">Object</a></span>  </div>
+<div class="param">status (optional)</div><div class="param-desc"><span class="param-type"><a href="#">Object</a></span>  </div>
     </div>  <!-- field-items -->
   </div>
   <div class="model">
@@ -1242,7 +1254,8 @@ font-style: italic;
     <div class="field-items">
       <div class="param">nodeId (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  format: uint64</div>
 <div class="param">nodeCollectionId (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  format: uint64</div>
-<div class="param">model (optional)</div><div class="param-desc"><span class="param-type"><a href="#NestNodeModel">NestNodeModel</a></span>  </div>
+<div class="param">model (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">status (optional)</div><div class="param-desc"><span class="param-type"><a href="#">Object</a></span>  </div>
 <div class="param">position (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">array[BigDecimal]</a></span>  </div>
     </div>  <!-- field-items -->
   </div>
