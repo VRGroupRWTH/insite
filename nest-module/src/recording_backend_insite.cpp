@@ -113,8 +113,8 @@ void RecordingBackendInsite::get_device_status(const nest::RecordingDevice &devi
 }
 
 std::string RecordingBackendInsite::get_port_string() const {
-  // TODO: Make this configurable
-  return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
+  // Ports can be configured via docker
+  return std::to_string(9000 + nest::kernel().mpi_manager.get_rank());
 }
 
 }  // namespace insite

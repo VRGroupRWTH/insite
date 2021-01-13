@@ -42,4 +42,4 @@ COPY example /example
 
 EXPOSE 8000
 ENTRYPOINT ["/insite-module-build/run_simulation.sh"]
-CMD ["/example/brunel_simulation.py"]
+CMD ["/example/brunel_simulation.py", "2"]
