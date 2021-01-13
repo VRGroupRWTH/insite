@@ -225,7 +225,6 @@ def nest_get_nodes():  # noqa: E501
     """
     nodes = []
     for simulation_node in simulation_nodes.nest_simulation_nodes:
-        sys.stdout.flush()
         nodes.extend(requests.get(simulation_node+"/nodes").json())
     return nodes
 
