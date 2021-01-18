@@ -300,17 +300,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
 
   std::cout << "Query: " << request.request_uri().query() << std::endl;
   const auto node_ids_parameter = parameters.find("nodeIds");
-  std::vector<uint64_t> node_ids;
-  if (node_ids_parameter != parameters.end()) {
-    std::stringstream stream(node_ids_parameter->second);
-    for (uint64_t node_id; stream >> node_id; ) {
-      node_ids.push_back(node_id);
-      const char next_charactor = stream.peek();
-      if (next_charactor == ',' || std::isspace(next_charactor)) {
-        stream.ignore();
-      }
-    }
-  }
+  std::vector<uint64_t> node_ids = commaListToUintVector(node_ids_parameter->second);
 
   const auto attribute_name_parameter = parameters.find("attribute");
   if (attribute_name_parameter == parameters.end()) {
@@ -331,7 +321,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   }
 
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, node_ids, from_time, to_time));
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, filter_gids, from_time, to_time));
   return response;
 }
 

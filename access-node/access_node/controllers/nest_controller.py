@@ -108,7 +108,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
         response = requests.get(
             node+"/multimeter_measurement", params={"multimeterId": multimeter_id, 
             "attribute": attribute_name, "fromTime": from_time,
-            "toTime": to_time, "nodeIds": node_ids}).json()
+            "toTime": to_time, "nodeIds": ",".join(map(str, node_ids))}).json()
         if init:
             sim_times = response["simulationTimes"]
             measurement = MultimeterMeasurement(
