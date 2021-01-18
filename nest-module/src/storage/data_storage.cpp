@@ -89,7 +89,11 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
 
     // This is a null pointer for nodes simulated on other MPI ranks. However, as only the
     // local nodes should be passed into this function, this should never happen!
-    assert(node_collection != nullptr);
+    // EXCEPT for nodes representing multimeters, spike detectors, generators, etc..
+    // They are present ob every rank but only have a collection set on their "home" rank.
+    if (node_collection == nullptr) {
+      continue;
+    }
 
     node["nodeId"] = node_id_triple.node_id;
     node["nodeCollectionId"] = 0;
@@ -98,6 +102,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
 
     DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
     node["nodeStatus"] = SerializeDatum(node_status);
+
 
     // Currently I don't see a function to check whether the node collection has a layer,
     // so the only way to check is by catching the exception.
@@ -174,10 +179,13 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
     const NodeCollection& node_collection = node_collections_[node_collection_index];
     
-    // We can simply use nodes_.at() here as all nodes have to be added before.
-    web::json::value& node = nodes_.at(node_id_triple.node_id);
-    node["nodeCollectionId"] = node_collection_index;
-    node["model"] = web::json::value(node_collection.model_name);
+    // Be careful because of these nodes that are not actually local (see above).
+    auto node_iterator = nodes_.find(node_id_triple.node_id);
+    if (node_iterator != nodes_.end()) {
+      web::json::value& node = node_iterator->second;
+      node["nodeCollectionId"] = node_collection_index;
+      node["model"] = web::json::value(node_collection.model_name);
+    }
   }
 }
 
