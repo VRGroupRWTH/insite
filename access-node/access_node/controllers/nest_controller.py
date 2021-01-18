@@ -312,7 +312,8 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids}).json()
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": ",".join(map(str, node_ids))})
+        response = response.json()
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:

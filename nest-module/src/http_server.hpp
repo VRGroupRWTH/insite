@@ -4,6 +4,7 @@
 #include <cpprest/http_listener.h>
 #include <string>
 #include <memory>
+#include <regex>
 
 namespace insite {
 
@@ -36,6 +37,7 @@ class HttpServer {
     web::json::value Serialize() const;
   };
   static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
+  std::vector<std::uint64_t> commaListToUintVector(std::string input, std::regex regex = std::regex("([\s%2C]+)"));
 };
 
 }  // namespace insite
