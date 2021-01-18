@@ -244,7 +244,7 @@ web::http::http_response HttpServer::GetSpikes(
                                  {"InvalidSpikeDetectorId"});
     } else {
       spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id,
-                                    to_node_id);
+                                    to_node_id, &filter_gids);
     }
   }
 

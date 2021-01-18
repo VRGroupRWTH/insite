@@ -416,8 +416,14 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     """
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
+        
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))
+        else:
+            node_id_param = None
+
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids, "spikedetectorId": spikedetector_id}).json()
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id}).json()
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:
