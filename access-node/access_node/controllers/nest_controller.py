@@ -105,10 +105,16 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     sim_times = []
     measurement = MultimeterMeasurement([], [], [])
     for node in simulation_nodes.nest_simulation_nodes:
+
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))        
+        else:
+            node_id_param = None
+
         response = requests.get(
             node+"/multimeter_measurement", params={"multimeterId": multimeter_id, 
             "attribute": attribute_name, "fromTime": from_time,
-            "toTime": to_time, "nodeIds": ",".join(map(str, node_ids))}).json()
+            "toTime": to_time, "nodeIds": node_id_param}).json()
         if init:
             sim_times = response["simulationTimes"]
             measurement = MultimeterMeasurement(
@@ -311,8 +317,13 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     """
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))        
+        else:
+            node_id_param = None        
+
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": ",".join(map(str, node_ids))})
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param})
         response = response.json()
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:

@@ -194,7 +194,8 @@ web::http::http_response HttpServer::GetSpikes(
   const auto node_collection_parameter = parameters.find("nodeCollectionId");
 
   const auto parameter_gids = parameters.find("nodeIds");
-  auto filter_gids = commaListToUintVector(parameter_gids->second);
+  auto parseString = (parameter_gids == parameters.end()) ? std::string("") : parameter_gids->second;
+  auto filter_gids = commaListToUintVector(parseString);
 
 
   std::uint64_t from_node_id = 0;
@@ -300,7 +301,8 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
 
   std::cout << "Query: " << request.request_uri().query() << std::endl;
   const auto node_ids_parameter = parameters.find("nodeIds");
-  std::vector<uint64_t> node_ids = commaListToUintVector(node_ids_parameter->second);
+  auto parseString = (node_ids_parameter == parameters.end()) ? std::string("") : node_ids_parameter->second;
+  auto filter_gids = commaListToUintVector(parseString);
 
   const auto attribute_name_parameter = parameters.find("attribute");
   if (attribute_name_parameter == parameters.end()) {
@@ -345,6 +347,8 @@ web::http::http_response HttpServer::CreateErrorResponse(
 std::vector<std::uint64_t> HttpServer::commaListToUintVector(std::string input,
                                                     std::regex regex ) {
     std::vector<std::uint64_t> filter_gids;
+    if (input == "")
+      return filter_gids;
     std::sregex_token_iterator it{input.begin(),
                                   input.end(), regex, -1};
     std::vector<std::string> filter_gid_strings{it, {}};

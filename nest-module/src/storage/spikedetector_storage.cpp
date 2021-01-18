@@ -74,7 +74,7 @@ void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
         current_spike.simulation_time < to_time &&
         current_spike.node_id >= from_neuron_id &&
         current_spike.node_id <= to_neuron_id) {
-      if(node_ids == nullptr || std::find(node_ids->begin(),node_ids->end(),current_spike.node_id) != node_ids->end())
+      if(node_ids->empty() || std::find(node_ids->begin(),node_ids->end(),current_spike.node_id) != node_ids->end())
         spikes_vector->push_back(current_spike);
     }
 
