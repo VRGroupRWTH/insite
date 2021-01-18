@@ -82,19 +82,33 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
   int mpi_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
+  web::json::value node = web::json::value::object();
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
-    nest::Node* node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
-    nest::NodeCollectionPTR node_collection = node->get_nc();
+    nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+    nest::NodeCollectionPTR node_collection = nest_node->get_nc();
 
-    // This is a null pointer for nodes simulated on other MPI ranks
-    if (node_collection) {
-      std::cout << "[insite " << mpi_rank << "] Node " << node_id_triple.node_id << ": ";
-      node_collection->print_me(std::cout);
-      std::cout << std::endl;
-    } else {
-      std::cout << "[insite " << mpi_rank << "] Node " << node_id_triple.node_id << ": No node collection!" << std::endl;
-      continue;
+    // This is a null pointer for nodes simulated on other MPI ranks. However, as only the
+    // local nodes should be passed into this function, this should never happen!
+    assert(node_collection != nullptr);
+
+    node["nodeId"] = node_id_triple.node_id;
+    node["nodeCollectionId"] = 0;
+    node["simulationNodeId"] = mpi_rank;
+    node["model"] = web::json::value("");
+
+    DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
+    node["nodeStatus"] = SerializeDatum(node_status);
+
+    // Currently I don't see a function to check whether the node collection has a layer,
+    // so the only way to check is by catching the exception.
+    try {
+      const auto layer = nest::get_layer(node_collection);
+      node["position"] = ToJsonArray(layer->get_position_vector(node_collection->find(node_id_triple.node_id)));
+    } catch (const nest::LayerExpected&) {
+      node["position"] = web::json::value::null();
     }
+
+    nodes_.insert(std::make_pair(node_id_triple.node_id, node));
 
     // Check if we already handles this node collection
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
@@ -147,7 +161,6 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     node_collections_.insert(node_collections_.end(), node_collections_complete.begin(), node_collections_complete.end());
   }
 
-  web::json::value node = web::json::value::object();
   const auto find_node_collection_index_for_node_id = [this](uint64_t node_id) {
     for (size_t i = 0; i < node_collections_.size(); ++i) {
       if (node_id >= node_collections_[i].first_node_id && node_id < node_collections_[i].first_node_id + node_collections_[i].node_count) {
@@ -160,16 +173,11 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
     const NodeCollection& node_collection = node_collections_[node_collection_index];
-
-    node["nodeId"] = node_id_triple.node_id;
+    
+    // We can simply use nodes_.at() here as all nodes have to be added before.
+    web::json::value& node = nodes_.at(node_id_triple.node_id);
     node["nodeCollectionId"] = node_collection_index;
-    node["simulationNodeId"] = mpi_rank;
     node["model"] = web::json::value(node_collection.model_name);
-
-    DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
-    node["nodeStatus"] = SerializeDatum(node_status);
-
-    nodes_.insert(std::make_pair(node_id_triple.node_id, node));
   }
 }
 

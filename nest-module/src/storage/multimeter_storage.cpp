@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "kernel_manager.h"
+#include "../serialize.hpp"
 
 namespace insite {
 
@@ -93,21 +94,6 @@ void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t nod
     long_attributes_[i]->AddMeasurement(time_offset, node_offset, long_values[i]);
   }
 }
-
-namespace {
-
-template <typename T>
-web::json::value ToJsonArray(const std::vector<T>& vector) {
-  web::json::value array = web::json::value::array(vector.size());
-
-  for (size_t i = 0; i < vector.size(); ++i) {
-    array[i] = vector[i];
-  }
-
-  return array;
-}
-
-}  // namespace
 
 web::json::value MultimeterStorage::Serialize() const {
   web::json::value serialized_object = web::json::value::object();
