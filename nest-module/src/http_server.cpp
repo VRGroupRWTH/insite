@@ -4,6 +4,7 @@
 #include <iostream>
 #include <regex>
 #include <unordered_set>
+#include <sstream>
 
 #include "kernel_manager.h"
 #include "nest_time.h"
@@ -15,6 +16,8 @@ namespace insite {
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
     : http_listener_{address}, storage_(storage) {
   http_listener_.support([this](web::http::http_request request) {
+    std::cout << "Incoming request: " << request.request_uri().to_string() << std::endl;
+
     if (request.method() == "GET" &&
         request.relative_uri().path() == "/version") {
       request.reply(GetVersion(request));
@@ -109,13 +112,7 @@ web::http::http_response HttpServer::GetCollections(
 
     auto model = web::json::value::object();
     model["name"] = web::json::value(node_collections[i].model_name);
-
-    auto model_parameters = web::json::value::array();
-    for (const auto& model_parameter : node_collections[i].model_parameters) {
-      model_parameters[model_parameters.size()] =
-          web::json::value(model_parameter);
-    }
-    model["parameters"] = model_parameters;
+    model["status"] = node_collections[i].model_status;
 
     response_body[i]["model"] = model;
   }
@@ -129,11 +126,11 @@ web::http::http_response HttpServer::GetNodes(
   web::http::http_response response(web::http::status_codes::OK);
 
   const auto parameters = web::uri::split_query(request.request_uri().query());
-  const auto local_only_parameter = parameters.find("localOnly");
-  const bool local_only = local_only_parameter == parameters.end()
-                              ? false
-                              : (local_only_parameter->second == "false" ||
-                                 local_only_parameter->second == "0");
+  // const auto local_only_parameter = parameters.find("localOnly");
+  // const bool local_only = local_only_parameter == parameters.end()
+  //                             ? false
+  //                             : (local_only_parameter->second == "false" ||
+  //                                local_only_parameter->second == "0");
 
   std::unordered_map<uint64_t, web::json::value> nodes = storage_->GetNodes();
   web::json::value response_body = web::json::value::array(nodes.size());
@@ -144,55 +141,6 @@ web::http::http_response HttpServer::GetNodes(
     ++current_node_index;
   }
 
-  // DictionaryDatum node_properties(new Dictionary());
-
-  // for (const nest::NodeIDTriple& node_id_triple : *nodes.get()) {
-  //   nest::Node* node =
-  //       nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
-
-  //   // auto model = web::json::value::object();
-  //   // model["name"] = web::json::value(node->get_name());
-  //   // node->get_status(node_properties);
-  //   // model["parameters"] = SerializeDatum(&node_properties);
-
-  //   auto serialized_node = web::json::value::object();
-
-  //   serialized_node["nodeId"] = node_id_triple.node_id;
-  //   serialized_node["nodeCollectionId"] = 0;
-  //   serialized_node["position"] = 0;
-  //   // serialized_node["model"] = model;
-
-  //   response_body[current_node] = serialized_node;
-  //   ++current_node;
-  // }
-
-  // for (size_t i = 0; i < node_collections.size(); ++i) {
-  //   for (size_t j = 0; j < node_collections[i].node_count; ++j) {
-  //     auto node = web::json::value::object();
-
-  //     node["nodeId"] = node_collections[i].first_node_id + j;
-  //     node["nodeCollectionId"] = i;
-  //     node["position"] =
-
-  //     response_body[current_node] = node;
-  //   }
-
-  //   auto nodes = web::json::value::object();
-  //   nodes["firstId"] = node_collections[i].first_node_id;
-  //   nodes["lastId"] = node_collections[i].first_node_id +
-  //   node_collections[i].node_count - 1; nodes["count"] =
-  //   node_collections[i].node_count; response_body[i]["nodes"] = nodes;
-
-  //   auto model_parameters = web::json::value::array();
-  //   for (const auto& model_parameter :
-  //   node_collections[i].model_parameters) {
-  //     model_parameters[model_parameters.size()] =
-  //     web::json::value(model_parameter);
-  //   }
-  //   model["parameters"] = model_parameters;
-
-  //   response_body[i]["model"] = model;
-  // }
   response.set_body(response_body);
 
   return response;
@@ -326,24 +274,13 @@ web::http::http_response HttpServer::GetMultimeters(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
 
-  const auto spike_detectors = storage_->GetSpikeDetectors();
+  const auto multimeters = storage_->GetMultimeters();
 
   web::json::value response_body = web::json::value::array();
   std::vector<std::uint64_t> connected_node_ids;
 
-  for (const auto& spikedetector_id_storage : spike_detectors) {
-    web::json::value spikedetector_data = web::json::value::object();
-    spikedetector_data["spikedetectorId"] = spikedetector_id_storage.first;
-
-    spikedetector_id_storage.second->ExtractConnectedNodeIds(
-        &connected_node_ids);
-    spikedetector_data["nodeIds"] =
-        web::json::value::array(connected_node_ids.size());
-    for (size_t i = 0; i < connected_node_ids.size(); ++i) {
-      spikedetector_data["nodeIds"][i] = connected_node_ids[i];
-    }
-
-    response_body[response_body.size()] = spikedetector_data;
+  for (const auto& multimeter_id_storage : multimeters) {
+    response_body[response_body.size()] = multimeter_id_storage.second->Serialize();
   }
 
   response.set_body(response_body);
@@ -353,10 +290,48 @@ web::http::http_response HttpServer::GetMultimeters(
 
 web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
-  web::http::http_response response(web::http::status_codes::OK);
-  web::json::value body = web::json::value::object();
+  const auto parameters = web::uri::split_query(request.request_uri().query());
 
-  response.set_body(body);
+  const auto from_time_parameter = parameters.find("fromTime");
+  const double from_time = from_time_parameter == parameters.end() ? 0.0 : std::stod(from_time_parameter->second);
+
+  const auto to_time_parameter = parameters.find("toTime");
+  const double to_time = to_time_parameter == parameters.end() ? std::numeric_limits<double>::infinity() : std::stod(to_time_parameter->second);
+
+  std::cout << "Query: " << request.request_uri().query() << std::endl;
+  const auto node_ids_parameter = parameters.find("nodeIds");
+  std::vector<uint64_t> node_ids;
+  if (node_ids_parameter != parameters.end()) {
+    std::stringstream stream(node_ids_parameter->second);
+    for (uint64_t node_id; stream >> node_id; ) {
+      node_ids.push_back(node_id);
+      const char next_charactor = stream.peek();
+      if (next_charactor == ',' || std::isspace(next_charactor)) {
+        stream.ignore();
+      }
+    }
+  }
+
+  const auto attribute_name_parameter = parameters.find("attribute");
+  if (attribute_name_parameter == parameters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'attributeName' parameter is missing from the request."});
+  }
+  const std::string attribute_name = attribute_name_parameter->second;
+  
+  const auto multimeter_id_parameter = parameters.find("multimeterId");
+  if (multimeter_id_parameter == parameters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'multimeterId' parameter is missing from the request."});
+  }
+  const uint64_t multimeter_id = std::stoull(multimeter_id_parameter->second);
+
+  const auto multimeters = storage_->GetMultimeters();
+  const auto multimeter = multimeters.find(multimeter_id);
+  if (multimeter == multimeters.end()) {
+    return CreateErrorResponse(web::http::status_codes::BadRequest, {"InvalidMultimeterId"});
+  }
+
+  web::http::http_response response(web::http::status_codes::OK);
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, node_ids, from_time, to_time));
   return response;
 }
 

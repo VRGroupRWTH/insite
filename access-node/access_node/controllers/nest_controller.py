@@ -73,7 +73,6 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
 
     :rtype: MultimeterMeasurement
     """
-    # Multimeterendpoint doesnt exist in nest module yet
     #TODO Cache this
     mult_info = nest_get_multimeters()
 
@@ -107,16 +106,16 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     measurement = MultimeterMeasurement([], [], [])
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/multimeter_measurement", params={"multimeter_id": multimeter_id, 
-            "attribute": attribute_name, "from_time": from_time,
-            "to_time": to_time, "node_ids": node_ids}).json()
+            node+"/multimeter_measurement", params={"multimeterId": multimeter_id, 
+            "attribute": attribute_name, "fromTime": from_time,
+            "toTime": to_time, "nodeIds": node_ids}).json()
         if init:
-            sim_times = response["simulation_times"]
+            sim_times = response["simulationTimes"]
             measurement = MultimeterMeasurement(
                 sim_times, node_ids, [None for x in range(0, (len(sim_times)*len(node_ids)))])
             init = False
-        for x in range(len(response['node_ids'])):
-            node_id = response['node_ids'][x]
+        for x in range(len(response['nodeIds'])):
+            node_id = response['nodeIds'][x]
             index = measurement.node_ids.index(node_id)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
@@ -142,9 +141,8 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    # Multimeterendpoint doesnt exist in nest module yet
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters")
+    return requests.get(simulation_node+"/multimeters").json()
 
 
 def nest_get_node_by_id(node_id):  # noqa: E501
@@ -225,8 +223,10 @@ def nest_get_nodes():  # noqa: E501
 
     :rtype: List[NestNodeProperties]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes").json()
+    nodes = []
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        nodes.extend(requests.get(simulation_node+"/nodes").json())
+    return nodes
 
 
 def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501

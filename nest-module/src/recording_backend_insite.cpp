@@ -56,7 +56,7 @@ void RecordingBackendInsite::set_value_names(
 void RecordingBackendInsite::prepare() {
   DictionaryDatum properties(new Dictionary());
   // Set the last parameter to false below to only get locally simulated nodes
-  nest::NodeCollectionPTR nodes = nest::kernel().node_manager.get_nodes(properties, false);
+  nest::NodeCollectionPTR nodes = nest::kernel().node_manager.get_nodes(properties, true);
   data_storage_.SetNodesFromCollection(nodes);
 
   for (const auto &spike_detector : data_storage_.GetSpikeDetectors()) {
@@ -113,8 +113,8 @@ void RecordingBackendInsite::get_device_status(const nest::RecordingDevice &devi
 }
 
 std::string RecordingBackendInsite::get_port_string() const {
-  // TODO: Make this configurable
-  return std::to_string(8000 + nest::kernel().mpi_manager.get_rank());
+  // Ports can be configured via docker
+  return std::to_string(9000 + nest::kernel().mpi_manager.get_rank());
 }
 
 }  // namespace insite

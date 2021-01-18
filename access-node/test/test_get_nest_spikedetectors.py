@@ -2,7 +2,7 @@ import requests
 import numbers
 
 
-def test_get_spikedetectors(nest_simulation):
+def test_get_nest_spikedetectors(nest_simulation):
     r = requests.get("http://localhost:8080/nest/spikedetectors")
     assert(r.status_code == 200)
 

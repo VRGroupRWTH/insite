@@ -2,7 +2,7 @@ import requests
 import numbers
 
 def test_get_kernel_status(nest_simulation):
-    request = requests.get("http://localhost:8000/kernelStatus")
+    request = requests.get("http://localhost:9000/kernelStatus")
     assert(request.status_code == 200)
     
     kernel_status = request.json()
