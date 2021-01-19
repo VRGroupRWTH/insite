@@ -58,8 +58,6 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
 
 web::http::http_response HttpServer::GetVersion(
     const web::http::http_request& request) {
-  DictionaryDatum kernel_status(new Dictionary());
-  nest::kernel().get_status(kernel_status);
 
   web::http::http_response response(web::http::status_codes::OK);
   response.set_body(web::json::value::string("1.0"));
