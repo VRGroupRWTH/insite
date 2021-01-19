@@ -147,8 +147,22 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters").json()
+    
+    multimeters = []
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        multimeters_from_sim_node = requests.get(simulation_node+"/multimeters").json()
+        if len(multimeters) == 0:
+            multimeters = multimeters_from_sim_node
+        else:
+            for i in range(len(multimeters)):
+                assert(multimeters[i]['multimeterId'] == multimeters_from_sim_node[i]['multimeterId'])
+                assert(multimeters[i]['attributes'] == multimeters_from_sim_node[i]['attributes'])
+                multimeters[i]['nodeIds'].extend(multimeters_from_sim_node[i]['nodeIds'])
+
+    for multimeter in multimeters:
+        multimeter['nodeIds'].sort()
+
+    return multimeters
 
 
 def nest_get_node_by_id(node_id):  # noqa: E501
