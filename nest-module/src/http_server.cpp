@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <iostream>
 #include <regex>
-#include <unordered_set>
 #include <sstream>
+#include <unordered_set>
 
 #include "kernel_manager.h"
 #include "nest_time.h"
@@ -58,7 +58,6 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
 
 web::http::http_response HttpServer::GetVersion(
     const web::http::http_request& request) {
-
   web::http::http_response response(web::http::status_codes::OK);
   response.set_body(web::json::value::string("1.0"));
 
@@ -193,15 +192,13 @@ web::http::http_response HttpServer::GetSpikes(
 
   const auto parameter_gids = parameters.find("nodeIds");
   auto parseString = (parameter_gids == parameters.end()) ? std::string("") : parameter_gids->second;
-  auto filter_gids = commaListToUintVector(parseString);
-
+  auto filter_node_ids = CommaListToUintVector(parseString);
 
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
-  if (!filter_gids.empty())
-  {
-    from_node_id = *std::min_element(filter_gids.begin(),filter_gids.end());
-    to_node_id = *std::max_element(filter_gids.begin(),filter_gids.end());
+  if (!filter_node_ids.empty()) {
+    from_node_id = *std::min_element(filter_node_ids.begin(), filter_node_ids.end());
+    to_node_id = *std::max_element(filter_node_ids.begin(), filter_node_ids.end());
   }
   if (node_collection_parameter != parameters.end()) {
     const std::uint64_t node_collection_id =
@@ -225,7 +222,7 @@ web::http::http_response HttpServer::GetSpikes(
     std::cout << "[insite] Querying spikes: [time: (" << from_time << " - " << to_time << ")] [nodes: (" << from_node_id << " - " << to_node_id << ")]" << std::endl;
     std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikes(&spikes, from_time, to_time, from_node_id, to_node_id, &filter_gids);
+      spike_detector_id_storage.second->ExtractSpikes(&spikes, from_time, to_time, from_node_id, to_node_id, &filter_node_ids);
     }
 
   } else {
@@ -242,7 +239,7 @@ web::http::http_response HttpServer::GetSpikes(
                                  {"InvalidSpikeDetectorId"});
     } else {
       spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id,
-                                    to_node_id, &filter_gids);
+                                    to_node_id, &filter_node_ids);
     }
   }
 
@@ -291,7 +288,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
   const auto parameters = web::uri::split_query(request.request_uri().query());
 
-  const auto from_time_parameter = parameters.find("fromTime");
+  const auto from_time_parameter = parameters.fipnd("fromTime");
   const double from_time = from_time_parameter == parameters.end() ? 0.0 : std::stod(from_time_parameter->second);
 
   const auto to_time_parameter = parameters.find("toTime");
@@ -300,14 +297,16 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   std::cout << "Query: " << request.request_uri().query() << std::endl;
   const auto node_ids_parameter = parameters.find("nodeIds");
   auto parseString = (node_ids_parameter == parameters.end()) ? std::string("") : node_ids_parameter->second;
-  auto filter_gids = commaListToUintVector(parseString);
+  auto filter_node_ids = CommaListToUintVector(parseString);
+  std::copy(filter_node_ids.begin(), filter_node_ids.end(), std::ostream_iterator<std::uint64_t>(std::cout, ","));
+  std::cout << std::endl;
 
   const auto attribute_name_parameter = parameters.find("attribute");
   if (attribute_name_parameter == parameters.end()) {
     return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'attributeName' parameter is missing from the request."});
   }
   const std::string attribute_name = attribute_name_parameter->second;
-  
+
   const auto multimeter_id_parameter = parameters.find("multimeterId");
   if (multimeter_id_parameter == parameters.end()) {
     return CreateErrorResponse(web::http::status_codes::BadRequest, {"MissingRequiredParameter", "The 'multimeterId' parameter is missing from the request."});
@@ -321,7 +320,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   }
 
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, filter_gids, from_time, to_time));
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, filter_node_ids, from_time, to_time));
   return response;
 }
 
@@ -342,19 +341,18 @@ web::http::http_response HttpServer::CreateErrorResponse(
 
   return response;
 }
-std::vector<std::uint64_t> HttpServer::commaListToUintVector(std::string input,
-                                                    std::regex regex ) {
-    std::vector<std::uint64_t> filter_gids;
-    if (input == "")
-      return filter_gids;
-    std::sregex_token_iterator it{input.begin(),
-                                  input.end(), regex, -1};
-    std::vector<std::string> filter_gid_strings{it, {}};
-    std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
-        std::back_inserter(filter_gids),
-        [](const std::string& str) { return std::stoll(str); });
-    return filter_gids;
-
+std::vector<std::uint64_t> HttpServer::CommaListToUintVector(std::string input,
+                                                             std::regex regex) {
+  std::vector<std::uint64_t> filter_node_ids;
+  if (input == "")
+    return filter_node_ids;
+  std::sregex_token_iterator it{input.begin(),
+                                input.end(), regex, -1};
+  std::vector<std::string> filter_gid_strings{it, {}};
+  std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
+                 std::back_inserter(filter_node_ids),
+                 [](const std::string& str) { return std::stoll(str); });
+  return filter_node_ids;
 }
 
 }  // namespace insite
