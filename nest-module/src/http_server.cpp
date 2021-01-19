@@ -190,8 +190,19 @@ web::http::http_response HttpServer::GetSpikes(
                              : std::stod(to_time_parameter->second);
 
   const auto node_collection_parameter = parameters.find("nodeCollectionId");
+
+  const auto parameter_gids = parameters.find("nodeIds");
+  auto parseString = (parameter_gids == parameters.end()) ? std::string("") : parameter_gids->second;
+  auto filter_gids = commaListToUintVector(parseString);
+
+
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
+  if (!filter_gids.empty())
+  {
+    from_node_id = *std::min_element(filter_gids.begin(),filter_gids.end());
+    to_node_id = *std::max_element(filter_gids.begin(),filter_gids.end());
+  }
   if (node_collection_parameter != parameters.end()) {
     const std::uint64_t node_collection_id =
         std::stoull(node_collection_parameter->second);
@@ -211,14 +222,10 @@ web::http::http_response HttpServer::GetSpikes(
   std::vector<Spike> spikes;
 
   if (spike_detector_id_parameter == parameters.end()) {
-    std::cout << "[insite] Querying spikes: [" << from_time << "," << to_time << " ["
-              << from_node_id << "," << to_node_id << ")" << std::endl;
-
-    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>>
-        spike_detectors = storage_->GetSpikeDetectors();
+    std::cout << "[insite] Querying spikes: [time: (" << from_time << " - " << to_time << ")] [nodes: (" << from_node_id << " - " << to_node_id << ")]" << std::endl;
+    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikes(
-          &spikes, from_time, to_time, from_node_id, to_node_id);
+      spike_detector_id_storage.second->ExtractSpikes(&spikes, from_time, to_time, from_node_id, to_node_id, &filter_gids);
     }
 
   } else {
@@ -227,16 +234,15 @@ web::http::http_response HttpServer::GetSpikes(
     const auto spike_detector =
         storage_->GetSpikeDetectorStorage(spike_detector_id);
 
-    std::cout << "[insite] Querying spikes: [" << from_time << "," << to_time << " ["
-              << from_node_id << "," << to_node_id
-              << "), spikedetector=" << spike_detector_id << std::endl;
+    std::cout << "[insite] Querying spikes: [time: (" << from_time << " - " << to_time << ")] [nodes: (" << from_node_id << " - " << to_node_id
+              << ")], spikedetector=" << spike_detector_id << std::endl;
 
     if (spike_detector == nullptr) {
       return CreateErrorResponse(web::http::status_codes::BadRequest,
                                  {"InvalidSpikeDetectorId"});
     } else {
       spike_detector->ExtractSpikes(&spikes, from_time, to_time, from_node_id,
-                                    to_node_id);
+                                    to_node_id, &filter_gids);
     }
   }
 
@@ -293,17 +299,8 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
 
   std::cout << "Query: " << request.request_uri().query() << std::endl;
   const auto node_ids_parameter = parameters.find("nodeIds");
-  std::vector<uint64_t> node_ids;
-  if (node_ids_parameter != parameters.end()) {
-    std::stringstream stream(node_ids_parameter->second);
-    for (uint64_t node_id; stream >> node_id; ) {
-      node_ids.push_back(node_id);
-      const char next_charactor = stream.peek();
-      if (next_charactor == ',' || std::isspace(next_charactor)) {
-        stream.ignore();
-      }
-    }
-  }
+  auto parseString = (node_ids_parameter == parameters.end()) ? std::string("") : node_ids_parameter->second;
+  auto filter_gids = commaListToUintVector(parseString);
 
   const auto attribute_name_parameter = parameters.find("attribute");
   if (attribute_name_parameter == parameters.end()) {
@@ -324,7 +321,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   }
 
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, node_ids, from_time, to_time));
+  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, filter_gids, from_time, to_time));
   return response;
 }
 
@@ -344,6 +341,20 @@ web::http::http_response HttpServer::CreateErrorResponse(
   response.set_body(body);
 
   return response;
+}
+std::vector<std::uint64_t> HttpServer::commaListToUintVector(std::string input,
+                                                    std::regex regex ) {
+    std::vector<std::uint64_t> filter_gids;
+    if (input == "")
+      return filter_gids;
+    std::sregex_token_iterator it{input.begin(),
+                                  input.end(), regex, -1};
+    std::vector<std::string> filter_gid_strings{it, {}};
+    std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
+        std::back_inserter(filter_gids),
+        [](const std::string& str) { return std::stoll(str); });
+    return filter_gids;
+
 }
 
 }  // namespace insite
