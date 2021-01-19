@@ -55,15 +55,14 @@ void RecordingBackendInsite::set_value_names(
 
 void RecordingBackendInsite::prepare() {
   DictionaryDatum properties(new Dictionary());
-  // Set the last parameter to false below to only get locally simulated nodes
-  nest::NodeCollectionPTR nodes = nest::kernel().node_manager.get_nodes(properties, true);
-  data_storage_.SetNodesFromCollection(nodes);
+  nest::NodeCollectionPTR local_nodes = nest::kernel().node_manager.get_nodes(properties, true);
+  data_storage_.SetNodesFromCollection(local_nodes);
 
   for (const auto &spike_detector : data_storage_.GetSpikeDetectors()) {
-    spike_detector.second->Prepare(nodes);
+    spike_detector.second->Prepare(local_nodes);
   }
   for (const auto &multimeter : data_storage_.GetMultimeters()) {
-    multimeter.second->Prepare(nodes);
+    multimeter.second->Prepare(local_nodes);
   }
 }
 
