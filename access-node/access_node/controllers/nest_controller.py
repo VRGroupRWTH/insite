@@ -27,8 +27,10 @@ def nest_get_kernel_status():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/kernelStatus").json()
+    kernel_statuses = [] # Yes, statuses is a valid plural form of status
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        kernel_statuses.append(requests.get(simulation_node+"/kernelStatus").json())
+    return kernel_statuses
 
 
 def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501

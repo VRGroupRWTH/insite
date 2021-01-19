@@ -84,6 +84,16 @@ class DataStorage {
   double GetSimulationBeginTime() const;
   double GetSimulationEndTime() const;
 
+  inline void SetKernelStatus(const web::json::value& kernel_status) {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    kernel_status_ = kernel_status;
+  }
+
+  inline web::json::value GetKernelStatus() const {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    return kernel_status_;
+  }
+
  private:
   uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
 
@@ -95,6 +105,9 @@ class DataStorage {
   std::atomic_uint64_t current_simulation_time_;
   std::atomic_uint64_t simulation_begin_time_;
   std::atomic_uint64_t simulation_end_time_;
+
+  mutable std::mutex kernel_status_mutex_;
+  web::json::value kernel_status_;
 
   mutable std::mutex spikedetectors_mutex_;
   std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spikedetectors_;

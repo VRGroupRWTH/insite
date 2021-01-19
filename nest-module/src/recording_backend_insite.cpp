@@ -17,6 +17,8 @@
 #include "dictutils.h"
 #include "recording_backend_insite.h"
 
+#include "serialize.hpp"
+
 namespace insite {
 
 RecordingBackendInsite::RecordingBackendInsite()
@@ -64,6 +66,7 @@ void RecordingBackendInsite::prepare() {
   for (const auto &multimeter : data_storage_.GetMultimeters()) {
     multimeter.second->Prepare(local_nodes);
   }
+  UpdateKernelStatus();
 }
 
 void RecordingBackendInsite::cleanup() {
@@ -80,6 +83,7 @@ void RecordingBackendInsite::post_run_hook() {
 
 void RecordingBackendInsite::post_step_hook() {
   data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
+  UpdateKernelStatus();
 }
 
 void RecordingBackendInsite::write(const nest::RecordingDevice &device,
@@ -114,6 +118,12 @@ void RecordingBackendInsite::get_device_status(const nest::RecordingDevice &devi
 std::string RecordingBackendInsite::get_port_string() const {
   // Ports can be configured via docker
   return std::to_string(9000 + nest::kernel().mpi_manager.get_rank());
+}
+
+void RecordingBackendInsite::UpdateKernelStatus() {
+  DictionaryDatum kernel_status(new Dictionary());
+  nest::kernel().get_status(kernel_status);
+  data_storage_.SetKernelStatus(SerializeDatum(&kernel_status));
 }
 
 }  // namespace insite

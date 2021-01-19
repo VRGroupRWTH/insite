@@ -66,11 +66,8 @@ web::http::http_response HttpServer::GetVersion(
 
 web::http::http_response HttpServer::GetKernelStatus(
     const web::http::http_request& request) {
-  DictionaryDatum kernel_status(new Dictionary());
-  nest::kernel().get_status(kernel_status);
-
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(SerializeDatum(&kernel_status));
+  response.set_body(storage_->GetKernelStatus());
 
   return response;
 }
@@ -288,7 +285,7 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
   const auto parameters = web::uri::split_query(request.request_uri().query());
 
-  const auto from_time_parameter = parameters.fipnd("fromTime");
+  const auto from_time_parameter = parameters.find("fromTime");
   const double from_time = from_time_parameter == parameters.end() ? 0.0 : std::stod(from_time_parameter->second);
 
   const auto to_time_parameter = parameters.find("toTime");
