@@ -8,7 +8,9 @@ import os
 @pytest.fixture(scope="session")
 def nest_simulation(request):
     logfile = open("docker-compose.log", "w")
-    process = subprocess.Popen(["docker-compose", "up", "--build"], stdout=logfile, stderr=subprocess.STDOUT)
+
+    subprocess.run(["docker-compose", "build"], stdout=logfile, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(["docker-compose", "up"], stdout=logfile, stderr=subprocess.STDOUT)
 
     def finalize():
         # process.send_signal(signal.SIGINT)
@@ -19,8 +21,7 @@ def nest_simulation(request):
             print("Sending SIGKILL to docker-compose")
             os.kill(process.pid, signal.SIGKILL)
             process.wait()
-        compose_down_process = subprocess.Popen(["docker-compose", "down"], stdout=logfile, stderr=subprocess.STDOUT)
-        compose_down_process.wait()
+        subprocess.run(["docker-compose", "down"], stdout=logfile, stderr=subprocess.STDOUT)
         logfile.close()
     request.addfinalizer(finalize)
 
