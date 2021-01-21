@@ -204,7 +204,7 @@ web::http::http_response HttpServer::GetSpikes(
       const NodeCollection node_collection =
           storage_->GetNodeCollection(node_collection_id);
       from_node_id = node_collection.first_node_id;
-      to_node_id = node_collection.first_node_id + node_collection.node_count;
+      to_node_id = node_collection.first_node_id + node_collection.node_count -1;
     } else {
       return CreateErrorResponse(web::http::status_codes::BadRequest,
                                  {"InvalidNodeCollectionID"});
