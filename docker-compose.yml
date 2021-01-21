@@ -11,6 +11,8 @@ services:
 
   insite-nest-module:
     build: ./nest-module
+    environment:
+      - MPI_RANKS=2
     ports:
       - "9000-9999:9000-9999"
   
