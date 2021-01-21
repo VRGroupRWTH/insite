@@ -6,6 +6,7 @@ deploy:access-node:develop:
     only:
         - develop
     script:
+        - export DOCKER_HOST="tcp://localhost:2375"
         - docker build -t rwthvr/insite-access-node:develop ./access-node
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         - docker push rwthvr/insite-access-node:develop
