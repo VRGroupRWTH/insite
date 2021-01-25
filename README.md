@@ -1,24 +1,165 @@
 # Insite
 This is the main repository for the in-situ-pipeline developed in Task 5.7 for the HBP.
+The in-situ-pipeline enables the user to get simulation data while the simulation is still running.
+In the current version, the user can query the HTTP endpoint provided by the pipeline to get simular data encoded as JSON.
+To use the in-situ-pipeline the user has to activate the in-situ plugin for the neuronal simulator and deploy the pipeline's access node.
+Currently the [NEST simulator](https://www.nest-simulator.org/) is supported by the in-situ-pipeline.
 
-## Installation
-1. For easy deployment of the pipeline we use docker containers, so make sure you have the [docker engine](https://www.docker.com) installed.
-2. Clone this repository (`git clone https://github.com/VRGroupRWTH/insite.git`) or download the `docker-compose.yml` file to your computer.
+<br>
 
-## Verify Installation
-1. To verify that everything works, run `docker-compose run insite-nest-module /example/brunel_simulation.py` from the directory containing the `docker-compose.yml` file.
-2. On the first launch, docker will download all required images. This may take some time. Subsequent runs will finish considerably faster.
-3. After the required images are downloaded a simple NEST simulation is run. You should be able to type in `http://localhost:8080/nest/neuron_properties` into your web browser and see an overview of all neurons in the simulation. You can also try out other queries defined in the [API](https://devhub.vr.rwth-aachen.de/VR-Group/in-situ-pipeline/access-node/-/blob/master/access_node/swagger/swagger.yaml).
+# REST API
+The complete API is available [here](docs/api/README.md).
 
-## Run a Custom NEST Simulation
-1. Load and connect the insite nest module. You can have a look at [this example](https://github.com/VRGroupRWTH/insite-nest-module/blob/master/example/brunel_simulation.py) to see how the code could look like.
-    1. Add `nest.Install("insitemodule")` at the beginning of the simulation to load the nest module.
-    2. Create a spike detector `spike_detector = nest.Create("spike_detector")` and set it up to record its data to insite: `nest.SetStatus(spike_detector, [{"record_to": "insite"}])`.
-    3. Connect the spike detector to all neurons you want to be able to observe at run-time `nest.Connect(neurons, spike_detector)`.
-2. To run your custom simulation you have to add it to the cocker container. This can be done using the following command: `docker-compose run -v PATH_TO_SIMULATION:INTERNAL_PATH:ro insite-nest-module INTERNAL_PATH/ENTRY_POINT [NUM_MPI_PROCESSES]`.
-   * `PATH_TO_SIMULATION` should be the directory containing all files of your simulation. **IMPORTANT: the path must be absolute.**
-   * `INTERNAL_PATH` points to some path inside the container and does not matter too much. Normally you can just set it to `/sim`.
-   * `ENTRY_POINT` should specify the main python file of the simulation (relative to the directory specified by `PATH_TO_SIMULATION`).
-   * Finally, you can enable MPI by specifying the number of processes it should use with `NUM_MPI_PROCESSES`. If you do not specify this parameter, MPI will be disabled.
+<br>
 
-    The complete call to run the simulation in the example directory would look like this: `docker-compose run -v $(pwd)/example/:/sim:ro insite-nest-module /sim/brunel_simulation.py`.
+# Installation
+To provide an easy to use environment the in-situ-pipeline can be deployed by using docker.
+To be able to use the in-situ-pipeline please make sure that the [docker engine](https://www.docker.com) and [docker compose](https://docs.docker.com/compose/) are installed. 
+
+Two docker image are provided for the in-situ-pipeline. 
+The first image contains the NEST simulator with the in-situ plugin installed.
+The second image contains the in-situ-pipeline's access-node.
+
+
+Generally, there are two different approaches to use the in-situ pipeline with docker:
+
+1. [Using docker-hub](#Using-docker-hub)
+
+2. [Building from GIT](#Building-from-GIT)
+___
+<br>
+
+## Using docker-hub
+The easiest way to set up the in-situ-pipeline is by using the images from docker-hub.
+The images can simply be pulled from docker-hub and can be used as is.
+The following docker-compose file can be used:
+```yml
+version: '3'
+
+services:
+  access-node:
+    image: rwthvr/insite-access-node
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "insite-nest-module"
+    command: ["http://insite-nest-module:9000", "http://insite-nest-module:9001"]
+
+  insite-nest-module:
+    image: rwthvr/insite-nest-module
+    ports:
+      - "8000-8099:9000-9099"
+    volume:
+      - ./scripts:/scripts/
+```
+Rename the file to `docker-compose.yml` and use the command `docker-compose up` to deploy the in-situ pipeline. Afterwards, you can [verify the installation](#Verify-Installation) or take a look at [configuiring the in-situ pipeline](#Configure-the-in-situ-pipeline).
+
+<br>
+In case that you want to use the latest develop branch instead of the stable master branch, replace 
+
+```yml
+access-node:
+    image: rwthvr/insite-access-node
+    ...
+
+insite-nest-module:
+    image: rwthvr/insite-nest-module
+    ...
+
+``` 
+with 
+```yml
+access-node:
+    image: rwthvr/insite-access-node:develop
+    ...
+
+insite-nest-module:
+    image: rwthvr/insite-nest-module:develop
+    ...
+
+``` 
+<br><br>
+
+## Building from GIT
+1. Clone this repository (`git clone https://github.com/VRGroupRWTH/insite.git`).
+2. Build the containers by using the command `docker-compose build` in the root directory of the repository. On the first run, this can take quite some time as NEST and the NEST plugin must be built. Subsequent runs will usually run much faster as docker caches intermediate builds.
+
+<br>
+
+# Verify Installation
+1. Start the the test simulation by using the command `docker-compose up` in the root directory of the repository. To make sure the latest changes are included it is advised to use `docker-compose up --build` to avoid errors by out-of-date containers.
+2. You should now be able to query `http://localhost:8080/version` which should give an output similar to this:
+   ```json
+   {
+       "api": "1.0",
+       "insite": "1.0"
+   }
+   ```
+   Where `insite` specifies the version of the pipeline and `api` the available endpoint versions for the REST API.
+3. You can query simulation specific queries using the `https://localhost:8080/nest/*` endpoints. E.g., `https://localhost:8080/nest/nodes` to get all nest nodes. The complete API is available [here](docs/api/README.md).
+
+<br>
+
+# Configuration
+
+## Pipeline Ports
+If you want to expose the REST API on a different port change the following line in your docker-compose file:
+```yml
+access-node:
+    ...
+    ports:
+      - "XXXX:8080"
+    ...
+``` 
+where `XXXX` is your new port number, afterwards the REST API will be rechable via `IP:XXXX`, e.g. `http://localhost:XXXX`.
+
+If you want to change the exposed ports of the simulations API change the following line in the docker-compose file:
+```yml
+insite-nest-module:
+    ...
+    ports:
+      - "XXXX-YYYY:9000-9099"
+    ...
+``` 
+Please note that the port range specified on the left must have the same size as the port range specified on the right side. The number of ports which are used will depend on the number of MPI ranks and therefore number of simulation nodes you use. (See [Number of simulation nodes](#Number-of-simulation-nodes))
+
+## Simulation Script
+
+The in-situ-pipeline will come with an example simulation. However, you can also use your own NEST simulation script.
+You can place custom scripts in the `script` folder and all `.py` will be picked up automically.
+If you have more than one python script in the `script` folder you can specify which script will be used by settings the environment variable `SCRIPT_NAME` by adding the appropriate env variable to the docker-compose file, e.g.:
+```yml
+insite-nest-module:
+    image: rwthvr/insite-nest-module:develop
+    environment:
+      - SCRIPT_NAME=brunel.py
+    ...
+```
+You can pass additional arguments to your script by setting the environment var `SCRIPT_ARGS`. Individual arguments must be seperated by a comma, e.g.:
+```yml
+insite-nest-module:
+    image: rwthvr/insite-nest-module:develop
+    environment:
+      - SCRIPT_NAME=brunel.py
+      - SCRIPT_ARGS=var1;var2;var3
+    ...
+```
+
+You can also specify a different script folder by changing the following line in the docker-compose file:
+```yml
+volume:
+      - XXX:/scripts/
+```
+where `XXX` is the path to the folder.
+
+## Number of simulation nodes
+
+The number of simulation nodes can be adjusted by settings the environment variable `MPI_RANKS`.(Default=1) <br>
+E.g., if the NEST simulation should run with 3 simulation nodes:
+```yml
+insite-nest-module:
+    image: rwthvr/insite-nest-module:develop
+    environment:
+      - MPI_RANKS=3
+    ...
+```
