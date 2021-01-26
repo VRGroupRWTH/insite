@@ -49,7 +49,7 @@ services:
     image: rwthvr/insite-nest-module
     ports:
       - "8000-8099:9000-9099"
-    volume:
+    volumes:
       - ./scripts:/scripts/
 ```
 Rename the file to `docker-compose.yml` and use the command `docker-compose up` to deploy the in-situ pipeline. Afterwards, you can [verify the installation](#Verify-Installation) or take a look at [configuiring the in-situ pipeline](#Configure-the-in-situ-pipeline).
