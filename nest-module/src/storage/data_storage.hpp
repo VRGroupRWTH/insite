@@ -1,45 +1,47 @@
 #ifndef DATA_STORATE_HPP
 #define DATA_STORATE_HPP
 
+#include <cpprest/json.h>
+
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <atomic>
 
-#include "spikedetector_storage.hpp"
+#include "multimeter_storage.hpp"
 #include "node_collection.h"
-#include <cpprest/json.h>
+#include "spikedetector_storage.hpp"
 
 namespace insite {
-struct MultimeterInfo {
-  std::uint64_t device_id;
-  bool needs_update;
-  std::vector<std::string> double_attributes;
-  std::vector<std::string> long_attributes;
-  std::vector<std::uint64_t> gids;
-};
-
-struct MultimeterMeasurements {
-  std::vector<double> simulation_times;
-  std::vector<std::uint64_t> gids;
-  std::vector<double> values;
-};
 
 struct NodeCollection {
   std::uint64_t first_node_id;
   std::uint64_t node_count;
   std::string model_name;
-  std::vector<std::string> model_parameters;
+  web::json::value model_status;
+
+  bool operator<(const NodeCollection& c2) const
+  {
+    return this->first_node_id < c2.first_node_id;
+  }
+
+  bool operator==(const NodeCollection& c2) const
+  {
+    return this->first_node_id == c2.first_node_id && this->node_count == c2.node_count && this->model_name == c2.model_name;
+  }
 };
+
+std::ostream& operator<<(std::ostream& os, const NodeCollection& c);
+
 
 class DataStorage {
  public:
   DataStorage();
 
-  void SetNodesFromCollection(const nest::NodeCollectionPTR& node_collection);
+  void SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection);
   inline size_t GetNodeCollectionCount() const {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_.size();
@@ -65,13 +67,16 @@ class DataStorage {
     return spikedetectors_;
   }
 
-  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t neuron_id);
+  std::shared_ptr<MultimeterStorage> CreateMultimeterStorage(std::uint64_t multimeter_id);
+  std::shared_ptr<MultimeterStorage> GetMultimeterStorage(std::uint64_t multimeter_id);
+  std::unordered_map<std::uint64_t, std::shared_ptr<MultimeterStorage>> GetMultimeters() const {
+    std::unique_lock<std::mutex> lock(multimeters_mutex_);
+    return multimeters_;
+  }
 
-  void AddMultimeterMeasurement(std::uint64_t device_id, 
-    const std::string& attribute_name, const double simulation_time,
-    const std::uint64_t gid, const double value);
-  std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
-    MultimeterMeasurements>> GetMultimeterMeasurements();
+  void AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t node_id);
+  void AddMultimeterMeasurement(std::uint64_t multimeter_id, double simulation_time, std::uint64_t node_id,
+                                const std::vector<double>& double_values, const std::vector<long>& long_values);
 
   void SetCurrentSimulationTime(double simulation_time);
   void SetSimulationTimeRange(double begin, double end);
@@ -79,9 +84,20 @@ class DataStorage {
   double GetSimulationBeginTime() const;
   double GetSimulationEndTime() const;
 
+  inline void SetKernelStatus(const web::json::value& kernel_status) {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    kernel_status_ = kernel_status;
+  }
+
+  inline web::json::value GetKernelStatus() const {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    return kernel_status_;
+  }
+
  private:
   uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
 
+  std::vector<NodeCollection> ReceiveCollectionsFromNode(int source);
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
   std::unordered_map<uint64_t, web::json::value> nodes_;
@@ -90,15 +106,14 @@ class DataStorage {
   std::atomic_uint64_t simulation_begin_time_;
   std::atomic_uint64_t simulation_end_time_;
 
-  
+  mutable std::mutex kernel_status_mutex_;
+  web::json::value kernel_status_;
+
   mutable std::mutex spikedetectors_mutex_;
   std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spikedetectors_;
 
-  // Device ID to attribute index to measurement map.
-  std::unordered_map<std::uint64_t, std::unordered_map<std::string, 
-    MultimeterMeasurements>> buffered_measurements_;
-
-  std::mutex measurement_mutex_;
+  mutable std::mutex multimeters_mutex_;
+  std::unordered_map<std::uint64_t, std::shared_ptr<MultimeterStorage>> multimeters_;
 };
 
 }  // namespace insite

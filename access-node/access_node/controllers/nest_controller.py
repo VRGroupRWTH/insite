@@ -27,8 +27,10 @@ def nest_get_kernel_status():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/kernelStatus").json()
+    kernel_statuses = [] # Yes, statuses is a valid plural form of status
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        kernel_statuses.append(requests.get(simulation_node+"/kernelStatus").json())
+    return kernel_statuses
 
 
 def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
@@ -42,9 +44,14 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
     :rtype: MultimeterInfo
     """
     # Multimeterendpoint doesnt exist in nest module yet
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters", params={"multimeter_id": multimeter_id})
-
+    multimeters = nest_get_multimeters()
+    for multimeter in multimeters:
+        if multimeter['multimeterId'] is multimeter_id:
+            return multimeter
+    error = Error(code ="invalidMultimeterID", message = "Multimeter ID doesnt exist.")
+    response = ErrorResponse(error)
+    return response, 500
+    
 
 def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
     """Retrieves the measurements for a multimeter, attribute and node IDs (optional).
@@ -68,20 +75,19 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
 
     :rtype: MultimeterMeasurement
     """
-    # Multimeterendpoint doesnt exist in nest module yet
     #TODO Cache this
     mult_info = nest_get_multimeters()
 
     mult_node_ids = []
     multimeter_exists = False
     for mult in mult_info:
-        if mult["multimeter_id"] == multimeter_id:
+        if mult["multimeterId"] == multimeter_id:
             multimeter_exists = True
             if attribute_name not in mult['attributes']:
                 error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not measure given attribute")
                 error_response = ErrorResponse(error)
                 return error_response, 400
-            mult_node_ids = mult['node_ids']
+            mult_node_ids = mult['nodeIds']
             break
     if not multimeter_exists:
         error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not exist")
@@ -101,17 +107,23 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     sim_times = []
     measurement = MultimeterMeasurement([], [], [])
     for node in simulation_nodes.nest_simulation_nodes:
+
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))        
+        else:
+            node_id_param = None
+
         response = requests.get(
-            node+"/multimeter_measurement", params={"multimeter_id": multimeter_id, 
-            "attribute": attribute_name, "from_time": from_time,
-            "to_time": to_time, "node_ids": node_ids}).json()
+            node+"/multimeter_measurement", params={"multimeterId": multimeter_id, 
+            "attribute": attribute_name, "fromTime": from_time,
+            "toTime": to_time, "nodeIds": node_id_param}).json()
         if init:
-            sim_times = response["simulation_times"]
+            sim_times = response["simulationTimes"]
             measurement = MultimeterMeasurement(
                 sim_times, node_ids, [None for x in range(0, (len(sim_times)*len(node_ids)))])
             init = False
-        for x in range(len(response['node_ids'])):
-            node_id = response['node_ids'][x]
+        for x in range(len(response['nodeIds'])):
+            node_id = response['nodeIds'][x]
             index = measurement.node_ids.index(node_id)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
@@ -137,9 +149,22 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    # Multimeterendpoint doesnt exist in nest module yet
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/multimeters")
+    
+    multimeters = []
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        multimeters_from_sim_node = requests.get(simulation_node+"/multimeters").json()
+        if len(multimeters) == 0:
+            multimeters = multimeters_from_sim_node
+        else:
+            for i in range(len(multimeters)):
+                assert(multimeters[i]['multimeterId'] == multimeters_from_sim_node[i]['multimeterId'])
+                assert(multimeters[i]['attributes'] == multimeters_from_sim_node[i]['attributes'])
+                multimeters[i]['nodeIds'].extend(multimeters_from_sim_node[i]['nodeIds'])
+
+    for multimeter in multimeters:
+        multimeter['nodeIds'].sort()
+
+    return multimeters
 
 
 def nest_get_node_by_id(node_id):  # noqa: E501
@@ -152,8 +177,13 @@ def nest_get_node_by_id(node_id):  # noqa: E501
 
     :rtype: NestNodeProperties
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes", params={"node_id": node_id})
+    nodes = nest_get_nodes()
+    for node in nodes:
+        if node['nodeId'] is node_id:
+            return node
+    error = Error(code ="invalidNodeID", message = "Node ID doesnt exist.")
+    response = ErrorResponse(error)
+    return response, 500
 
 
 def nest_get_node_collections():  # noqa: E501
@@ -176,8 +206,12 @@ def nest_get_node_ids():  # noqa: E501
 
     :rtype: List[int]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+'/nodes/ids').json()
+    nodes = nest_get_nodes()
+    ids = []
+    for node in nodes:
+        ids.append(node['nodeId'])
+    ids.sort()
+    return ids
 
 
 def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
@@ -190,10 +224,17 @@ def nest_get_node_ids_by_node_collection(node_collection_id):  # noqa: E501
 
     :rtype: List[int]
     """
-    node_collections = nest_get_node_collections()
-
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodeCollection/ids", params={"node_collection_id": node_collection_id}).json()
+    nodes = nest_get_nodes()
+    ids = []
+    for node in nodes:
+        if node['nodeCollectionId'] is node_collection_id:
+            ids.append(node['nodeId'])
+    if len(ids) is 0:
+        error = Error(code ="invalidNodeCollectionID", message = "Node Collection ID doesnt exist.")
+        response = ErrorResponse(error)
+        return response, 500
+    ids.sort()
+    return ids
 
 
 def nest_get_nodes():  # noqa: E501
@@ -204,8 +245,10 @@ def nest_get_nodes():  # noqa: E501
 
     :rtype: List[NestNodeProperties]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes").json()
+    nodes = []
+    for simulation_node in simulation_nodes.nest_simulation_nodes:
+        nodes.extend(requests.get(simulation_node+"/nodes").json())
+    return nodes
 
 
 def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
@@ -218,8 +261,16 @@ def nest_get_nodes_by_node_collection(node_collection_id):  # noqa: E501
 
     :rtype: List[NestNodeProperties]
     """
-    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/nodes", params={"node_collection_id": node_collection_id}).json()
+    all_nodes = nest_get_nodes()
+    nodes = []
+    for node in all_nodes:
+        if node['nodeCollectionId'] is node_collection_id:
+            nodes.append(node)
+    if len(nodes) is 0:
+        error = Error(code ="invalidNodeCollectionID", message = "Node Collection ID doesnt exist.")
+        response = ErrorResponse(error)
+        return response, 500
+    return nodes
 
 
 def nest_get_simulation_time_info():  # noqa: E501
@@ -282,8 +333,14 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     """
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))        
+        else:
+            node_id_param = None        
+
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids}).json()
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param})
+        response = response.json()
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:
@@ -375,8 +432,14 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     """
     spikes = Spikes([], [])
     for node in simulation_nodes.nest_simulation_nodes:
+        
+        if node_ids is not None:
+            node_id_param = ",".join(map(str, node_ids))
+        else:
+            node_id_param = None
+
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_ids, "spikedetectorId": spikedetector_id}).json()
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id}).json()
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:

@@ -14,7 +14,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NestKernelStatus'
+                items:
+                  $ref: '#/components/schemas/NestKernelStatus'
+                type: array
           description: Operation successful.
         "500":
           content:
@@ -203,7 +205,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections/${nodeCollectionId}/nodes:
+  /nest/nodeCollections/{nodeCollectionId}/nodes:
     get:
       operationId: nest_get_nodes_by_node_collection
       parameters:
@@ -242,7 +244,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections/${nodeCollectionId}/nodes/ids:
+  /nest/nodeCollections/{nodeCollectionId}/nodes/ids:
     get:
       operationId: nest_get_node_ids_by_node_collection
       parameters:
@@ -782,23 +784,6 @@ components:
             type: number
           type: array
       type: object
-    NestNodeModel:
-      example:
-        name: iaf_psc_delta
-        parameters:
-        - C_m
-        - tau_m
-        - t_ref
-        - E_L
-        - V_reset
-        - V_m
-        - V_th
-      properties:
-        name:
-          type: string
-        parameters:
-          type: object
-      type: object
     NestNodeProperties:
       example:
         nodeId: 1
@@ -807,16 +792,18 @@ components:
         position:
         - 0.1
         - 0.2
-        model:
-          name: iaf_psc_delta
-          parameters:
-            C_m: 1.0
-            tau_m: 20.0
-            t_ref: 2.0
-            E_L: 0.0
-            V_reset: 0.0
-            V_m: 0.0
-            V_th: 20.0
+        model: iaf_psc_delta
+        status:
+          C_m: 1
+          Ca: 0
+          E_L: 0
+          I_e: 0
+          V_m: 0
+          V_min: -1.7976931348623157e+308
+          V_reset: 0
+          V_th: 20
+          archiver_length: 0
+          beta_Ca: 0.001
       properties:
         nodeId:
           format: uint64
@@ -825,7 +812,9 @@ components:
           format: uint64
           type: integer
         model:
-          $ref: '#/components/schemas/NestNodeModel'
+          type: string
+        status:
+          type: object
         position:
           items:
             type: number
@@ -840,14 +829,15 @@ components:
           count: 100
         model:
           name: iaf_psc_delta
-          parameters:
-          - C_m
-          - tau_m
-          - t_ref
-          - E_L
-          - V_reset
-          - V_m
-          - V_th
+          status:
+            C_m: 1,
+            Ca: 0,
+            E_L: 0,
+            I_e: 0,
+            V_m: 0,
+            V_min: -1.7976931348623157e+308,
+            V_reset: 0,
+            V_th: 20,
       properties:
         nodeCollectionId:
           format: uint64
@@ -856,6 +846,24 @@ components:
           $ref: '#/components/schemas/NestNodeCollectionNodes'
         model:
           $ref: '#/components/schemas/NestNodeModel'
+      type: object
+    NestNodeModel:
+      example:
+        name: iaf_psc_delta
+        status:
+          C_m: 1,
+          Ca: 0,
+          E_L: 0,
+          I_e: 0,
+          V_m: 0,
+          V_min: -1.7976931348623157e+308,
+          V_reset: 0,
+          V_th: 20,
+      properties:
+        name:
+          type: string
+        status:
+          type: object
       type: object
     NestNodeCollectionNodes:
       example:

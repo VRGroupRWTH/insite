@@ -1,7 +1,5 @@
 version: '3'
-networks:
-  internal:
-      driver: bridge
+
 services:
   access-node:
     build: ./access-node
@@ -9,17 +7,12 @@ services:
       - "8080:8080"
     depends_on:
       - "insite-nest-module"
-    command: "http://insite-nest-module:8000"
-    networks:
-      internal:
-         aliases:
-           - access-node
+    command: ["http://insite-nest-module:9000", "http://insite-nest-module:9001"]
+
   insite-nest-module:
     build: ./nest-module
+    environment:
+      - MPI_RANKS=2
     ports:
-      - "8000-8079:8000-8079"
-    networks:
-      internal:
-         aliases:
-           - insite-nest-module
+      - "9000-9005:9000-9005"
   
