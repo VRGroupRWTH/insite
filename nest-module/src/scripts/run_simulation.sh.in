@@ -1,0 +1,32 @@
+#!/bin/bash
+# Usage: run_simulation.sh file_path mpi_nodes
+
+source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
+export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
+echo "MPI_RANKS: $MPI_RANKS"
+
+
+if [ -z "$(ls -A /scripts/)" ] || [ -z "$SCRIPT_NAME" ]; then
+	entry=$1
+else
+
+	for entry in /scripts/*.py
+	do
+		echo "Found python script: $entry"
+		if [ $(basename $entry) = $SCRIPT_NAME ]; then
+		echo "Found specified simulation script: $entry"
+		break
+	  fi
+	done
+fi
+
+script_arg_array=(${SCRIPT_ARGS//;/ })
+
+if [ -z "$MPI_RANKS" ]; then
+    echo "RUNNING SCRIPT: $entry without MPI"
+    python3 $entry
+else
+    echo "RUNNING SCRIPT: $entry with $MPI_RANKS mpi_ranks"
+    mpirun -n $MPI_RANKS --mca btl_vader_single_copy_mechanism none --allow-run-as-root -x PYTHONPATH python3 $entry ${script_arg_array[@]}
+fi
+

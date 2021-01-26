@@ -1,0 +1,22 @@
+include:
+    - 'access-node/.gitlab-ci.yml'
+    - 'nest-module/.gitlab-ci.yml'
+
+stages:
+    - test
+    - deploy
+
+test:
+    tags:
+        - centos
+        - docker
+        - pytest
+    artifacts:
+        paths:
+        - docker-compose.log
+        expire_in: 1 week
+        when: always
+    script:
+        - docker-compose build
+        - pip3 install --user -r test-requirements.txt
+        - pytest --count=30 --repeat-scope=session -x

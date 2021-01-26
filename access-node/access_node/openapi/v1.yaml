@@ -1,0 +1,999 @@
+openapi: 3.0.1
+info:
+  description: This is the REST API for the in-situ pipeline.
+  title: In-Situ Pipeline REST API
+  version: 1.0.0
+servers:
+- url: /v1
+paths:
+  /nest/kernelStatus:
+    get:
+      operationId: nest_get_kernel_status
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestKernelStatus'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retreives the current status of the NEST kernel.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/multimeters:
+    get:
+      operationId: nest_get_multimeters
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/MultimeterInfo'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retreives the available multimeters and their properties.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/multimeters/{multimeterId}:
+    get:
+      operationId: nest_get_multimeter_by_id
+      parameters:
+      - description: The identifier of the multimeter.
+        explode: false
+        in: path
+        name: multimeterId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultimeterInfo'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retreives the available multimeters and their properties.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/multimeters/{multimeterId}/attributes/{attributeName}:
+    get:
+      operationId: nest_get_multimeter_measurements
+      parameters:
+      - description: The multimeter to query
+        explode: false
+        in: path
+        name: multimeterId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      - description: The attribute to query (e.g., 'V_m' for the membrane potential)
+        explode: false
+        in: path
+        name: attributeName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The start time (including) to be queried.
+        explode: true
+        in: query
+        name: fromTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time (excluding) to be queried.
+        explode: true
+        in: query
+        name: toTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: A list of node IDs queried for attribute data.
+        explode: false
+        in: query
+        name: nodeIds
+        required: false
+        schema:
+          items:
+            format: uint64
+            type: integer
+          type: array
+        style: form
+      - description: The offset into the result.
+        explode: true
+        in: query
+        name: skip
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The maximum number of entries to be returned.
+        explode: true
+        in: query
+        name: top
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultimeterMeasurement'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the measurements for a multimeter, attribute and node IDs
+        (optional).
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodeCollections:
+    get:
+      operationId: nest_get_node_collections
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestNodeCollectionProperties'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves a list of all node collection IDs.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodeCollections/{nodeCollectionId}/nodes:
+    get:
+      operationId: nest_get_nodes_by_node_collection
+      parameters:
+      - description: The identifier of the node collection
+        explode: false
+        in: path
+        name: nodeCollectionId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestNodeProperties'
+                type: array
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the list of all node within the node collection.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodeCollections/{nodeCollectionId}/nodes/ids:
+    get:
+      operationId: nest_get_node_ids_by_node_collection
+      parameters:
+      - description: The identifier of the node collection
+        explode: false
+        in: path
+        name: nodeCollectionId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example:
+                - 1
+                - 2
+                items:
+                  format: uint64
+                  type: integer
+                type: array
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the list of all node ids within the node collection.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodeCollections/{nodeCollectionId}/spikes:
+    get:
+      operationId: nest_get_spikes_by_node_collection
+      parameters:
+      - description: The identifier of the node collection.
+        explode: false
+        in: path
+        name: nodeCollectionId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      - description: The start time (including) to be queried.
+        explode: true
+        in: query
+        name: fromTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time (excluding) to be queried.
+        explode: true
+        in: query
+        name: toTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The offset into the result.
+        explode: true
+        in: query
+        name: skip
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The maximum numbers of entries to be returned.
+        explode: true
+        in: query
+        name: top
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spikes'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the spikes for the given simulation steps (optional) and
+        node collection. This request merges the spikes recorded by all spike detectors
+        and removes duplicates.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodes:
+    get:
+      operationId: nest_get_nodes
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NestNodeProperties'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves all nodes of the simulation.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodes/ids:
+    get:
+      operationId: nest_get_node_ids
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example:
+                - 1
+                - 2
+                - 3
+                - 4
+                items:
+                  format: uint64
+                  type: integer
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed.
+      summary: Retrieves a list of all node IDs.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/nodes/{nodeId}:
+    get:
+      operationId: nest_get_node_by_id
+      parameters:
+      - description: The ID of the queried node.
+        explode: false
+        in: path
+        name: nodeId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NestNodeProperties'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the properties of the specified node.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/simulationTimeInfo:
+    get:
+      operationId: nest_get_simulation_time_info
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationTimeInfo'
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed.
+      summary: Retrieves simulation time information (stepSize, begin, current, end).
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/spikedetectors/:
+    get:
+      operationId: nest_get_spikedetectors
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpikedetectorInfo'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Queries all spike detectors accessable to the pipeline.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/spikedetectors/{spikedetectorId}/spikes:
+    get:
+      operationId: nest_get_spikes_by_spikedetector
+      parameters:
+      - description: The ID of the spike detector to query.
+        explode: false
+        in: path
+        name: spikedetectorId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      - description: The start time in milliseconds (including) to be queried.
+        explode: true
+        in: query
+        name: fromTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time in milliseconds (excluding) to be queried.
+        explode: true
+        in: query
+        name: toTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: A list of node IDs queried for spike data.
+        explode: false
+        in: query
+        name: nodeIds
+        required: false
+        schema:
+          items:
+            format: uint64
+            type: integer
+          type: array
+        style: form
+      - description: The offset into the result.
+        explode: true
+        in: query
+        name: skip
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The maximum number of entries to be returned.
+        explode: true
+        in: query
+        name: top
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spikes'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the spikes for the given time range (optional) and node IDs
+        (optional) from one spike detector. If no time range or node list is specified,
+        it will return the spikes for whole time or all nodes respectively.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /nest/spikes:
+    get:
+      operationId: nest_get_spikes
+      parameters:
+      - description: The start time in milliseconds (including) to be queried.
+        explode: true
+        in: query
+        name: fromTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time in milliseconds (excluding) to be queried.
+        explode: true
+        in: query
+        name: toTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: A list of node IDs queried for spike data.
+        explode: false
+        in: query
+        name: nodeIds
+        required: false
+        schema:
+          items:
+            format: uint64
+            type: integer
+          type: array
+        style: form
+      - description: The offset into the result.
+        explode: true
+        in: query
+        name: skip
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The maximum number of entries to be returned.
+        explode: true
+        in: query
+        name: top
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spikes'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Retrieves the spikes for the given time range (optional) and node IDs
+        (optional). If no time range or node list is specified, it will return the
+        spikes for whole time or all nodes respectively. This request merges the spikes
+        recorded by all spike detectors and removes duplicates.
+      tags:
+      - nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+  /version:
+    get:
+      operationId: get_version
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Returns the deployed insite and API versions.
+      x-swagger-router-controller: access_node.controllers.version_controller
+      x-openapi-router-controller: access_node.controllers.version_controller
+components:
+  schemas:
+    Version:
+      example:
+        api:
+          v1: "1.3"
+          v2: "2.1"
+          v3: "3.5"
+        insite: "4.6"
+      properties:
+        api:
+          type: string
+        insite:
+          type: string
+      required:
+      - api
+      - insite
+      type: object
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+      required:
+      - error
+      type: object
+    Error:
+      properties:
+        code:
+          description: 'One of the error codes defined here: [...]'
+          type: string
+        message:
+          description: A human-readable representation of the error.
+          type: string
+        innererror:
+          $ref: '#/components/schemas/InnerError'
+      required:
+      - code
+      - message
+      type: object
+    InnerError:
+      properties:
+        code:
+          description: 'One of the error codes defined here: [...]'
+          type: string
+        innererror:
+          $ref: '#/components/schemas/InnerError'
+      required:
+      - code
+      type: object
+    Spikes:
+      example:
+        simulationTimes:
+        - 0.8
+        - 0.9
+        nodeIds:
+        - 1
+        - 2
+      properties:
+        simulationTimes:
+          description: This array is always sorted.
+          items:
+            format: double
+            type: number
+          type: array
+        nodeIds:
+          items:
+            format: uint64
+            type: integer
+          type: array
+      type: object
+    MultimeterMeasurement:
+      example:
+        simulationTimes:
+        - 0.1
+        - 0.2
+        nodeIds:
+        - 1
+        - 2
+        - 3
+        values:
+        - 0.123
+        - 0.123
+        - 0.123
+        - 0.123
+        - 0.123
+        - 0.123
+      properties:
+        simulationTimes:
+          description: This array is always sorted.
+          items:
+            format: double
+            type: number
+          type: array
+        nodeIds:
+          items:
+            format: uint64
+            type: integer
+          type: array
+        values:
+          description: This array contains the measured values for each node ID and
+            time to get the value for node ID n at time t you have to use the index
+            n * length(simulationTimes) + t
+          items:
+            type: number
+          type: array
+      type: object
+    NestNodeProperties:
+      example:
+        nodeId: 1
+        nodeCollectionId: 0
+        simulationNodeId: 0
+        position:
+        - 0.1
+        - 0.2
+        model: iaf_psc_delta
+        status:
+          C_m: 1
+          Ca: 0
+          E_L: 0
+          I_e: 0
+          V_m: 0
+          V_min: -1.7976931348623157e+308
+          V_reset: 0
+          V_th: 20
+          archiver_length: 0
+          beta_Ca: 0.001
+      properties:
+        nodeId:
+          format: uint64
+          type: integer
+        nodeCollectionId:
+          format: uint64
+          type: integer
+        model:
+          type: string
+        status:
+          type: object
+        position:
+          items:
+            type: number
+          type: array
+      type: object
+    NestNodeCollectionProperties:
+      example:
+        nodeCollectionId: 0
+        nodes:
+          firstId: 1
+          lastId: 100
+          count: 100
+        model:
+          name: iaf_psc_delta
+          status:
+            C_m: 1,
+            Ca: 0,
+            E_L: 0,
+            I_e: 0,
+            V_m: 0,
+            V_min: -1.7976931348623157e+308,
+            V_reset: 0,
+            V_th: 20,
+      properties:
+        nodeCollectionId:
+          format: uint64
+          type: integer
+        nodes:
+          $ref: '#/components/schemas/NestNodeCollectionNodes'
+        model:
+          $ref: '#/components/schemas/NestNodeModel'
+      type: object
+    NestNodeModel:
+      example:
+        name: iaf_psc_delta
+        status:
+          C_m: 1,
+          Ca: 0,
+          E_L: 0,
+          I_e: 0,
+          V_m: 0,
+          V_min: -1.7976931348623157e+308,
+          V_reset: 0,
+          V_th: 20,
+      properties:
+        name:
+          type: string
+        status:
+          type: object
+      type: object
+    NestNodeCollectionNodes:
+      example:
+        firstId: 1
+        lastId: 100
+        count: 100
+      properties:
+        firstId:
+          format: uint64
+          type: integer
+        lastId:
+          format: uint64
+          type: integer
+        count:
+          format: uint64
+          type: integer
+    SimulationTimeInfo:
+      example:
+        stepSize: 0.1
+        current: 2.1
+        begin: 0.1
+        end: 4.5
+      properties:
+        stepSize:
+          format: double
+          type: number
+        begin:
+          format: double
+          type: number
+        end:
+          format: double
+          type: number
+        current:
+          format: double
+          type: number
+      type: object
+    MultimeterInfo:
+      example:
+        multimeterId: 10
+        attributes:
+        - V_m
+        nodeIds:
+        - 1
+        - 3
+        - 5
+      properties:
+        multimeterId:
+          format: uint64
+          type: integer
+        attributes:
+          items:
+            type: string
+          type: array
+        nodeIds:
+          items:
+            format: uint64
+            type: integer
+          type: array
+      type: object
+    SpikedetectorInfo:
+      example:
+        spikedetectorId: 0
+        nodeIds:
+        - 1
+        - 3
+        - 5
+      properties:
+        spikedetectorId:
+          format: uint64
+          type: integer
+        nodeIds:
+          description: These are the nodes connected to the spike detector.
+          items:
+            format: uint64
+            type: integer
+          type: array
+      type: object
+    NestKernelStatus:
+      type: object
+      example:
+        "T_max": 1152921504606846.8
+        "T_min": -1152921504606846.8
+        "adaptive_spike_buffers": true
+        "adaptive_target_buffers": true
+        "buffer_size_secondary_events": 0
+        "buffer_size_spike_data": 42
+        "buffer_size_target_data": 125
+        "data_path": ""
+        "data_prefix": ""
+        "dict_miss_is_error": true
+        "grng_seed": 0
+        "growth_factor_buffer_spike_data": 1.5
+        "growth_factor_buffer_target_data": 1.5
+        "keep_source_table": true
+        "local_num_threads": 1
+        "local_spike_counter": 745
+        "max_buffer_size_spike_data": 8388608
+        "max_buffer_size_target_data": 16777216
+        "max_delay": 1.5
+        "max_num_syn_models": 512
+        "min_delay": 1.5
+        "ms_per_tic": 0.001
+        "network_size": 128
+        "num_connections": 1750
+        "num_processes": 1
+        "off_grid_spiking": false
+        "overwrite_files": true
+        "print_time": false
+        "recording_backends": {
+          "ascii": {},
+          "insite": {},
+          "memory": {},
+          "screen": {}
+        }
+        "resolution": 0.1
+        "rng_seeds": [
+          1
+        ]
+        "sort_connections_by_source": true
+        "structural_plasticity_synapses": {}
+        "structural_plasticity_update_interval": 10000
+        "tics_per_ms": 1000
+        "tics_per_step": 100
+        "time": 100
+        "time_collocate": 0
+        "time_communicate": 0
+        "to_do": 0
+        "total_num_virtual_procs": 1
+        "use_wfr": true
+        "wfr_comm_interval": 1
+        "wfr_interpolation_order": 3
+        "wfr_max_iterations": 15
+        "wfr_tol": 0.0001
