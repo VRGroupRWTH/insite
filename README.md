@@ -8,7 +8,7 @@ Currently the [NEST simulator](https://www.nest-simulator.org/) is supported by 
 <br>
 
 # REST API
-The complete API is available [here](docs/api/README.md).
+The complete API is available [here](docs/api/index.md).
 
 <br>
 
