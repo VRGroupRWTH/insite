@@ -17,6 +17,7 @@ test:
         expire_in: 1 week
         when: always
     script:
-        - docker-compose build
+        - docker-compose build --no-cache access-node
+        - docker-compose build insite-nest-module
         - pip3 install --user -r test-requirements.txt
         - pytest --count=30 --repeat-scope=session -x
