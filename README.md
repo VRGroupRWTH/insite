@@ -7,8 +7,8 @@ Currently the [NEST simulator](https://www.nest-simulator.org/) is supported by 
 
 <br>
 
-# REST API
-The complete API is available [here](docs/api/index.md).
+# Documentation
+You can find the information provided in this readme and the complete API [here](https://vrgrouprwth.github.io/insite/docs.html)
 
 <br>
 
