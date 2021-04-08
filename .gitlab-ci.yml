@@ -18,6 +18,6 @@ test:
         when: always
     script:
         - docker-compose build --no-cache access-node
-        - docker-compose build insite-nest-module
+        - docker-compose build --no-cache insite-nest-module
         - pip3 install --user -r test-requirements.txt
         - pytest --count=30 --repeat-scope=session -x
