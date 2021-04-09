@@ -1,0 +1,10 @@
+#!/bin/bash
+# Usage: run_nest_server.sh
+
+source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
+export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
+
+export NEST_SERVER_MODULES=nest,numpy
+export NEST_SERVER_RESTRICTION_OFF=true
+
+uwsgi --module nest.server:app --buffer-size 65535 --http-socket 0.0.0.0:9005
