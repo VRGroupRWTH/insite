@@ -10,7 +10,7 @@
 #include "../serialize.hpp"
 #include "kernel_manager.h"
 #include "node.h"
-#include "topology.h"
+#include "spatial.h"
 
 namespace insite {
 
@@ -89,7 +89,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
 
     // This is a null pointer for nodes simulated on other MPI ranks. However, as only the
     // local nodes should be passed into this function, this should never happen!
-    // EXCEPT for nodes representing multimeters, spike detectors, generators, etc..
+    // EXCEPT for nodes representing multimeters, spike recorders, generators, etc..
     // They are present ob every rank but only have a collection set on their "home" rank.
     if (node_collection == nullptr) {
       continue;
@@ -103,13 +103,13 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
     node["nodeStatus"] = SerializeDatum(node_status);
 
-
-    // Currently I don't see a function to check whether the node collection has a layer,
-    // so the only way to check is by catching the exception.
-    try {
-      const auto layer = nest::get_layer(node_collection);
-      node["position"] = ToJsonArray(layer->get_position_vector(node_collection->find(node_id_triple.node_id)));
-    } catch (const nest::LayerExpected&) {
+    // Check if the node has spatial positions attached to it.
+    // This should probably be replaced by something more accessible
+    // than checking against NaN.
+    std::vector<double> position = nest::get_position(node_id_triple.node_id);
+    if (position[0] != std::nan("1")) {
+      node["position"] = ToJsonArray(position);
+    } else {
       node["position"] = web::json::value::null();
     }
 
@@ -178,7 +178,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
     const NodeCollection& node_collection = node_collections_[node_collection_index];
-    
+
     // Be careful because of these nodes that are not actually local (see above).
     auto node_iterator = nodes_.find(node_id_triple.node_id);
     if (node_iterator != nodes_.end()) {
