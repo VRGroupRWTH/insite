@@ -160,8 +160,8 @@ nest.SetDefaults("poisson_generator", {"rate": p_rate})
 nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NE)), int(math.sqrt(NE))]))
 nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NI)), int(math.sqrt(NI))]))
 noise = nest.Create("poisson_generator")
-espikes = nest.Create("spike_detector")
-ispikes = nest.Create("spike_detector")
+espikes = nest.Create("spike_recorder")
+ispikes = nest.Create("spike_recorder")
 
 nest.SetStatus(espikes, [{"label": "brunel-py-ex",
                           "record_to": "insite"}])
