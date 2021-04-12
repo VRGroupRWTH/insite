@@ -29,4 +29,3 @@ else
     echo "RUNNING SCRIPT: $entry with $MPI_RANKS mpi_ranks"
     mpirun -n $MPI_RANKS --mca btl_vader_single_copy_mechanism none --allow-run-as-root -x PYTHONPATH python3 $entry ${script_arg_array[@]}
 fi
-
