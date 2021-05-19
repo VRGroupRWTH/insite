@@ -74,7 +74,7 @@ startbuild = time.time()
 
 dt = 0.1  # the resolution in ms
 simtime = float(sys.argv[1]) if len(
-    sys.argv) > 1 else 100.0  # Simulation time in ms
+    sys.argv) > 1 else 20.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
 
 
@@ -248,8 +248,13 @@ endbuild = time.time()
 
 print("Simulating")
 
-nest.Simulate(simtime)
-
+# nest.Simulate(simtime)
+# nest.Simulate(20.0)
+with nest.RunManager():
+    i = 10
+    for _ in range(3):
+        nest.Run(i)
+        i = i+10
 ###############################################################################
 # Storage of the time point after the simulation of the network in a variable.
 
