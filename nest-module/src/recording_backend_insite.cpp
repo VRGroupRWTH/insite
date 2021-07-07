@@ -74,8 +74,8 @@ void RecordingBackendInsite::cleanup() {
 
 void RecordingBackendInsite::pre_run_hook() {
   data_storage_.SetSimulationTimeRange(
-      nest::kernel().simulation_manager.get_simulate_from().get_ms(),
-      nest::kernel().simulation_manager.get_simulate_to().get_ms());
+      nest::kernel().simulation_manager.run_start_time().get_ms(),
+      nest::kernel().simulation_manager.run_end_time().get_ms());
 }
 
 void RecordingBackendInsite::post_run_hook() {
