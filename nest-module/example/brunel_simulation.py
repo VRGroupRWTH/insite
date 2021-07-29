@@ -74,7 +74,7 @@ startbuild = time.time()
 
 dt = 0.1  # the resolution in ms
 simtime = float(sys.argv[1]) if len(
-    sys.argv) > 1 else 100.0  # Simulation time in ms
+    sys.argv) > 1 else 20.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
 
 
@@ -160,8 +160,8 @@ nest.SetDefaults("poisson_generator", {"rate": p_rate})
 nodes_ex = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NE)), int(math.sqrt(NE))]))
 nodes_in = nest.Create("iaf_psc_delta", positions=nest.spatial.grid([int(math.sqrt(NI)), int(math.sqrt(NI))]))
 noise = nest.Create("poisson_generator")
-espikes = nest.Create("spike_detector")
-ispikes = nest.Create("spike_detector")
+espikes = nest.Create("spike_recorder")
+ispikes = nest.Create("spike_recorder")
 multimeter = nest.Create("multimeter")
 
 nest.SetStatus(espikes, [{"label": "brunel-py-ex",
@@ -248,8 +248,13 @@ endbuild = time.time()
 
 print("Simulating")
 
-nest.Simulate(simtime)
-
+# nest.Simulate(simtime)
+# nest.Simulate(20.0)
+with nest.RunManager():
+    i = 10
+    for _ in range(3):
+        nest.Run(i)
+        i = i+10
 ###############################################################################
 # Storage of the time point after the simulation of the network in a variable.
 

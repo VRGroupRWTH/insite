@@ -70,11 +70,6 @@ const std::string InsiteModule::name(void) const {
   return std::string("Insite NEST Module");  // Return name of the module
 }
 
-const std::string InsiteModule::commandstring(void) const {
-  // Instruct the interpreter to load InsiteModule-init.sli
-  return std::string("(InsiteModule-init) run");
-}
-
 //-------------------------------------------------------------------------------------
 
 void InsiteModule::init(SLIInterpreter* i) {

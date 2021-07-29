@@ -18,7 +18,7 @@ RUN cmake \
     /cpprestsdk
 RUN ninja && ninja install
 
-RUN git clone --single-branch --branch make-time-information-accessable https://github.com/VRGroupRWTH/nest-simulator.git /nest
+RUN git clone --single-branch --branch master https://github.com/nest/nest-simulator /nest
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \
@@ -27,6 +27,8 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     /nest
 RUN ninja && ninja install
+
+RUN pip3 install numpy RestrictedPython flask flask-cors uwsgi
 
 COPY src /insite-module
 WORKDIR /insite-module-build
@@ -41,4 +43,4 @@ ENV PGPASSWORD=postgres
 COPY example /example
 
 ENTRYPOINT ["/insite-module-build/run_simulation.sh"]
-CMD ["/example/brunel_simulation.py", "2"]
+CMD ["/example/brunel_simulation.py"]

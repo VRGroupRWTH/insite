@@ -11,7 +11,7 @@
 #include "vp_manager_impl.h"
 
 // Includes from topology:
-#include "topology.h"
+// #include "topology.h"
 
 // Includes from sli:
 #include "dictutils.h"
@@ -34,8 +34,8 @@ void RecordingBackendInsite::finalize() {
 
 void RecordingBackendInsite::enroll(const nest::RecordingDevice &device,
                                     const DictionaryDatum &params) {
-  if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
-    std::cout << "[insite] enroll spike detector (" << device.get_label() << ") with id " << device.get_node_id() << "\n";
+  if (device.get_type() == nest::RecordingDevice::SPIKE_RECORDER) {
+    std::cout << "[insite] enroll spike recorder (" << device.get_label() << ") with id " << device.get_node_id() << "\n";
     data_storage_.CreateSpikeDetectorStorage(device.get_node_id());
   } else if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     std::cout << "[insite] enroll multimeter (" << device.get_label() << ") with id " << device.get_node_id() << "\n";
@@ -73,16 +73,23 @@ void RecordingBackendInsite::cleanup() {
 }
 
 void RecordingBackendInsite::pre_run_hook() {
-  data_storage_.SetSimulationTimeRange(
-      nest::kernel().simulation_manager.get_simulate_from().get_ms(),
-      nest::kernel().simulation_manager.get_simulate_to().get_ms());
+  // data_storage_.SetSimulationTimeRange(
+  //     nest::kernel().simulation_manager.get_simulate_from().get_ms(),
+  //     nest::kernel().simulation_manager.get_simulate_to().get_ms());
 }
 
 void RecordingBackendInsite::post_run_hook() {
 }
 
+//TODO: Move timerange to pre_run_hook after NEST PR is done
 void RecordingBackendInsite::post_step_hook() {
   data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
+  data_storage_.SetSimulationTimeRange(
+          nest::kernel().simulation_manager.run_start_time().get_ms(),
+          nest::kernel().simulation_manager.run_end_time().get_ms()
+          );
+  // std::cout << "Get current simulation time: " << latest_simulation_time_ << std::endl;
+  // std::cout << "Get time from kernel: " << nest::kernel().simulation_manager.get_time().get_ms() << std::endl;
   UpdateKernelStatus();
 }
 
@@ -92,7 +99,7 @@ void RecordingBackendInsite::write(const nest::RecordingDevice &device,
                                    const std::vector<long> &long_values) {
   const auto sender_gid = event.get_sender_node_id();
   const auto time_stamp = event.get_stamp().get_ms();
-  if (device.get_type() == nest::RecordingDevice::SPIKE_DETECTOR) {
+  if (device.get_type() == nest::RecordingDevice::SPIKE_RECORDER) {
     data_storage_.AddSpike(device.get_node_id(), time_stamp, sender_gid);
   } else if (device.get_type() == nest::RecordingDevice::MULTIMETER) {
     data_storage_.AddMultimeterMeasurement(device.get_node_id(), time_stamp, sender_gid, double_values, long_values);

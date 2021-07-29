@@ -37,13 +37,6 @@ class InsiteModule : public SLIModule {
    * Return the name of your model.
    */
   const std::string name(void) const;
-
-  /**
-   * Return the name of a sli file to execute when InsiteModule is loaded.
-   * This mechanism can be used to define SLI commands associated with your
-   * module, in particular, set up type tries for functions you have defined.
-   */
-  const std::string commandstring(void) const;
 };
 
 }  // namespace insite

@@ -24,4 +24,4 @@ deploy:nest-module:master:
             [[ $VERSION =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
         - docker tag rwthvr/insite-nest-module rwthvr/insite-nest-module:$VERSION
         - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        - docker push rwthvr/insite-nest-module
+        - docker push rwthvr/insite-nest-module:$VERSION
