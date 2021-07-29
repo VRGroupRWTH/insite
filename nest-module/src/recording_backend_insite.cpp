@@ -81,16 +81,15 @@ void RecordingBackendInsite::pre_run_hook() {
 void RecordingBackendInsite::post_run_hook() {
 }
 
+//TODO: Move timerange to pre_run_hook after NEST PR is done
 void RecordingBackendInsite::post_step_hook() {
-  std::cout << "======= POST STEP HOOK =======" << std::endl;
-  // data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
+  data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
+  data_storage_.SetSimulationTimeRange(
+          nest::kernel().simulation_manager.run_start_time().get_ms(),
+          nest::kernel().simulation_manager.run_end_time().get_ms()
+          );
   // std::cout << "Get current simulation time: " << latest_simulation_time_ << std::endl;
   // std::cout << "Get time from kernel: " << nest::kernel().simulation_manager.get_time().get_ms() << std::endl;
-  // std::cout << nest::kernel().simulation_manager.get_simulate_from().get_ms() << std::endl;
-  // std::cout << nest::kernel().simulation_manager.get_simulate_to().get_ms() << std::endl;
-  std::cout << "End in run:" << nest::kernel().simulation_manager.get_number_of_cycles_in_run() * nest::Time::get_resolution().get_ms() << std::endl;
-  std::cout << "Start in run:" << nest::kernel().simulation_manager.get_start_cycle_in_run() * nest::Time::get_resolution().get_ms() << std::endl;
-  std::cout << "End in sim:" << nest::kernel().simulation_manager.get_end_cycle_in_simulation() * nest::Time::get_resolution().get_ms() << std::endl;
   UpdateKernelStatus();
 }
 
