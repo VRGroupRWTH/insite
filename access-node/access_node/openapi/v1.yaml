@@ -635,21 +635,21 @@ paths:
       responses:
         "200":
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/Spikes'
+                type: string
           description: Operation successful.
         "400":
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+             text/plain:
+               schema:
+                 type: string
           description: Operation failed due to invalid request.
         "500":
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: string
           description: Operation failed due to server error.
       summary: Retrieves the spikes for the given time range (optional) and node IDs
         (optional). If no time range or node list is specified, it will return the
