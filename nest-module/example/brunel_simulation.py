@@ -74,8 +74,9 @@ startbuild = time.time()
 
 dt = 0.1  # the resolution in ms
 simtime = float(sys.argv[1]) if len(
-    sys.argv) > 1 else 20.0  # Simulation time in ms
+    sys.argv) > 1 else 1000.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
+simtime = 1000.0
 
 
 ###############################################################################
@@ -91,7 +92,7 @@ epsilon = 0.1  # connection probability
 # recorded from
 
 order = int(sys.argv[2]) if len(
-    sys.argv) > 2 else 25 # Should be square, otherwise the position grid becomes invalid
+    sys.argv) > 2 else 625 # Should be square, otherwise the position grid becomes invalid
 NE = 4 * order  # number of excitatory neurons
 NI = 1 * order  # number of inhibitory neurons
 N_neurons = NE + NI  # number of neurons in total
@@ -248,13 +249,8 @@ endbuild = time.time()
 
 print("Simulating")
 
-# nest.Simulate(simtime)
+nest.Simulate(simtime)
 # nest.Simulate(20.0)
-with nest.RunManager():
-    i = 10
-    for _ in range(3):
-        nest.Run(i)
-        i = i+10
 ###############################################################################
 # Storage of the time point after the simulation of the network in a variable.
 
