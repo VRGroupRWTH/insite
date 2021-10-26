@@ -366,7 +366,7 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    json_string = orjson.dumps({"nodesIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
     return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
 
 def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
