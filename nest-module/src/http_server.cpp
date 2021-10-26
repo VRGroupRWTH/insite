@@ -10,6 +10,8 @@
 #include "nest_time.h"
 #include "serialize.hpp"
 #include "storage/data_storage.hpp"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 namespace insite {
 
@@ -173,6 +175,7 @@ web::http::http_response HttpServer::GetSpikes(
     const web::http::http_request& request) {
   const auto parameters = web::uri::split_query(request.request_uri().query());
 
+
   web::http::http_response response(web::http::status_codes::OK);
 
   const auto from_time_parameter = parameters.find("fromTime");
@@ -239,28 +242,29 @@ web::http::http_response HttpServer::GetSpikes(
                                     to_node_id, &filter_node_ids);
     }
   }
+ 
+  rapidjson::StringBuffer s;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
-  web::json::value node_ids = web::json::value::array(spikes.size());
-  web::json::value simulation_times = web::json::value::array(spikes.size());
-
-  {
-    size_t index = 0;
-    for (const auto& spike : spikes) {
-      node_ids[index] = spike.node_id;
-      simulation_times[index] = spike.simulation_time;
-      index++;
-    }
+  writer.StartObject();
+  writer.Key("simulationTimes");
+  writer.StartArray();
+  for (const auto& spike: spikes) {
+	  writer.Double(spike.simulation_time);
   }
+  writer.EndArray();
 
-  response.set_body(web::json::value::object(
-      {{"simulationTimes", simulation_times}, {"nodeIds", node_ids}}));
-
-  // const auto spike_happened_before = [](const Spike& spike,
-  //                                       double simulation_time) {
-  //   return spike.simulation_time < simulation_time;
-  // };
-
-  return response;
+  writer.Key("nodeIds");
+  writer.StartArray();
+  for (const auto& spike: spikes) {
+	  writer.Int(spike.node_id);
+  }
+  writer.EndArray();
+  writer.EndObject();
+  
+  web::http::http_response res(web::http::status_codes::OK);
+  res.set_body(s.GetString());
+  return res;
 }
 
 web::http::http_response HttpServer::GetMultimeters(
