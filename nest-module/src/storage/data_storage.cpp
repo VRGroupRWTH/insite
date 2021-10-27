@@ -32,6 +32,13 @@ std::ostream& operator<<(std::ostream& os, const NodeCollection& c) {
 
 DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
+void DataStorage::Reset()
+{
+    spikedetectors_.clear();
+    multimeters_.clear();
+    node_collections_.clear();
+}
+
 NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   NodeCollection received_collection;
   MPI_Status status;
@@ -203,7 +210,6 @@ std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(st
     assert(insert_result.second);
     return insert_result.first->second;
   } else {
-    spike_detector_iterator->second->Clear();
     return nullptr;
   }
 }

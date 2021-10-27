@@ -27,6 +27,8 @@ RecordingBackendInsite::RecordingBackendInsite()
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
 
 void RecordingBackendInsite::initialize() {
+    std::cout << "[insite] initialize" << std::endl;
+    data_storage_.Reset();
 }
 
 void RecordingBackendInsite::finalize() {
@@ -56,6 +58,7 @@ void RecordingBackendInsite::set_value_names(
 }
 
 void RecordingBackendInsite::prepare() {
+  std::cout << "[insite] prepare" << std::endl;
   DictionaryDatum properties(new Dictionary());
   nest::NodeCollectionPTR local_nodes = nest::kernel().node_manager.get_nodes(properties, true);
   data_storage_.SetNodesFromCollection(local_nodes);
@@ -70,6 +73,7 @@ void RecordingBackendInsite::prepare() {
 }
 
 void RecordingBackendInsite::cleanup() {
+    std::cout << "[Insite] Cleanup" <<  std::endl;
 }
 
 void RecordingBackendInsite::pre_run_hook() {
