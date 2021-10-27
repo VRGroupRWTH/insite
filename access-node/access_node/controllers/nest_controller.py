@@ -388,18 +388,20 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     :rtype: Spikes
     """
     spikes = Spikes([], [])
+    simulation_times = []
+    node_id_list = []
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeCollectionId": node_collection_id}).json()
-        for x in range(len(response["simulationTimes"])):
-            spikes.simulation_times.append(response["simulationTimes"][x])
-            spikes.node_ids.append(response["nodeIds"][x])
+            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeCollectionId": node_collection_id})
+        response = orjson.loads(response.content)
+        simulation_times = simulation_times + response["simulationTimes"]
+        node_id_list = node_id_list + response["nodeIds"]
 
     # sort
-    sorted_ids = [x for _, x in sorted(
-        zip(spikes.simulation_times, spikes.node_ids))]
-    spikes.node_ids = sorted_ids
-    spikes.simulation_times.sort()
+    sorted_lists = sort_together([simulation_times,node_id_list])
+    if sorted_lists != []:
+        spikes.simulation_times = sorted_lists[0]
+        spikes.node_ids = sorted_lists[1]
 
     # offset and limit
     if (skip is None):
@@ -408,9 +410,9 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
         top = len(spikes.node_ids) - skip
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
-
-    return spikes
-
+    
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+    return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
 
 def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
     """Retrieves the spikes for the given time range (optional) and node IDs (optional) from one spike detector. If no time range or node list is specified, it will return the spikes for whole time or all nodes respectively.
@@ -450,8 +452,9 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
 
     #sort
     sorted_lists = sort_together([simulation_times,node_id_list])
-    spikes.simulation_times = sorted_lists[0]
-    spikes.node_ids = sorted_lists[1]
+    if sorted_lists != []:
+        spikes.simulation_times = sorted_lists[0]
+        spikes.node_ids = sorted_lists[1]
 
 
     # offset and limit
