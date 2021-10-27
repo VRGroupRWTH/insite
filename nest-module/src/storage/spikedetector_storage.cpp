@@ -30,6 +30,11 @@ void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
   }
 }
 
+void SpikedetectorStorage::Clear()
+{
+    spikes_.clear();
+}
+
 void SpikedetectorStorage::ExtractConnectedNodeIds(std::vector<std::uint64_t>* node_ids) {
   assert(node_ids != nullptr);
   std::unique_lock<std::mutex> lock(mutex_);

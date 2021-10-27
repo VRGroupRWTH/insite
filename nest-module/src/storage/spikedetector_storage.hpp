@@ -37,7 +37,7 @@ class SpikedetectorStorage {
       std::uint64_t from_neuron_id = 0,
       std::uint64_t to_neuron_id = std::numeric_limits<std::uint64_t>::max(),
         std::vector<std::uint64_t> *node_ids = nullptr);
-
+  void Clear();
  private:
   std::uint64_t id_;
   std::vector<std::uint64_t> connected_nodes_;

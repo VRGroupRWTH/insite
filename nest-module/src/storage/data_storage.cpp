@@ -70,6 +70,7 @@ void SendNodeCollections(const std::vector<NodeCollection>& node_collections, in
   for (const auto node_collection : node_collections) SendNodeCollection(node_collection, dest, tag);
 }
 
+
 void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection) {
   std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
@@ -202,6 +203,7 @@ std::shared_ptr<SpikedetectorStorage> DataStorage::CreateSpikeDetectorStorage(st
     assert(insert_result.second);
     return insert_result.first->second;
   } else {
+    spike_detector_iterator->second->Clear();
     return nullptr;
   }
 }
