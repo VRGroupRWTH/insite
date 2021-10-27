@@ -3,6 +3,7 @@
 import connexion
 import sys
 
+from flask_cors import CORS
 from access_node import encoder
 
 from access_node.models.simulation_nodes import simulation_nodes
@@ -23,6 +24,8 @@ def main():
         simulation_nodes.nest_simulation_nodes = sys.argv[1:]
 
     app = connexion.App("access_node", specification_dir='./openapi/')
+    CORS(app.app)
+
     # run access_node
     app.app.json_encoder = encoder.JSONEncoder
     app.add_api('v1.yaml',

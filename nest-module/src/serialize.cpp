@@ -7,6 +7,8 @@
 #include "namedatum.h"
 #include "arraydatum.h"
 #include "dictdatum.h"
+#include <cmath>
+
 
 namespace insite {
 
@@ -14,7 +16,11 @@ web::json::value SerializeDatum(Datum* datum) {
   if (IntegerDatum* integer_datum = dynamic_cast<IntegerDatum*>(datum)) {
     return web::json::value::number(*integer_datum);
   } else if (DoubleDatum* double_datum = dynamic_cast<DoubleDatum*>(datum)) {
-    return web::json::value::number(*double_datum);
+    if(std::isfinite(*double_datum)) {
+        return web::json::value::number(*double_datum);
+    }else{
+        return web::json::value::Null;
+    }
   } else if (StringDatum* string_datum = dynamic_cast<StringDatum*>(datum)) {
     return web::json::value::string(*string_datum);
   } else if (NameDatum* name_datum = dynamic_cast<NameDatum*>(datum)) {

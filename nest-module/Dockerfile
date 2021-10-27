@@ -18,7 +18,7 @@ RUN cmake \
     /cpprestsdk
 RUN ninja && ninja install
 
-RUN git clone --single-branch --branch simulation-time https://github.com/babsey/nest-simulator.git /nest
+RUN git clone --single-branch --branch master https://github.com/nest/nest-simulator /nest
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \

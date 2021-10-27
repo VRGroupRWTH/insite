@@ -73,16 +73,23 @@ void RecordingBackendInsite::cleanup() {
 }
 
 void RecordingBackendInsite::pre_run_hook() {
-  data_storage_.SetSimulationTimeRange(
-      nest::kernel().simulation_manager.get_simulate_from().get_ms(),
-      nest::kernel().simulation_manager.get_simulate_to().get_ms());
+  // data_storage_.SetSimulationTimeRange(
+  //     nest::kernel().simulation_manager.get_simulate_from().get_ms(),
+  //     nest::kernel().simulation_manager.get_simulate_to().get_ms());
 }
 
 void RecordingBackendInsite::post_run_hook() {
 }
 
+//TODO: Move timerange to pre_run_hook after NEST PR is done
 void RecordingBackendInsite::post_step_hook() {
   data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
+  data_storage_.SetSimulationTimeRange(
+          nest::kernel().simulation_manager.run_start_time().get_ms(),
+          nest::kernel().simulation_manager.run_end_time().get_ms()
+          );
+  // std::cout << "Get current simulation time: " << latest_simulation_time_ << std::endl;
+  // std::cout << "Get time from kernel: " << nest::kernel().simulation_manager.get_time().get_ms() << std::endl;
   UpdateKernelStatus();
 }
 

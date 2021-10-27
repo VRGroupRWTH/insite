@@ -12,4 +12,5 @@ services:
   insite-nest-module:
     build: ./nest-module
     ports:
+      - "5000:5000"
       - "9000-9005:9000-9005"

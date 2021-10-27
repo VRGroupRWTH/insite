@@ -8,7 +8,7 @@ Currently the [NEST simulator](https://www.nest-simulator.org/) is supported by 
 <br>
 
 # Documentation
-You can find the information provided in this readme and the complete API [here](https://vrgrouprwth.github.io/insite/docs.html)
+You can find the information provided in this readme and the complete API [here](https://vrgrouprwth.github.io/insite/)
 
 <br>
 
@@ -43,7 +43,7 @@ services:
       - "8080:8080"
     depends_on:
       - "insite-nest-module"
-    command: ["http://insite-nest-module:9000", "http://insite-nest-module:9001"]
+    command: ["http://insite-nest-module:9000"]
 
   insite-nest-module:
     image: rwthvr/insite-nest-module
@@ -163,3 +163,9 @@ insite-nest-module:
       - MPI_RANKS=3
     ...
 ```
+
+Additionally, the address of the NEST-module must be added to the access-node's command array. E.g:
+```
+command: ["http://insite-nest-module:9000", "http://insite-nest-module:9001"]
+```
+When using the docker images "insite-nest-module" can be used as the hostname. The port port is always structured as 90XY where XY is MPI rank. For rank 3 this would be 9003 for example.
