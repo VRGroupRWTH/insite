@@ -433,6 +433,8 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     :rtype: Spikes
     """
     spikes = Spikes([], [])
+    simulation_times = []
+    node_id_list = []
     for node in simulation_nodes.nest_simulation_nodes:
         
         if node_ids is not None:
@@ -440,22 +442,17 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
         else:
             node_id_param = None
 
-        response = requests.get(
-            node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id}).json()
-        for x in range(len(response["simulationTimes"])):
-            if node_ids is not None:
-                if response["nodeIds"][x] in node_ids:
-                    spikes.simulation_times.append(response["simulationTimes"][x])
-                    spikes.node_ids.append(response["nodeIds"][x])
-            else:
-                spikes.simulation_times.append(response["simulationTimes"][x])
-                spikes.node_ids.append(response["nodeIds"][x])
+        response = requests.get(node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id})
+        
+        response = orjson.loads(response.content)
+        simulation_times = simulation_times + response["simulationTimes"]
+        node_id_list = node_id_list + response["nodeIds"]
 
-    # sort
-    sorted_ids = [x for _, x in sorted(
-        zip(spikes.simulation_times, spikes.node_ids))]
-    spikes.node_ids = sorted_ids
-    spikes.simulation_times.sort()
+    #sort
+    sorted_lists = sort_together([simulation_times,node_id_list])
+    spikes.simulation_times = sorted_lists[0]
+    spikes.node_ids = sorted_lists[1]
+
 
     # offset and limit
     if (skip is None):
@@ -465,4 +462,5 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    return spikes
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+    return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
