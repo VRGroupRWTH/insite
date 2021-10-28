@@ -267,14 +267,14 @@ double DataStorage::GetCurrentSimulationTime() const {
 }
 
 double DataStorage::GetSimulationBeginTime() const {
-  const uint64_t simulation_time_int = simulation_end_time_;
+  const uint64_t simulation_time_int = simulation_begin_time_;
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;
 }
 
 double DataStorage::GetSimulationEndTime() const {
-  const uint64_t simulation_time_int = simulation_begin_time_;
+  const uint64_t simulation_time_int = simulation_end_time_;
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;
