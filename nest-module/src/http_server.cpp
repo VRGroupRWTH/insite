@@ -56,6 +56,11 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
   std::cout << "[insite] HTTP server is listening...\n";
 }
 
+void HttpServer::ClearSimulationHasEnded()
+{
+    simulation_has_ended_ = -1;
+}
+
 void HttpServer::SimulationHasEnded(double end_time_)
 {
     simulation_has_ended_ = end_time_;

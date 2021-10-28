@@ -14,6 +14,7 @@ class HttpServer {
  public:
   HttpServer(web::http::uri address, DataStorage* storage);
   void SimulationHasEnded(double end_time);
+  void ClearSimulationHasEnded();
  private:
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;

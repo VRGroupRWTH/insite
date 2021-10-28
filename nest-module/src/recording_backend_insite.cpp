@@ -29,6 +29,7 @@ RecordingBackendInsite::~RecordingBackendInsite() throw() {}
 void RecordingBackendInsite::initialize() {
     std::cout << "[insite] initialize" << std::endl;
     data_storage_.Reset();
+    http_server_.ClearSimulationHasEnded();
 }
 
 void RecordingBackendInsite::finalize() {
