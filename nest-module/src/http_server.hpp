@@ -13,11 +13,11 @@ class DataStorage;
 class HttpServer {
  public:
   HttpServer(web::http::uri address, DataStorage* storage);
-
+  void SimulationHasEnded(double end_time);
  private:
   web::http::experimental::listener::http_listener http_listener_;
   DataStorage* storage_;
-  
+  double simulation_has_ended_ = -1;  
   web::http::http_response GetVersion(const web::http::http_request& request);
   web::http::http_response GetKernelStatus(const web::http::http_request& request);
   web::http::http_response GetCollections(const web::http::http_request& request);

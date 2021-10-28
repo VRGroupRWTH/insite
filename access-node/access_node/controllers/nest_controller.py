@@ -296,7 +296,7 @@ def nest_get_simulation_time_info():  # noqa: E501
             except:
                 error = Error(code ="SimulationNotRunning", message = "No simulation running at the moment")
                 response = ErrorResponse(error)
-                return response, 500
+                return response, 422
         time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end, step_size=step_size)
         return time_info, 200
     else:
@@ -336,6 +336,7 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     :rtype: Spikes  
     """
     spikes = Spikes([], [])
+    lastFrame =  False
     for node in simulation_nodes.nest_simulation_nodes:
         if node_ids is not None:
             node_id_param = ",".join(map(str, node_ids))        
@@ -345,6 +346,7 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
         response = requests.get(
             node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param})
         response = response.json()
+        lastFrame = response["lastFrame"]
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:
@@ -368,7 +370,7 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    return spikes
+    return {"simulationTimes":spikes.simulation_times,"nodeIds":spikes.node_ids,"lastFrame":lastFrame}
 
 
 def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
@@ -390,9 +392,11 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     :rtype: Spikes
     """
     spikes = Spikes([], [])
+    lastFrame = False
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
             node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeCollectionId": node_collection_id}).json()
+        lastFrame = response["lastFrame"]
         for x in range(len(response["simulationTimes"])):
             spikes.simulation_times.append(response["simulationTimes"][x])
             spikes.node_ids.append(response["nodeIds"][x])
@@ -411,7 +415,9 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    return spikes
+    return {"simulationTimes":spikes.simulation_times,"nodeIds":spikes.node_ids,"lastFrame":lastFrame}
+
+
 
 
 def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
@@ -435,6 +441,7 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     :rtype: Spikes
     """
     spikes = Spikes([], [])
+    lastFrame = False
     for node in simulation_nodes.nest_simulation_nodes:
         
         if node_ids is not None:
@@ -444,6 +451,7 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
 
         response = requests.get(
             node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id}).json()
+        lastFrame = response["lastFrame"]
         for x in range(len(response["simulationTimes"])):
             if node_ids is not None:
                 if response["nodeIds"][x] in node_ids:
@@ -467,4 +475,4 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    return spikes
+    return {"simulationTimes":spikes.simulation_times,"nodeIds":spikes.node_ids,"lastFrame":lastFrame}
