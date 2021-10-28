@@ -84,7 +84,7 @@ class AttributeStorage : public AttributeStorageBase {
 class MultimeterStorage {
  public:
   MultimeterStorage(std::uint64_t spikedetector_id,
-                    std::uint64_t timestep_ring_buffer_size = 1000);
+                    std::uint64_t timestep_ring_buffer_size = 1000000);
 
   // Disallow copying
   MultimeterStorage(const MultimeterStorage&) = delete;
