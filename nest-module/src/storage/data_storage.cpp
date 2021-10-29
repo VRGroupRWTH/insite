@@ -115,7 +115,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     // This should probably be replaced by something more accessible
     // than checking against NaN.
     std::vector<double> position = nest::get_position(node_id_triple.node_id);
-    if (position[0] != std::nan("1")) {
+    if (!std::isnan(position[0])) {
       node["position"] = ToJsonArray(position);
     } else {
       node["position"] = web::json::value::null();
