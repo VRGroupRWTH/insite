@@ -40,4 +40,6 @@ RUN cmake \
 RUN ninja && ninja install
 ENV PGPASSWORD=postgres
 
-ENTRYPOINT ["/insite-module-build/run_nest_server.sh"]
+COPY example /example
+
+ENTRYPOINT ["/insite-module-build/start_script.sh"]
