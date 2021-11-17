@@ -354,9 +354,9 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
 
     #sort
     sorted_lists = sort_together([simulation_times,node_id_list])
-    spikes.simulation_times = sorted_lists[0]
-    spikes.node_ids = sorted_lists[1]
-
+    if sorted_lists != []:
+        spikes.simulation_times = sorted_lists[0]
+        spikes.node_ids = sorted_lists[1]
 
     # offset and limit
     if (skip is None):
