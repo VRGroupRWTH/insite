@@ -6,7 +6,7 @@ info:
 servers:
 - url: /v1
 paths:
-  /nest/kernelStatus:
+  /nest/kernelStatus/:
     get:
       operationId: nest_get_kernel_status
       responses:
@@ -29,7 +29,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/multimeters:
+  /nest/multimeters/:
     get:
       operationId: nest_get_multimeters
       responses:
@@ -52,7 +52,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/multimeters/{multimeterId}:
+  /nest/multimeters/{multimeterId}/:
     get:
       operationId: nest_get_multimeter_by_id
       parameters:
@@ -89,7 +89,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/multimeters/{multimeterId}/attributes/{attributeName}:
+  /nest/multimeters/{multimeterId}/attributes/{attributeName}/:
     get:
       operationId: nest_get_multimeter_measurements
       parameters:
@@ -182,7 +182,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections:
+  /nest/nodeCollections/:
     get:
       operationId: nest_get_node_collections
       responses:
@@ -205,7 +205,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections/{nodeCollectionId}/nodes:
+  /nest/nodeCollections/{nodeCollectionId}/nodes/:
     get:
       operationId: nest_get_nodes_by_node_collection
       parameters:
@@ -244,7 +244,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections/{nodeCollectionId}/nodes/ids:
+  /nest/nodeCollections/{nodeCollectionId}/nodes/ids/:
     get:
       operationId: nest_get_node_ids_by_node_collection
       parameters:
@@ -287,7 +287,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodeCollections/{nodeCollectionId}/spikes:
+  /nest/nodeCollections/{nodeCollectionId}/spikes/:
     get:
       operationId: nest_get_spikes_by_node_collection
       parameters:
@@ -362,7 +362,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodes:
+  /nest/nodes/:
     get:
       operationId: nest_get_nodes
       responses:
@@ -385,7 +385,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodes/ids:
+  /nest/nodes/ids/:
     get:
       operationId: nest_get_node_ids
       responses:
@@ -414,7 +414,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/nodes/{nodeId}:
+  /nest/nodes/{nodeId}/:
     get:
       operationId: nest_get_node_by_id
       parameters:
@@ -451,7 +451,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/simulationTimeInfo:
+  /nest/simulationTimeInfo/:
     get:
       operationId: nest_get_simulation_time_info
       responses:
@@ -495,7 +495,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/spikedetectors/{spikedetectorId}/spikes:
+  /nest/spikedetectors/{spikedetectorId}/spikes/:
     get:
       operationId: nest_get_spikes_by_spikedetector
       parameters:
@@ -581,7 +581,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /nest/spikes:
+  /nest/spikes/:
     get:
       operationId: nest_get_spikes
       parameters:
@@ -659,7 +659,7 @@ paths:
       - nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
-  /version:
+  /version/:
     get:
       operationId: get_version
       responses:
