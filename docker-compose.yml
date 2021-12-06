@@ -9,7 +9,7 @@ services:
       - "insite-nest-module"
     command: ["http://insite-nest-module:9000"]
 
-  insite-nest-module:
+  nest-module:
     build: ./nest-module
     ports:
       - "5000:5000"
