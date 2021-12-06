@@ -20,13 +20,14 @@ RUN ninja && ninja install
 
 RUN git clone --single-branch --branch master https://github.com/nest/nest-simulator /nest
 WORKDIR /nest-build
+RUN apt-get install -y pandoc
+RUN pip3 install -r /nest/doc/requirements.txt
 RUN cmake \
-    -G Ninja \
     -Dwith-mpi=ON \
     -DCMAKE_INSTALL_PREFIX=/nest-install \
     -DCMAKE_BUILD_TYPE=Release \
     /nest
-RUN ninja && ninja install
+RUN make -j 8 && make html && make install
 
 RUN pip3 install numpy RestrictedPython flask flask-cors uwsgi
 
