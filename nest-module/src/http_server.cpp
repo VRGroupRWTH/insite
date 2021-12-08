@@ -58,6 +58,16 @@ HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
   std::cout << "[insite] HTTP server is listening...\n";
 }
 
+void HttpServer::ClearSimulationHasEnded()
+{
+    simulation_has_ended_ = -1;
+}
+
+void HttpServer::SimulationHasEnded(double end_time_)
+{
+    simulation_has_ended_ = end_time_;
+}
+
 web::http::http_response HttpServer::GetVersion(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
@@ -80,8 +90,8 @@ web::http::http_response HttpServer::GetCurrentSimulationTime(
 
   web::json::value response_body = web::json::value::object();
   response_body["current"] = storage_->GetCurrentSimulationTime();
-  response_body["begin"] = storage_->GetSimulationEndTime();
-  response_body["end"] = storage_->GetSimulationBeginTime();
+  response_body["begin"] = storage_->GetSimulationBeginTime();
+  response_body["end"] = storage_->GetSimulationEndTime();
   response_body["stepSize"] = nest::Time(nest::Time::step(1)).get_ms();
   response.set_body(response_body);
   return response;
@@ -243,6 +253,8 @@ web::http::http_response HttpServer::GetSpikes(
     }
   }
  
+  bool last_frame = simulation_has_ended_ != -1 && (to_time >= simulation_has_ended_);
+
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
@@ -260,6 +272,8 @@ web::http::http_response HttpServer::GetSpikes(
 	  writer.Int(spike.node_id);
   }
   writer.EndArray();
+  writer.Key("lastFrame");
+  writer.Bool(last_frame);
   writer.EndObject();
   
   web::http::http_response res(web::http::status_codes::OK);

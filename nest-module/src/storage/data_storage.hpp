@@ -94,6 +94,8 @@ class DataStorage {
     return kernel_status_;
   }
 
+  void Reset();
+
  private:
   uint64_t GetNodeCollectionIdForNodeIdNoLock(uint64_t node_id) const;
 

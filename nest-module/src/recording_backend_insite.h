@@ -61,7 +61,6 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   std::string get_port_string() const;
 
   void UpdateKernelStatus();
-
   DataStorage data_storage_;
   HttpServer http_server_;
   int simulation_node_id_;

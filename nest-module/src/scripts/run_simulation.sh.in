@@ -3,21 +3,64 @@
 
 source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
 export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
-echo "MPI_RANKS: $MPI_RANKS"
+echo "Starting simulation from simulation script..."
+echo "Starting with ${MPI_RANKS:-1} MPI ranks..."
 
+if [ -d /scripts/ ]
+then
+    if [ ! -f /scripts/examples/brunel_simulation.py ] 
+    then
+        echo "Example doesn't exist. Creating..."
 
-if [ -z "$(ls -A /scripts/)" ] || [ -z "$SCRIPT_NAME" ]; then
-	entry=$1
-else
+        if [ ! -d /scripts/examples/ ]
+        then
+            echo "Creating examples folder in script folder..."
+            mkdir /scripts/examples
+        fi
+    
+        echo "Copying brunel_simulation.py into examples folder..."
+        cp /example/brunel_simulation.py /scripts/examples/brunel_simulation.py
+    fi
+fi
 
-	for entry in /scripts/*.py
-	do
-		echo "Found python script: $entry"
-		if [ $(basename $entry) = $SCRIPT_NAME ]; then
-		echo "Found specified simulation script: $entry"
-		break
-	  fi
-	done
+if [ ! -d /scripts/ ]
+then
+    echo "Script folder isn't mounted. Falling back to builtin example simulation..."
+    entry="/example/brunel_simulation.py"
+# if no script name is supplied search for scripts in the baselevel /scripts/ folder first
+elif [ -z $SCRIPT_NAME ] && [ -n "$(ls -A /scripts/*.py 2>/dev/null)" ]
+then
+    echo "Searching for simulation scripts in script folder..."
+    for entry in /scripts/*.py
+    do
+        echo "Found python script: $entry"
+        break
+    done
+# if no script name is supplied and the /scripts/ folder baselevel has no simulation scripts search in the example folder
+elif [ -z $SCRIPT_NAME ] && [ -z "$(ls -A /scripts/*.py 2>/dev/null)" ] 
+then
+    echo "No user python scripts in script folder..."
+    echo "Searching in scripts/example...."
+    for entry in /scripts/examples/*.py
+    do
+        echo "Found python script: $entry"
+        break
+    done
+elif [ -n $SCRIPT_NAME ] && [ -n "$(ls -A /scripts/*.py 2>/dev/null)" ]
+then
+    if [ -f /scripts/$SCRIPT_NAME ]
+    then
+        entry="/scripts/$SCRIPT_NAME"
+        echo "Found specified simulation script: $entry"
+        break
+    else
+        echo "Did not find script with specified script name: $SCRIPT_NAME"
+        return
+    fi
+elif [ -n $SCRIPT_NAME ] && [ -z "$(ls -A /scripts/*.py 2>/dev/null)"]
+then
+    echo "Specific script name supplied but no scripts found in scripts folder"
+    return 
 fi
 
 script_arg_array=(${SCRIPT_ARGS//;/ })

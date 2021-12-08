@@ -27,6 +27,9 @@ RecordingBackendInsite::RecordingBackendInsite()
 RecordingBackendInsite::~RecordingBackendInsite() throw() {}
 
 void RecordingBackendInsite::initialize() {
+    std::cout << "[insite] initialize" << std::endl;
+    data_storage_.Reset();
+    http_server_.ClearSimulationHasEnded();
 }
 
 void RecordingBackendInsite::finalize() {
@@ -56,6 +59,7 @@ void RecordingBackendInsite::set_value_names(
 }
 
 void RecordingBackendInsite::prepare() {
+  std::cout << "[insite] prepare" << std::endl;
   DictionaryDatum properties(new Dictionary());
   nest::NodeCollectionPTR local_nodes = nest::kernel().node_manager.get_nodes(properties, true);
   data_storage_.SetNodesFromCollection(local_nodes);
@@ -70,6 +74,7 @@ void RecordingBackendInsite::prepare() {
 }
 
 void RecordingBackendInsite::cleanup() {
+    std::cout << "[Insite] Cleanup" <<  std::endl;
 }
 
 void RecordingBackendInsite::pre_run_hook() {
@@ -79,8 +84,9 @@ void RecordingBackendInsite::pre_run_hook() {
 }
 
 void RecordingBackendInsite::post_run_hook() {
+    data_storage_.SetCurrentSimulationTime(data_storage_.GetSimulationEndTime());
+    http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
 }
-
 //TODO: Move timerange to pre_run_hook after NEST PR is done
 void RecordingBackendInsite::post_step_hook() {
   data_storage_.SetCurrentSimulationTime(latest_simulation_time_);

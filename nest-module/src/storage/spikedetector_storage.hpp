@@ -26,7 +26,7 @@ class SpikedetectorStorage {
   // Disallow copying
   SpikedetectorStorage(const SpikedetectorStorage&) = delete;
   SpikedetectorStorage& operator=(const SpikedetectorStorage&) = delete;
-
+  ~SpikedetectorStorage();
   void Prepare(const nest::NodeCollectionPTR& all_nodes);
   void ExtractConnectedNodeIds(std::vector<std::uint64_t>* node_ids);
 
@@ -37,7 +37,6 @@ class SpikedetectorStorage {
       std::uint64_t from_neuron_id = 0,
       std::uint64_t to_neuron_id = std::numeric_limits<std::uint64_t>::max(),
         std::vector<std::uint64_t> *node_ids = nullptr);
-
  private:
   std::uint64_t id_;
   std::vector<std::uint64_t> connected_nodes_;

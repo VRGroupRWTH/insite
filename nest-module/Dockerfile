@@ -57,5 +57,4 @@ ENV PGPASSWORD=postgres
 
 COPY example /example
 
-ENTRYPOINT ["/insite-module-build/run_simulation.sh"]
-CMD ["/example/brunel_simulation.py"]
+ENTRYPOINT ["/insite-module-build/start_script.sh"]

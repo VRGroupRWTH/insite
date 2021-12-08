@@ -32,6 +32,13 @@ std::ostream& operator<<(std::ostream& os, const NodeCollection& c) {
 
 DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
 
+void DataStorage::Reset()
+{
+    spikedetectors_.clear();
+    multimeters_.clear();
+    node_collections_.clear();
+}
+
 NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   NodeCollection received_collection;
   MPI_Status status;
@@ -70,6 +77,7 @@ void SendNodeCollections(const std::vector<NodeCollection>& node_collections, in
   for (const auto node_collection : node_collections) SendNodeCollection(node_collection, dest, tag);
 }
 
+
 void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection) {
   std::unique_lock<std::mutex> lock(node_collections_mutex_);
   std::set<nest::NodeCollection*> node_handles_node_connections;
@@ -107,7 +115,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     // This should probably be replaced by something more accessible
     // than checking against NaN.
     std::vector<double> position = nest::get_position(node_id_triple.node_id);
-    if (position[0] != std::nan("1")) {
+    if (!std::isnan(position[0])) {
       node["position"] = ToJsonArray(position);
     } else {
       node["position"] = web::json::value::null();
@@ -259,14 +267,14 @@ double DataStorage::GetCurrentSimulationTime() const {
 }
 
 double DataStorage::GetSimulationBeginTime() const {
-  const uint64_t simulation_time_int = simulation_end_time_;
+  const uint64_t simulation_time_int = simulation_begin_time_;
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;
 }
 
 double DataStorage::GetSimulationEndTime() const {
-  const uint64_t simulation_time_int = simulation_begin_time_;
+  const uint64_t simulation_time_int = simulation_end_time_;
   double simulation_time;
   memcpy(&simulation_time, &simulation_time_int, sizeof(simulation_time));
   return simulation_time;

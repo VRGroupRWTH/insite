@@ -345,6 +345,12 @@ if ( ( NOT CMAKE_CROSSCOMPILING )
 endif ()
 
 configure_file(
+  ${CMAKE_SOURCE_DIR}/scripts/start_script.sh.in
+  ${CMAKE_BINARY_DIR}/start_script.sh
+  @ONLY
+)
+
+configure_file(
   ${CMAKE_SOURCE_DIR}/scripts/run_simulation.sh.in
   ${CMAKE_BINARY_DIR}/run_simulation.sh
   @ONLY

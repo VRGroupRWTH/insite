@@ -292,12 +292,16 @@ def nest_get_simulation_time_info():  # noqa: E501
         end = 0
         step_size = 0
         for node in simulation_nodes.nest_simulation_nodes:
-            response = requests.get(node+"/simulationTimeInfo").json()
-            current_time = min(current_time, response["current"])
-            begin = max(begin, response["begin"])
-            end = max(end, response["end"])
-            step_size = response["stepSize"]
-
+            try:
+                response = requests.get(node+"/simulationTimeInfo").json()
+                current_time = min(current_time, response["current"])
+                begin = max(begin, response["begin"])
+                end = max(end, response["end"])
+                step_size = response["stepSize"]
+            except:
+                error = Error(code ="SimulationNotRunning", message = "No simulation running at the moment")
+                response = ErrorResponse(error)
+                return response, 422
         time_info = SimulationTimeInfo(current=current_time, begin=begin, end=end, step_size=step_size)
         return time_info, 200
     else:
@@ -336,10 +340,13 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
 
     :rtype: Spikes  
     """
+
     app = connexion.FlaskApp(__name__)
     spikes = Spikes([],[])
     simulation_times = []
     node_id_list = []
+    lastFrame =  False
+
     for node in simulation_nodes.nest_simulation_nodes:
         if node_ids is not None:
             node_id_param = ",".join(map(str, node_ids))        
@@ -351,6 +358,8 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
         response = orjson.loads(response.content)
         simulation_times = simulation_times + response["simulationTimes"]
         node_id_list = node_id_list + response["nodeIds"]
+        lastFrame = response["lastFrame"]
+
 
     #sort
     sorted_lists = sort_together([simulation_times,node_id_list])
@@ -366,8 +375,9 @@ def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times,"lastFrame":lastFrame})
     return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
+
 
 def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_time=None, skip=None, top=None):  # noqa: E501
     """Retrieves the spikes for the given simulation steps (optional) and node collection. This request merges the spikes recorded by all spike detectors and removes duplicates.
@@ -390,12 +400,15 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     spikes = Spikes([], [])
     simulation_times = []
     node_id_list = []
+    lastFrame=False
     for node in simulation_nodes.nest_simulation_nodes:
         response = requests.get(
             node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeCollectionId": node_collection_id})
         response = orjson.loads(response.content)
+        lastFrame = response["lastFrame"]
         simulation_times = simulation_times + response["simulationTimes"]
         node_id_list = node_id_list + response["nodeIds"]
+
 
     # sort
     sorted_lists = sort_together([simulation_times,node_id_list])
@@ -410,9 +423,10 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
         top = len(spikes.node_ids) - skip
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
-    
-    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times,"lastFrame":lastFrame})
     return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
+
 
 def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
     """Retrieves the spikes for the given time range (optional) and node IDs (optional) from one spike detector. If no time range or node list is specified, it will return the spikes for whole time or all nodes respectively.
@@ -437,6 +451,8 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     spikes = Spikes([], [])
     simulation_times = []
     node_id_list = []
+    lastFrame = False
+
     for node in simulation_nodes.nest_simulation_nodes:
         
         if node_ids is not None:
@@ -457,6 +473,7 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
         spikes.node_ids = sorted_lists[1]
 
 
+
     # offset and limit
     if (skip is None):
         skip = 0
@@ -465,5 +482,6 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
     spikes.node_ids = spikes.node_ids[skip:skip+top]
     spikes.simulation_times = spikes.simulation_times[skip:skip+top]
 
-    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times})
+    json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times, "lastFrame":lastFrame})
     return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
+

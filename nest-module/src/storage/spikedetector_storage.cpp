@@ -10,6 +10,10 @@ SpikedetectorStorage::SpikedetectorStorage(std::uint64_t spikedetector_id,
   spikes_.reserve(ring_buffer_size);
 }
 
+SpikedetectorStorage::~SpikedetectorStorage()
+{
+}
+
 void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
   std::unique_lock<std::mutex> lock(mutex_);
   nest::NodeCollectionPTR spike_detector_collection =

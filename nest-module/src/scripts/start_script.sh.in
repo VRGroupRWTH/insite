@@ -1,0 +1,12 @@
+#!/bin/bash
+# Usage: start_script.sh
+
+
+if [ "$INSITE_DOCKER_USE_NEST_SERVER" == 1 ]
+then
+    echo "Running with NEST SERVER"
+    source run_nest_server.sh
+else
+    echo "Running without NEST SERVER"
+    source run_simulation.sh
+fi
