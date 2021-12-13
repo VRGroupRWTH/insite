@@ -461,8 +461,9 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
             node_id_param = None
 
         response = requests.get(node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id})
-        
+         
         response = orjson.loads(response.content)
+        lastFrame = response["lastFrame"]
         simulation_times = simulation_times + response["simulationTimes"]
         node_id_list = node_id_list + response["nodeIds"]
 
