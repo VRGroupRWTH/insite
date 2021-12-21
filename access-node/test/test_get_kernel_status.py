@@ -13,7 +13,7 @@ from six import string_types
 URL_NEST_GET_KERNEL_STATUS = BASE_REQUEST_URL + "/kernelStatus"
 
 #Dictionary that matches the names of the Kernel_status_infos to their corresponding data-types
-KERNEL_STATUS_JSON_LIST_ENTRIES = {
+KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
     "T_max" : float,
     "T_min" : float,
     'adaptive_spike_buffers' : bool,
@@ -79,7 +79,7 @@ def test_get_kernel_status(nest_simulation):
     for kernel_status in kernel_statuses:
         assert (isinstance(kernel_status, dict))
 
-        for status_info, status_info_type in KERNEL_STATUS_JSON_LIST_ENTRIES.items():
+        for status_info, status_info_type in KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES.items():
             assert(status_info in kernel_status)
             assert(isinstance(kernel_status[status_info], status_info_type))
 
