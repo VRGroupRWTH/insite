@@ -20,6 +20,7 @@ class NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES:
     lastId = "lastId"
     firstId = "firstId"
 
+#Tests a NEST_GET_SPIKES_PER_NODE_NODE_COLLECTION_REQUEST by checking if every returned collection can be accessed via its own URL
 def test_get_nest_spikes_per_node_collection(nest_simulation):
     node_collections = check_request_valid(URL_NEST_GET_SPIKES_PER_NODE_COLLECTION)
 
