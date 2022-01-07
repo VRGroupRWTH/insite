@@ -356,12 +356,6 @@ configure_file(
   @ONLY
 )
 
-configure_file(
-  ${CMAKE_SOURCE_DIR}/scripts/run_nest_server.sh.in
-  ${CMAKE_BINARY_DIR}/run_nest_server.sh
-  @ONLY
-)
-
 message( "" )
 message( "-------------------------------------------------------" )
 message( "${MODULE_NAME} Configuration Summary" )

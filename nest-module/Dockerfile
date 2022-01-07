@@ -2,13 +2,55 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    cmake g++ make ninja-build python3 python3-dev python3-pip python3-numpy python3-scipy python3-matplotlib \
-    git gsl-bin libgsl0-dev libltdl-dev libtool netcat \
-    libboost-atomic-dev libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-regex-dev \
-    libboost-filesystem-dev libboost-random-dev libboost-chrono-dev libboost-serialization-dev \
-    libwebsocketpp-dev openssl libssl-dev ninja-build \
-    openmpi-bin libopenmpi-dev python3-venv pandoc
-RUN python3 -m pip install Cython
+    cmake \
+    g++ \
+    git \
+    gsl-bin \
+    libboost-atomic-dev \
+    libboost-chrono-dev \
+    libboost-date-time-dev \
+    libboost-filesystem-dev \
+    libboost-random-dev \
+    libboost-regex-dev \
+    libboost-serialization-dev \
+    libboost-system-dev \
+    libboost-thread-dev \
+    libgsl0-dev \
+    libltdl-dev \
+    libopenmpi-dev \
+    libssl-dev \
+    libtool \
+    libwebsocketpp-dev  \
+    make \
+    netcat \
+    ninja-build \
+    openmpi-bin \
+    openssl \
+    pandoc \
+    python3 \
+    python3-dev \
+    python3-matplotlib \
+    python3-numpy \
+    python3-pip \
+    python3-scipy \
+    python3-venv \
+    uwsgi
+
+
+# Install Python package to build NEST Simulator
+RUN python3 -m pip install --upgrade \
+    Cython \
+    pip
+    # setuptools
+    # wheel
+
+# Install Python package for NEST Server
+RUN python3 -m pip install --upgrade \
+    flask-cors \
+    flask \
+    pandoc \
+    RestrictedPython \
+    uwsgi
 
 
 # Install C++ REST SDK
@@ -28,9 +70,10 @@ RUN ninja && ninja install
 
 # Install NEST Simulator
 RUN git clone \
-    --branch master \
+    --branch nest-server-command \
     --depth 1 \
-    https://github.com/nest/nest-simulator /nest
+    https://github.com/babsey/nest-simulator /nest
+RUN python3 -m pip install -r /nest/doc/requirements.txt
 WORKDIR /nest-build
 RUN cmake \
     -G Ninja \
@@ -39,18 +82,6 @@ RUN cmake \
     -DCMAKE_INSTALL_PREFIX=/nest-install \
     -DCMAKE_BUILD_TYPE=Release \
     /nest
-
-RUN python3 -m pip install --upgrade \
-    flask-cors \
-    flask \
-    pandoc \
-    pip \
-    RestrictedPython \
-    setuptools \
-    uwsgi \
-    wheel
-RUN python3 -m pip install -r /nest/doc/requirements.txt
-
 RUN ninja \
     && ninja html \
     && ninja install

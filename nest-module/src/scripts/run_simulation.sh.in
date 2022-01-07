@@ -1,14 +1,12 @@
 #!/bin/bash
 # Usage: run_simulation.sh file_path mpi_nodes
 
-source @NEST_INSTALL_PREFIX@/bin/nest_vars.sh
-export LD_LIBRARY_PATH=$NEST_MODULE_PATH:/usr/local/lib/:$LD_LIBRARY_PATH
 echo "Starting simulation from simulation script..."
 echo "Starting with ${MPI_RANKS:-1} MPI ranks..."
 
 if [ -d /scripts/ ]
 then
-    if [ ! -f /scripts/examples/brunel_simulation.py ] 
+    if [ ! -f /scripts/examples/brunel_simulation.py ]
     then
         echo "Example doesn't exist. Creating..."
 
@@ -17,7 +15,7 @@ then
             echo "Creating examples folder in script folder..."
             mkdir /scripts/examples
         fi
-    
+
         echo "Copying brunel_simulation.py into examples folder..."
         cp /example/brunel_simulation.py /scripts/examples/brunel_simulation.py
     fi
@@ -37,7 +35,7 @@ then
         break
     done
 # if no script name is supplied and the /scripts/ folder baselevel has no simulation scripts search in the example folder
-elif [ -z $SCRIPT_NAME ] && [ -z "$(ls -A /scripts/*.py 2>/dev/null)" ] 
+elif [ -z $SCRIPT_NAME ] && [ -z "$(ls -A /scripts/*.py 2>/dev/null)" ]
 then
     echo "No user python scripts in script folder..."
     echo "Searching in scripts/example...."
@@ -60,7 +58,7 @@ then
 elif [ -n $SCRIPT_NAME ] && [ -z "$(ls -A /scripts/*.py 2>/dev/null)"]
 then
     echo "Specific script name supplied but no scripts found in scripts folder"
-    return 
+    return
 fi
 
 script_arg_array=(${SCRIPT_ARGS//;/ })
