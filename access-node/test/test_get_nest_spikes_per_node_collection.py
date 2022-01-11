@@ -40,8 +40,13 @@ def test_get_nest_spikes_per_node_collection(nest_simulation):
     assert(len(collection_ids) > 0)
 
     for collection_id in collection_ids:
-      url = URL_NEST_GET_SPIKES_PER_NODE_COLLECTION + "/{0}/spikes".format(collection_id)
+      url = (URL_NEST_GET_SPIKES_PER_NODE_COLLECTION + "/{0}/spikes").format(collection_id)
       spikes = return_json_body_if_status_ok(url)
+      
+      spikes_is_data_length_valid(spikes, True)
+      spikes_is_sorted_by_time(spikes)
+      spikes_nodeIds_are_greater_or_equal_than(spikes, 0)
+      spikes_simulation_times_are_greater_or_equal_than(spikes, 0)
 
       current_collection = next(item for item in node_collections if item[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodeCollectionId] == collection_id)
 

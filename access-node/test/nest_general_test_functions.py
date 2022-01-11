@@ -39,12 +39,14 @@ def spikes_nodeIds_are_greater_or_equal_than(spikes, minimum):
         assert(id >= minimum)
 
 #Checks if the length of the two given spike-data sets is equal and if exactly the two wanted data-sets are included
-def spikes_is_data_length_valid(spikes):
+def spikes_is_data_length_valid(spikes, canBeEmpty = False):
     assert(JSON_VALUE_TO_FIELD_NAME.simulationTimes.value in spikes)
     assert(JSON_VALUE_TO_FIELD_NAME.nodeIds.value in spikes)
     assert(len(spikes.keys()) == 2)
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
-    assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) > 0)
+
+    if not canBeEmpty:
+        assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) > 0)
 
 #Checks and returns whether the two given spike data-sets are equal
 def spikes_is_data_equal(spike_data_a, spike_data_b):
