@@ -19,15 +19,23 @@ class NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES:
     nodes = "nodes"
     lastId = "lastId"
     firstId = "firstId"
+    model = "model"
 
 #Tests a NEST_GET_SPIKES_PER_NODE_NODE_COLLECTION_REQUEST by checking if every returned collection can be accessed via its own URL
 def test_get_nest_spikes_per_node_collection(nest_simulation):
     node_collections = return_json_body_if_status_ok(URL_NEST_GET_SPIKES_PER_NODE_COLLECTION)
+  
+    assert(len(node_collections ) > 0)
 
     collection_ids = []
 
     for collection in node_collections:
       collection_ids.append(collection[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodeCollectionId])
+      assert(NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodes in collection)
+      assert(NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodeCollectionId in collection)
+      assert(NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.model in collection)
+      assert(len(collection[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodes]) > 0)
+      assert(len(collection[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.model]) > 0)
     
     assert(len(collection_ids) > 0)
 
