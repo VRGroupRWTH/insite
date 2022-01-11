@@ -48,12 +48,8 @@ def spikes_is_data_length_valid(spikes):
 
 #Checks and returns whether the two given spike data-sets are equal
 def spikes_is_data_equal(spike_data_a, spike_data_b):
-    assert(len(spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) == len(spike_data_b[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
-    assert(len(spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]))
-    
-    for i in range(len(spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])):
-        assert(spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][i] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][i])
-        assert(spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i])
+    spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]
+    spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]
 
 #Checks if the given simulation times are all greater than the desired time
 def spikes_simulation_times_are_greater_or_equal_than(spikes, minimum_time):
