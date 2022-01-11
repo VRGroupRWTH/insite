@@ -71,9 +71,11 @@ def spikes_has_offset(skipped_spikes, non_skipped_spikes, skip):
     assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]))
     assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
-    for i in range(len(skipped_spikes)):
-        assert(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][skip + i] == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i])
-        assert(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][skip + i] == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][i])    
+    skipped_nodeIds = non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][skip::]
+    skipped_simulationTimes = non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][skip::]
+
+    assert(skipped_nodeIds == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value])
+    assert(skipped_simulationTimes == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])
 
 #Receives an list of spikes as input that was queried with the offset set to a value > 0.
 #Method queries all spikes again and applies the offset afterwards to compare the result with the list given as the input.
@@ -180,7 +182,7 @@ def get_offset_spike_data(spikes, offset):
 
 #Filters and returns the given spike data by only keeping the desired number of top-entries. 
 #E.g. Applying the function to [6,4,2,5,0] with a "max_number" of 2 would result in [6,4]
-def keep_top_spike_data(spikes, max_number):
+def get_top_spike_data(spikes, max_number):
     filtered_times = []
     filtered_nodes = []
 
@@ -208,7 +210,7 @@ def filter_spike_data_with_parameters(spikes, parameter_values, parameter_set_li
     if parameter_set_list[3]:
         spikes = get_offset_spike_data(spikes, parameter_values[3])
     if parameter_set_list[4]:
-        spikes = keep_top_spike_data(spikes, parameter_values[4])
+        spikes = get_top_spike_data(spikes, parameter_values[4])
 
     return spikes
 
