@@ -22,7 +22,7 @@ class NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES:
 
 #Tests a NEST_GET_SPIKES_PER_NODE_NODE_COLLECTION_REQUEST by checking if every returned collection can be accessed via its own URL
 def test_get_nest_spikes_per_node_collection(nest_simulation):
-    node_collections = check_request_valid(URL_NEST_GET_SPIKES_PER_NODE_COLLECTION)
+    node_collections = return_json_body_if_status_ok(URL_NEST_GET_SPIKES_PER_NODE_COLLECTION)
 
     collection_ids = []
 
@@ -31,7 +31,7 @@ def test_get_nest_spikes_per_node_collection(nest_simulation):
     
     for collection_id in collection_ids:
       url = URL_NEST_GET_SPIKES_PER_NODE_COLLECTION + "/{0}/spikes".format(collection_id)
-      spikes = check_request_valid(url)
+      spikes = return_json_body_if_status_ok(url)
 
       current_collection = next(item for item in node_collections if item[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodeCollectionId] == collection_id)
 

@@ -73,7 +73,7 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
 #Tests a nest_get_kernel_status by checking if the response code is valid, all required information is included and the has the correct data-type for every kernel_status
 def test_get_kernel_status(nest_simulation):
 
-    kernel_statuses = check_request_valid(URL_NEST_GET_KERNEL_STATUS)
+    kernel_statuses = return_json_body_if_status_ok(URL_NEST_GET_KERNEL_STATUS)
     assert (isinstance(kernel_statuses, list))
 
     for kernel_status in kernel_statuses:

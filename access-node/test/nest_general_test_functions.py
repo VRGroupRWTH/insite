@@ -10,37 +10,36 @@ from requests.sessions import Request
 from config import *
 
 #Checks if the given HTTP-request has a valid http-response-code. Returns the spike-data in Json format.
-def check_request_valid(request):
+def return_json_body_if_status_ok(request):
     request = requests.get(request)
     assert(request.status_code == requests.codes.ok)
-    spikes = request.json()
-    return spikes
+    return request.json()
 
 #Converts the given spike data to pairs out of nodeId and corresponding simulation times
 def zip_spikes(spikes):
     return zip(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value], spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])
 
 #Checks if the given spike data has a correct length, is sorted by time and does not include values smaller than zero
-def spikes_check_if_valid_format(spikes):
-    spikes_check_data_length_valid(spikes)
-    spikes_check_if_sorted_by_time(spikes)
-    spikes_check_if_nodeIds_are_greater_or_equal_than(spikes, 0)
-    spikes_check_if_simulation_times_are_greater_or_equal_than(spikes, 0)
+def spikes_is_valid_format(spikes):
+    spikes_is_data_length_valid(spikes)
+    spikes_is_sorted_by_time(spikes)
+    spikes_nodeIds_are_greater_or_equal_than(spikes, 0)
+    spikes_simulation_times_are_greater_or_equal_than(spikes, 0)
 
 #Checks that every entry is greater or equal than his predecessor
-def spikes_check_if_sorted_by_time(spikes):
+def spikes_is_sorted_by_time(spikes):
     previous_time = 0
     for time in spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]:
         assert(time >= previous_time)
         previous_time = time
 
 #Checks if nodeIds of the given spike data have the desired minimum
-def spikes_check_if_nodeIds_are_greater_or_equal_than(spikes, minimum):
+def spikes_nodeIds_are_greater_or_equal_than(spikes, minimum):
     for id in spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]:
         assert(id >= minimum)
 
 #Checks if the length of the two given spike-data sets is equal and if exactly the two wanted data-sets are included
-def spikes_check_data_length_valid(spikes):
+def spikes_is_data_length_valid(spikes):
     assert(JSON_VALUE_TO_FIELD_NAME.simulationTimes.value in spikes)
     assert(JSON_VALUE_TO_FIELD_NAME.nodeIds.value in spikes)
     assert(len(spikes.keys()) == 2)
@@ -48,7 +47,7 @@ def spikes_check_data_length_valid(spikes):
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) > 0)
 
 #Checks and returns whether the two given spike data-sets are equal
-def spikes_check_if_data_are_equal(spike_data_a, spike_data_b):
+def spikes_is_data_equal(spike_data_a, spike_data_b):
     assert(len(spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) == len(spike_data_b[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
     assert(len(spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]))
     
@@ -57,22 +56,22 @@ def spikes_check_if_data_are_equal(spike_data_a, spike_data_b):
         assert(spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i])
 
 #Checks if the given simulation times are all greater than the desired time
-def spikes_check_if_simulation_times_are_greater_or_equal_than(spikes, minimum_time):
+def spikes_simulation_times_are_greater_or_equal_than(spikes, minimum_time):
     for time in spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]:
         assert(time >= minimum_time)
     
 #Checks if the given simulation times are all smaller than the desired time
-def spikes_check_if_simulation_times_are_smaller_or_equal_than(spikes, maximum_time):
+def spikes_simulation_times_are_smaller_or_equal_than(spikes, maximum_time):
     for time in spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]:
         assert(time <= maximum_time)
 
 #Checks if the given spike-data only includes the desired nodeIDs
-def spikes_check_if_only_nodeIds_included(spikes, nodeId_list):
+def spikes_nodeIds_are_subset(spikes, nodeId_list):
     for id in spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]:
         assert(id in nodeId_list)
 
 #Checks if the given skipped spikes have the desired offset in comparison to the given unskipped spikes
-def spikes_check_if_has_offset(skipped_spikes, non_skipped_spikes, skip):
+def spikes_has_offset(skipped_spikes, non_skipped_spikes, skip):
     assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]))
     assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
@@ -81,7 +80,7 @@ def spikes_check_if_has_offset(skipped_spikes, non_skipped_spikes, skip):
         assert(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][skip + i] == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][i])    
 
 #Checks if the given spike-data has the offset defined in parameters in comparison to the spike-data with the given parameters but without the offset
-def spikes_check_if_has_offset_to_request_with_parameters(REQUEST_URL, skipped_spikes, PARAMETER_NAME_LIST, nest_get_spikes_query_parameters, parameter_set_combination = [True, True, True, True, True]):
+def spikes_has_offset_in_comparison_to(REQUEST_URL, skipped_spikes, PARAMETER_NAME_LIST, nest_get_spikes_query_parameters, parameter_set_combination = [True, True, True, True, True]):
     parameter_set_combination = list(parameter_set_combination)
 
     if parameter_set_combination[4]:
@@ -89,8 +88,8 @@ def spikes_check_if_has_offset_to_request_with_parameters(REQUEST_URL, skipped_s
         parameter_set_combination[4] = False
     
         query_string_no_skip_no_top = build_query_string(REQUEST_URL, PARAMETER_NAME_LIST, nest_get_spikes_query_parameters, parameter_set_combination)
-        spikes_no_skip_no_top = check_request_valid(query_string_no_skip_no_top)
-        spikes_check_if_valid_format(spikes_no_skip_no_top)
+        spikes_no_skip_no_top = return_json_body_if_status_ok(query_string_no_skip_no_top)
+        spikes_is_valid_format(spikes_no_skip_no_top)
         
         startIndex = nest_get_spikes_query_parameters[3]
         endIndex = nest_get_spikes_query_parameters[3] + nest_get_spikes_query_parameters[4]
@@ -98,22 +97,22 @@ def spikes_check_if_has_offset_to_request_with_parameters(REQUEST_URL, skipped_s
         spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][startIndex:endIndex]
         spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][startIndex:endIndex]
 
-        spikes_check_if_has_offset(skipped_spikes, spikes_no_skip_no_top, 0)
+        spikes_has_offset(skipped_spikes, spikes_no_skip_no_top, 0)
     else:
         parameter_set_combination[3] = False
         query_string_no_skip = build_query_string(REQUEST_URL, PARAMETER_NAME_LIST, nest_get_spikes_query_parameters, parameter_set_combination)
-        spikes_no_skip = check_request_valid(query_string_no_skip)
-        spikes_check_if_valid_format(spikes_no_skip)
+        spikes_no_skip = return_json_body_if_status_ok(query_string_no_skip)
+        spikes_is_valid_format(spikes_no_skip)
 
-        spikes_check_if_has_offset(skipped_spikes, spikes_no_skip, nest_get_spikes_query_parameters[3])
+        spikes_has_offset(skipped_spikes, spikes_no_skip, nest_get_spikes_query_parameters[3])
 
 #Checks if the given spike-data the desired amount of entries
-def spikes_check_if_number_of_entries_less_or_equal_to(spikes, maximum_number):
+def spikes_length_less_or_equal_to(spikes, maximum_number):
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) <= maximum_number)
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) <= maximum_number)
 
 #Filters and returns the given spike data by deleting every entrie with a simulation time higher than the minimum time
-def filter_for_spike_data_with_minimum_time(spikes, minimum_time):
+def get_spikes_with_minimum_time(spikes, minimum_time):
     filtered_times = []
     filtered_nodes = []
 
@@ -129,7 +128,7 @@ def filter_for_spike_data_with_minimum_time(spikes, minimum_time):
     return spikes
 
 #Filters and returns the given spike data by deleting every entry with a simulation time lower than the maximum time
-def filter_for_spike_data_with_maximum_time(spikes, maximum_time):
+def get_spikes_with_maximum_time(spikes, maximum_time):
     filtered_times = []
     filtered_nodes = []
 
@@ -145,7 +144,7 @@ def filter_for_spike_data_with_maximum_time(spikes, maximum_time):
     return spikes
 
 #Filters and returns the given spike data by deleting every entry that does not belong to one of the given nodeIds
-def filter_for_spike_data_with_nodeIds(spikes, nodeIds):
+def get_spikes_with_nodeIds(spikes, nodeIds):
     filtered_times = []
     filtered_nodes = []
 
@@ -161,7 +160,7 @@ def filter_for_spike_data_with_nodeIds(spikes, nodeIds):
     return spikes
 
 #Offsets the given spike data by the desired amount and returns the result
-def offset_spike_data(spikes, offset):
+def get_offset_spike_data(spikes, offset):
     filtered_times = []
     filtered_nodes = []
 
@@ -179,7 +178,7 @@ def offset_spike_data(spikes, offset):
     return spikes
 
 #Filters and returns the given spike data by only keeping the desired number of entries
-def only_keep_top_spike_data(spikes, max_number):
+def keep_top_spike_data(spikes, max_number):
     filtered_times = []
     filtered_nodes = []
 
@@ -197,17 +196,17 @@ def only_keep_top_spike_data(spikes, max_number):
     return spikes
 
 #Applies the given parameters to the given, non filtered spike data and returns the filtered result
-def filter_spike_data_with_parameters_locally(spikes, parameter_values, parameter_set_list):
+def filter_spike_data_with_parameters(spikes, parameter_values, parameter_set_list):
     if parameter_set_list[0]:
-        spikes = filter_for_spike_data_with_minimum_time(spikes, parameter_values[0])
+        spikes = get_spikes_with_minimum_time(spikes, parameter_values[0])
     if parameter_set_list[1]:
-        spikes = filter_for_spike_data_with_maximum_time(spikes, parameter_values[1])
+        spikes = get_spikes_with_maximum_time(spikes, parameter_values[1])
     if parameter_set_list[2]:
-        spikes = filter_for_spike_data_with_nodeIds(spikes, parameter_values[2])
+        spikes = get_spikes_with_nodeIds(spikes, parameter_values[2])
     if parameter_set_list[3]:
-        spikes = offset_spike_data(spikes, parameter_values[3])
+        spikes = get_offset_spike_data(spikes, parameter_values[3])
     if parameter_set_list[4]:
-        spikes = only_keep_top_spike_data(spikes, parameter_values[4])
+        spikes = keep_top_spike_data(spikes, parameter_values[4])
 
     return spikes
 
@@ -246,16 +245,16 @@ def build_query_string(prefix_string, paramater_name_list, param_value_list, par
     return query_string
 
 #Tests every possible combination of query-parameters with a given query prefix and the given parameters by using the given handling functions
-def check_all_parameter_combinations_with_conditions_and_values(REQUEST_URL, parameter_name_list, parameter_values):
+def check_all_parameter_combinations(REQUEST_URL, parameter_name_list, parameter_values):
     combinations = get_all_boolean_combinations(len(parameter_name_list))
 
     for parameter_set_combination in combinations:
         query_string = build_query_string(REQUEST_URL, parameter_name_list, parameter_values, parameter_set_combination)
-        filtered_spikes = check_request_valid(query_string)
-        spikes_check_if_valid_format(filtered_spikes)
+        filtered_spikes = return_json_body_if_status_ok(query_string)
+        spikes_is_valid_format(filtered_spikes)
 
-        unfiltered_spikes = check_request_valid(REQUEST_URL)
-        spikes_check_if_valid_format(unfiltered_spikes)
-        self_filtered_spikes = filter_spike_data_with_parameters_locally(unfiltered_spikes, parameter_values, parameter_set_combination)
+        unfiltered_spikes = return_json_body_if_status_ok(REQUEST_URL)
+        spikes_is_valid_format(unfiltered_spikes)
+        self_filtered_spikes = filter_spike_data_with_parameters(unfiltered_spikes, parameter_values, parameter_set_combination)
 
-        spikes_check_if_data_are_equal(filtered_spikes, self_filtered_spikes)
+        spikes_is_data_equal(filtered_spikes, self_filtered_spikes)

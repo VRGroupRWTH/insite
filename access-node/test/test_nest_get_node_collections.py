@@ -33,7 +33,7 @@ NODE_COLLECTION_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
 
 #Tests the NEST_GET_NODE_COLLECTIONS by checking if the response code is valid, all required information is included and the has the correct data-type for every collection
 def test_nest_get_node_collections(nest_simulation):
-    node_collections = check_request_valid(URL_NEST_GET_NODE_COLECTIONS)
+    node_collections = return_json_body_if_status_ok(URL_NEST_GET_NODE_COLECTIONS)
 
     for collection in node_collections:
       assert(isinstance(collection, dict))
