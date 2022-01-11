@@ -29,6 +29,8 @@ def test_get_nest_spikes_per_node_collection(nest_simulation):
     for collection in node_collections:
       collection_ids.append(collection[NEST_GET_SPIKES_PER_NODE_COLLECTION_PROPERTY_NAMES.nodeCollectionId])
     
+    assert(len(collection_ids) > 0)
+
     for collection_id in collection_ids:
       url = URL_NEST_GET_SPIKES_PER_NODE_COLLECTION + "/{0}/spikes".format(collection_id)
       spikes = return_json_body_if_status_ok(url)
