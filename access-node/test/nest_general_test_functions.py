@@ -75,7 +75,9 @@ def spikes_has_offset(skipped_spikes, non_skipped_spikes, skip):
         assert(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][skip + i] == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][i])
         assert(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][skip + i] == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][i])    
 
-#Checks if the given spike-data has the offset defined in parameters in comparison to the spike-data with the given parameters but without the offset
+#Receives an list of spikes as input that was queried with the offset set to a value > 0.
+#Method queries all spikes again and applies the offset afterwards to compare the result with the list given as the input.
+#Returns true if both lists are equal, false otherwise.
 def spikes_has_offset_in_comparison_to(REQUEST_URL, skipped_spikes, PARAMETER_NAME_LIST, nest_get_spikes_query_parameters, parameter_set_combination = [True, True, True, True, True]):
     parameter_set_combination = list(parameter_set_combination)
 
@@ -102,7 +104,9 @@ def spikes_has_offset_in_comparison_to(REQUEST_URL, skipped_spikes, PARAMETER_NA
 
         spikes_has_offset(skipped_spikes, spikes_no_skip, nest_get_spikes_query_parameters[3])
 
-#Checks if the given spike-data the desired amount of entries
+#Receives a list of spikes and a maximum_number of spikes as input
+#Checks if the length of the given spike-data is less or equal to the maximum_number
+#Returns true if this is the case, false otherwise
 def spikes_length_less_or_equal_to(spikes, maximum_number):
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) <= maximum_number)
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) <= maximum_number)
@@ -156,6 +160,7 @@ def get_spikes_with_nodeIds(spikes, nodeIds):
     return spikes
 
 #Offsets the given spike data by the desired amount and returns the result
+#i.e. Given spikes pairs 1..o..N returns o..N given o as offset.
 def get_offset_spike_data(spikes, offset):
     filtered_times = []
     filtered_nodes = []
@@ -173,7 +178,8 @@ def get_offset_spike_data(spikes, offset):
 
     return spikes
 
-#Filters and returns the given spike data by only keeping the desired number of entries
+#Filters and returns the given spike data by only keeping the desired number of top-entries. 
+#E.g. Applying the function to [6,4,2,5,0] with a "max_number" of 2 would result in [6,4]
 def keep_top_spike_data(spikes, max_number):
     filtered_times = []
     filtered_nodes = []
