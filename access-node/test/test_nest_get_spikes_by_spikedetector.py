@@ -8,6 +8,7 @@ from enum import Enum
 from requests.api import request
 from requests.sessions import Request
 from nest_general_test_functions import *
+import pytest
 
 #URL used for the "nest_get_spikes" HTTP-query
 URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID = BASE_REQUEST_URL + "/spikedetectors"
@@ -102,6 +103,7 @@ def test_nest_get_spikes_parameter_nodeIds():
         spikes_nodeIds_are_subset(spike_data, node_ids)
 
 #Test a nest_get_spikes_by_spikedetector request with the "skip" parameter by checking if a request without the "skip" parameter returns the same result but offset for every possible spikedetector
+@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_skip():
     parameter_values = [0, 0, 0, 4, 0]
     parameter_set_combination = [False, False, False, True, False]
@@ -124,6 +126,7 @@ def test_nest_get_spikes_parameter_top():
         spikes_length_less_or_equal_to(spike_data, parameter_values[4])
 
 #Tests a nest_get_spikes_by_spikedetector request with the paramaters: "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data for every possible spikedetector
+@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_all_parameters():
     paramater_values = [
         2,
@@ -150,6 +153,7 @@ def test_nest_get_spikes_all_parameters():
         spikes_length_less_or_equal_to(spike_data, paramater_values[4])
 
 #Tests every possible combination of the nest_get_spikes query-parameters "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data
+@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_combinations():
     paramater_values = [
         2,
