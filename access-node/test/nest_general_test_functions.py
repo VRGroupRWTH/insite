@@ -221,33 +221,47 @@ def get_all_boolean_combinations(number):
     return list(itertools.product([True,False], repeat = number))
 
 #Builds and returns a HTTP-Query String including the given parameters and values
-def build_query_string(prefix_string, paramater_name_list, param_value_list, paramater_is_set_list = [True, True, True, True, True]):
+def build_query_string(prefix_string, parameter_name_list = None, parameter_value_list = None, parameter_is_set_list = None):
     query_string = prefix_string + "?"
-    is_first_paramater = True
+    is_first_parameter = True
 
-    i = 0
-    for param in paramater_name_list:
-        if paramater_is_set_list[i]:
-            if is_first_paramater:
-                query_string += param.value
-                is_first_paramater = False
+    if parameter_name_list == None or parameter_value_list == None:
+        return prefix_string
+
+    if len(parameter_name_list) != len(parameter_value_list):
+        raise ValueError("Parameter names and values do not have same length!")
+
+    if parameter_is_set_list == None:
+        parameter_is_set_list = [True] * len(parameter_name_list)
+
+    parameter_name_list_str =  []
+    for e in parameter_name_list:
+        if isinstance(e,Enum):
+            str_name = e.value
+        elif isinstance(e,str):
+            str_name = e
+        parameter_name_list_str.append(str_name)
+
+        
+
+    parameter_name_list = list(itertools.compress(zip(parameter_name_list_str,parameter_value_list),parameter_is_set_list))
+    
+
+    for param_pack in parameter_name_list:
+        param_name, param_value = param_pack
+        if is_first_parameter:
+            query_string += param_name
+            is_first_parameter = False
             else:
-                query_string += "&" + param.value
+            query_string += "&" + param_name
 
             query_string += "="
 
-            if (isinstance(param_value_list[i], list)):
-                is_first_array_element = True
-                
-                for value in param_value_list[i]:
-                    if is_first_array_element:
-                        is_first_array_element = False
-                        query_string += str(value)
+        if (isinstance(param_value,list)):
+            query_string += ','.join(map(str,param_value))
                     else:
-                        query_string += "," + str(value)
-            else:
-                query_string += str(param_value_list[i])
-        i = i + 1        
+            query_string += str(param_value)
+
     return query_string
 
 #Tests every possible combination of query-parameters with a given query prefix and the given parameters by using the given handling functions
