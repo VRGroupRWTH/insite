@@ -40,7 +40,7 @@ def build_url_nest_get_spikes_by_spikedetector(id):
     return (URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID + "/" + str(id) + "/" + JSON_VALUE_TO_FIELD_NAME.spikes.value)
 
 #Sends a nest_get_spikes_by_spikedetector request by using a spike-detector ID and values for all the possible parameters and returns the result in JSON-format
-def request_nest_get_spikes_by_spikedetector(id, parameter_values, parameter_set_combination = [False, False, False, False, False]):
+def request_nest_get_spikes_by_spikedetector(id, parameter_values = None, parameter_set_combination = [False, False, False, False, False]):
     prefix = build_url_nest_get_spikes_by_spikedetector(id)
     return return_json_body_if_status_ok(build_query_string(prefix, NEST_GET_SPIKES_BY_SPIKEDETECTOR_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination))
 
@@ -49,7 +49,7 @@ def test_nest_get_spikes_by_spikedetector_no_parameters():
     spikedetector_node_ids = get_nest_spikedetector_ids()
 
     for id in spikedetector_node_ids:
-        spike_data = request_nest_get_spikes_by_spikedetector(id, [])
+        spike_data = request_nest_get_spikes_by_spikedetector(id)
         spikes_is_valid_format(spike_data)
 
 #Tests every possible nest_get_spikes_by_spikedetector request with the "fromTime" parameter by checking if all returned times are greater or equal than requested for every possible spikedetector
