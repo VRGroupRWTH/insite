@@ -173,3 +173,31 @@ def test_nest_get_spikes_parameter_combinations():
 
         query_url = build_url_nest_get_spikes_by_spikedetector(id)
         check_all_parameter_combinations(query_url, NEST_GET_SPIKES_BY_SPIKEDETECTOR_PARAMETER_NAME_LIST, paramater_values)
+
+
+@pytest.mark.order(after="test_order.py::test_sim_finished")
+def test_nest_get_spikes_last_frame_sim_finished():
+    end_time = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')['end']
+    
+    spikedetector_ids = get_nest_spikedetector_ids()
+    spikedetector_id = spikedetector_ids[0]
+
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(build_url_nest_get_spikes_by_spikedetector(spikedetector_id),[NEST_GET_SPIKES_BY_SPIKEDETECTOR_PARAMETER_NAME_LIST.toTime],[end_time - 1.0]))
+    assert(spikes_without_last['lastFrame'] == 0)
+
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(build_url_nest_get_spikes_by_spikedetector(spikedetector_id)))
+    assert(spikes_without_last['lastFrame'] == 1)
+
+@pytest.mark.order("first")
+def test_nest_get_spikes_last_frame_while_running(nest_simulation,printer):
+    simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
+    end_time = simulation_time_info['end']
+    curr_time = simulation_time_info['current']
+    if curr_time == end_time:
+        return
+    
+    spikedetector_ids = get_nest_spikedetector_ids()
+    spikedetector_id = spikedetector_ids[0] 
+
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(build_url_nest_get_spikes_by_spikedetector(spikedetector_id)))
+    assert(spikes_without_last['lastFrame'] == False)

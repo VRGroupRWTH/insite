@@ -9,3 +9,4 @@ class JSON_VALUE_TO_FIELD_NAME(Enum):
     nodeIds = "nodeIds"
     spikedetectorId = "spikedetectorId"
     spikes = "spikes"
+    lastFrame = "lastFrame"

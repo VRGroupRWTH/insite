@@ -2,6 +2,7 @@ import json
 import time
 import numbers
 import math
+import enum
 import itertools
 from operator import truediv
 import requests
@@ -42,7 +43,8 @@ def spikes_nodeIds_are_greater_or_equal_than(spikes, minimum):
 def spikes_is_data_length_valid(spikes, canBeEmpty = False):
     assert(JSON_VALUE_TO_FIELD_NAME.simulationTimes.value in spikes)
     assert(JSON_VALUE_TO_FIELD_NAME.nodeIds.value in spikes)
-    assert(len(spikes.keys()) == 2)
+    assert(JSON_VALUE_TO_FIELD_NAME.lastFrame.value in spikes)
+    assert(len(spikes.keys()) == 3)
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
     if not canBeEmpty:

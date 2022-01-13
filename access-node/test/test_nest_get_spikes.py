@@ -119,3 +119,24 @@ def test_nest_get_spikes_parameter_combinations():
     ]
 
     check_all_parameter_combinations(URL_NEST_GET_SPIKES, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
+
+@pytest.mark.order(after="test_order.py::test_sim_finished")
+def test_nest_get_spikes_last_frame_sim_finished():
+    end_time = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')['end']
+     
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES,[NEST_GET_SPIKES_PARAMETER_NAME_LIST.toTime],[end_time - 1.0]))
+    assert(spikes_without_last['lastFrame'] == 0)
+
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES))
+    assert(spikes_without_last['lastFrame'] == 1)
+
+@pytest.mark.order("first")
+def test_nest_get_spikes_last_frame_while_running(nest_simulation,printer):
+    simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
+    end_time = simulation_time_info['end']
+    curr_time = simulation_time_info['current']
+    if curr_time == end_time:
+        return
+    
+    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES))
+    assert(spikes_without_last['lastFrame'] == False)
