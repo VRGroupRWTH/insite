@@ -254,14 +254,14 @@ def build_query_string(prefix_string, parameter_name_list = None, parameter_valu
         if is_first_parameter:
             query_string += param_name
             is_first_parameter = False
-            else:
+        else:
             query_string += "&" + param_name
 
-            query_string += "="
+        query_string += "="
 
         if (isinstance(param_value,list)):
             query_string += ','.join(map(str,param_value))
-                    else:
+        else:
             query_string += str(param_value)
 
     return query_string
