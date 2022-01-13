@@ -45,3 +45,8 @@ def test_simulation_time_info_time(nest_simulation, simulation_time):
     if(simulation_time.current_time != new_time):
         simulation_time.ticked=True
     simulation_time.current_time = new_time
+
+@pytest.mark.order(after="test_order.py::test_sim_finished")
+def test_simulation_time_info_endtime():
+    simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
+    assert(simulation_time_info['current']==simulation_time_info['end'])
