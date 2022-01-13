@@ -37,15 +37,6 @@ def test_simulation_time_info_fields(nest_simulation, simulation_time):
     assert(simulation_time_info['begin'] <= simulation_time_info['current'])
     assert(simulation_time_info['end'] >= simulation_time_info['current'])
 
-    # In theory these should be true but due to floating point inaccuracies and bad default values for 'step_size' it is not
-    # assert(math.fmod(simulation_time_info['current'], simulation_time_info['step_size']) == 0.0)
-    # assert(math.fmod(simulation_time_info['begin'], simulation_time_info['step_size']) == 0.0)
-    # assert(math.fmod(simulation_time_info['end'], simulation_time_info['step_size']) == 0.0)
-
-    # new_time = simulation_time_info['current']
-    # assert(simulation_time.current_time <= new_time)
-    # simulation_time.current_time = new_time
-
 def test_simulation_time_info_time(nest_simulation, simulation_time):
     simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
     new_time = simulation_time_info['current']
