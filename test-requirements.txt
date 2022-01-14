@@ -1,3 +1,5 @@
 requests
 pytest
 pytest-repeat
+pytest-order
+pytest-print
