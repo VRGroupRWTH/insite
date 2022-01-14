@@ -76,7 +76,7 @@ dt = 0.1  # the resolution in ms
 simtime = float(sys.argv[1]) if len(
     sys.argv) > 1 else 1000.0  # Simulation time in ms
 delay = 1.5  # synaptic delay in ms
-simtime = 1000.0
+simtime = 30.0
 
 
 ###############################################################################

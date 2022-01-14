@@ -18,7 +18,7 @@ def nest_simulation(request):
         try:
             process.wait(10)
         except subprocess.TimeoutExpired:
-            print("Sending SIGKILL to docker-compose")
+            print("\nSending SIGKILL to docker-compose")
             os.kill(process.pid, signal.SIGKILL)
             process.wait()
         subprocess.run(["docker-compose", "down"], stdout=logfile, stderr=subprocess.STDOUT)
@@ -26,11 +26,14 @@ def nest_simulation(request):
     request.addfinalizer(finalize)
 
     begin_time = time.time()
+    print("\nWaiting for insite start up",end='')
     while True:
+        print(".",end='',flush=True)
         time.sleep(1.0)
         try:
             r = requests.get("http://localhost:9000/version")
             if r.status_code == 200:
+                print("started.")
                 break
         except requests.exceptions.ConnectionError:
             pass
@@ -38,11 +41,14 @@ def nest_simulation(request):
         if current_time - begin_time > 60:
             pytest.fail('Timeout during container start')
 
+    print("Waiting for access node start up",end='')
     while True:
+        print(".",end='',flush=True)
         time.sleep(1.0)
         try:
             r = requests.get("http://localhost:8080/version")
             if r.status_code == 200:
+                print("started.")
                 break
         except requests.exceptions.ConnectionError:
             pass
