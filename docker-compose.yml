@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  access-node:
+  insite-access-node:
     build: ./access-node
     ports:
       - "8080:8080"
