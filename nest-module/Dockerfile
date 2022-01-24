@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python package to build NEST Simulator
 RUN python3 -m pip install --upgrade \
     Cython \
+    pandoc \
     pip
     # setuptools
     # wheel
@@ -49,7 +50,6 @@ RUN python3 -m pip install --upgrade \
 RUN python3 -m pip install --upgrade \
     flask-cors \
     flask \
-    pandoc \
     RestrictedPython \
     uwsgi
 
