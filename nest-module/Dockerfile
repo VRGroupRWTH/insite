@@ -73,8 +73,7 @@ RUN wget https://github.com/nest/nest-simulator/archive/refs/tags/v${NEST_VERSIO
 
 # Patch version number in NEST
 RUN wget https://github.com/nest/nest-simulator/releases/download/v3.2/nest-simulator-3.2-p1-VersionNumber.patch -P ${NEST_SRC_PATH} && \
-    cd ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION} && \
-    patch -p1 < ${NEST_SRC_PATH}/nest-simulator-3.2-p1-VersionNumber.patch
+    cd ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION} && patch -p1 < ${NEST_SRC_PATH}/nest-simulator-3.2-p1-VersionNumber.patch
 
 # Install requirements for Sphinx documentation of NEST
 RUN python3 -m pip install -r ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION}/doc/requirements.txt
