@@ -88,6 +88,7 @@ RUN cmake \
     -Dwith-mpi=ON \
     -Dwith-python=ON\
     -DCMAKE_INSTALL_PREFIX=/nest-install \
+    -DCMAKE_BUILD_TYPE=Release \
     ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION}
 RUN ninja \
     && ninja html \
