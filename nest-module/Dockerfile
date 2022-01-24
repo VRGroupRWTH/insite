@@ -70,7 +70,7 @@ RUN ninja && ninja install
 
 # Install NEST Simulator
 RUN git clone \
-    --branch master \
+    --branch v3.2 \
     --depth 1 \
     https://github.com/nest/nest-simulator /nest
 RUN python3 -m pip install -r /nest/doc/requirements.txt
