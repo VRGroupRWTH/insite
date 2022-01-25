@@ -10,7 +10,7 @@ def nest_simulation(request):
     logfile = open("docker-compose.log", "w")
 
     subprocess.run(["docker-compose", "build"], stdout=logfile, stderr=subprocess.STDOUT)
-    process = subprocess.Popen(["docker-compose", "up"], stdout=logfile, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(["docker-compose", "-f", "docker-compose-testing.yml" ,"up"], stdout=logfile, stderr=subprocess.STDOUT)
 
     def finalize():
         # process.send_signal(signal.SIGINT)
