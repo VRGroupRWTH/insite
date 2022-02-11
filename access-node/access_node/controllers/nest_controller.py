@@ -1,4 +1,5 @@
 import sys
+from functools import lru_cache
 from more_itertools import sort_together
 import connexion
 import six
@@ -58,7 +59,22 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
     return response, 500
     
 
-def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
+@lru_cache(maxsize=32)
+def nest_get_nodes_by_multimeter_id(multimeter_id):
+    mult_info = nest_get_multimeters()
+    
+    multimeter_exists = False
+    for mult in mult_info:
+        if mult["multimeterId"] == multimeter_id:
+            mult_node_ids = mult['nodeIds']
+            return True, mult_node_ids
+    if not multimeter_exists:
+        error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not exist")
+        error_response = ErrorResponse(error)
+        return False, error_response
+
+
+def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=None, to_time=None, node_ids=None, skip=0, top=0):  # noqa: E501
     """Retrieves the measurements for a multimeter, attribute and node IDs (optional).
 
      # noqa: E501
@@ -81,71 +97,61 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     :rtype: MultimeterMeasurement
     """
     #TODO Cache this
-    mult_info = nest_get_multimeters()
+    mult_found, mult_nodes = nest_get_nodes_by_multimeter_id(multimeter_id)
 
-    mult_node_ids = []
-    multimeter_exists = False
-    for mult in mult_info:
-        if mult["multimeterId"] == multimeter_id:
-            multimeter_exists = True
-            if attribute_name not in mult['attributes']:
-                error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not measure given attribute")
-                error_response = ErrorResponse(error)
-                return error_response, 400
-            mult_node_ids = mult['nodeIds']
-            break
-    if not multimeter_exists:
-        error = Error(code ="InvalidMultimeterRequest", message = "Given multimeter does not exist")
-        error_response = ErrorResponse(error)
-        return error_response, 400
-
-    if node_ids == None:
-        node_ids = mult_node_ids
+    node_id_params = node_ids
+    if node_ids == None and mult_found:
+        node_ids = mult_nodes
     else:
         for node_id in node_ids:
-            if node_id not in mult_node_ids:
+            if node_id not in mult_nodes:
                 error = Error(code ="InvalidMultimeterRequest", message = "Node "+str(node_id)+" is not monitored by given Multimeter")
                 error_response = ErrorResponse(error)
                 return error_response, 400
 
+
     init = True
     sim_times = []
-    measurement = MultimeterMeasurement([], [], [])
+    if  simulation_nodes.nest_simulation_nodes == None:
+        return
+
     for node in simulation_nodes.nest_simulation_nodes:
 
-        if node_ids is not None:
-            node_id_param = ",".join(map(str, node_ids))        
+        if node_id_params is not None:
+            node_id_param = ",".join(map(str, node_id_params))
         else:
             node_id_param = None
 
         response = requests.get(
             node+"/multimeter_measurement", params={"multimeterId": multimeter_id, 
             "attribute": attribute_name, "fromTime": from_time,
-            "toTime": to_time, "nodeIds": node_id_param}).json()
+            "toTime": to_time, "nodeIds": node_id_param})
+        response = orjson.loads(response.content)
+
         if init:
             sim_times = response["simulationTimes"]
-            measurement = MultimeterMeasurement(
-                sim_times, node_ids, [None for x in range(0, (len(sim_times)*len(node_ids)))])
+            multimeter_values = [None for _ in range(0, (len(sim_times)*len(node_ids)))]
             init = False
         for x in range(len(response['nodeIds'])):
             node_id = response['nodeIds'][x]
-            index = measurement.node_ids.index(node_id)
+            index = node_ids.index(node_id)
             index_offset = index * len(sim_times)
             for y in range(len(sim_times)):
-                measurement.values[index_offset + y] = response['values'][x*len(sim_times)+y]
+                multimeter_values[index_offset + y] = response['values'][x*len(sim_times)+y]
+
 
     # offset and limit
-    if (skip is None):
-        skip = 0
-    if (top is None or (top + skip) > len(measurement.node_ids)):
-        top = len(measurement.node_ids) - skip
-    measurement.node_ids = measurement.node_ids[skip:skip+top]
-    measurement.values = measurement.values[skip *
-                                            len(sim_times):(skip+top)*len(sim_times)]
+    if skip > 0 or top > 0:
+        print("slicing")
+        top = len(node_ids) - skip 
+        node_ids = node_ids[skip:skip+top]
+        multimeter_values = multimeter_values[skip *len(sim_times):(skip+top)*len(sim_times)]
 
-    return measurement
+    json_string = orjson.dumps({"simulationTimes":sim_times, "nodeIds":node_ids, "values": multimeter_values})
+    return ConnexionResponse(status_code=200, content_type='application/json', mimetype='text/plain',body=json_string)
+    # return measurement
 
-
+@lru_cache(maxsize=32)
 def nest_get_multimeters():  # noqa: E501
     """Retreives the available multimeters and their properties.
 
@@ -154,10 +160,10 @@ def nest_get_multimeters():  # noqa: E501
 
     :rtype: List[MultimeterInfo]
     """
-    
     multimeters = []
     for simulation_node in simulation_nodes.nest_simulation_nodes:
-        multimeters_from_sim_node = requests.get(simulation_node+"/multimeters").json()
+        multimeters_from_sim_node = requests.get(simulation_node+"/multimeters")
+        multimeters_from_sim_node = orjson.loads(multimeters_from_sim_node.content)
         if len(multimeters) == 0:
             multimeters = multimeters_from_sim_node
         else:
