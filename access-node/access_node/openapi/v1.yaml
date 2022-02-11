@@ -467,13 +467,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed.
-      summary: Retrieves simulation time information (stepSize, begin, current, end).
+  /nest/spikerecorders/:
+    get:
+      operationId: nest_get_spikerecorders
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpikedetectorInfo'
+                type: array
+          description: Operation successful.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Get Spike Recorders
+      description: Queries all spike recorders that are available via the pipeline.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
+
   /nest/spikedetectors/:
     get:
+      deprecated: true
       operationId: nest_get_spikedetectors
       responses:
         "200":
@@ -490,13 +511,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Queries all spike detectors accessable to the pipeline.
+      summary: Get Spike Detectors
+      description: "DEPRECATED: USE /nest/spikerecorders INSTEAD.<br> Queries all spike detectors that are available via the pipeline."
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
+
+  /nest/spikerecorders/{spikerecorderId}/spikes/:
+    get:
+      operationId: nest_get_spikes_by_spikerecorder
+      parameters:
+      - description: The ID of the spike detector to query.
+        explode: false
+        in: path
+        name: spikerecorderId
+        required: true
+        schema:
+          format: uint64
+          type: integer
+        style: simple
+      - description: The start time in milliseconds (including) to be queried.
+        explode: true
+        in: query
+        name: fromTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: The end time in milliseconds (excluding) to be queried.
+        explode: true
+        in: query
+        name: toTime
+        required: false
+        schema:
+          format: double
+          type: number
+        style: form
+      - description: A list of node IDs queried for spike data.
+        explode: false
+        in: query
+        name: nodeIds
+        required: false
+        schema:
+          items:
+            format: uint64
+            type: integer
+          type: array
+        style: form
+      - description: The offset into the result.
+        explode: true
+        in: query
+        name: skip
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      - description: The maximum number of entries to be returned.
+        explode: true
+        in: query
+        name: top
+        required: false
+        schema:
+          format: uint64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spikes'
+          description: Operation successful.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to invalid request.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Operation failed due to server error.
+      summary: Get Spikes By Spike Recorder Id
+      description: Retrieves the spikes for the given time range (optional) and node IDs
+        (optional) from one spike recorder. If no time range or node list is specified,
+        it will return the spikes for whole time or all nodes respectively.
+      tags:
+      - Nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+
+
   /nest/spikedetectors/{spikedetectorId}/spikes/:
     get:
+      deprecated: true
       operationId: nest_get_spikes_by_spikedetector
       parameters:
       - description: The ID of the spike detector to query.
@@ -574,13 +687,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the spikes for the given time range (optional) and node IDs
+      summary: Get Spikes By Spikedetector Id
+      description: Retrieves the spikes for the given time range (optional) and node IDs
         (optional) from one spike detector. If no time range or node list is specified,
         it will return the spikes for whole time or all nodes respectively.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
+
   /nest/spikes/:
     get:
       operationId: nest_get_spikes

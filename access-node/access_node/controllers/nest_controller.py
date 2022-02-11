@@ -309,8 +309,11 @@ def nest_get_simulation_time_info():  # noqa: E501
         response = ErrorResponse(error)
         return response, 500
 
+def nest_get_spikedetectors():
+    simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
+    return requests.get(simulation_node+"/spikedetectors").json()
 
-def nest_get_spikedetectors():  # noqa: E501
+def nest_get_spikerecorders():  # noqa: E501
     """Queries all spike detectors accessable to the pipeline.
 
      # noqa: E501
@@ -319,7 +322,7 @@ def nest_get_spikedetectors():  # noqa: E501
     :rtype: List[SpikedetectorInfo]
     """
     simulation_node = random.choice(simulation_nodes.nest_simulation_nodes)
-    return requests.get(simulation_node+"/spikedetectors").json()
+    return requests.get(simulation_node+"/spikerecorders").json()
 
 
 def nest_get_spikes(from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
@@ -427,8 +430,10 @@ def nest_get_spikes_by_node_collection(node_collection_id, from_time=None, to_ti
     json_string = orjson.dumps({"nodeIds":spikes.node_ids,"simulationTimes":spikes.simulation_times,"lastFrame":lastFrame})
     return ConnexionResponse(status_code=200,content_type='application/json', mimetype='text/plain', body=json_string)
 
+def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):
+    return nest_get_spikes_by_spikerecorder(spikedetector_id, from_time, to_time, node_ids, skip, top)
 
-def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
+def nest_get_spikes_by_spikerecorder(spikerecorder_id, from_time=None, to_time=None, node_ids=None, skip=None, top=None):  # noqa: E501
     """Retrieves the spikes for the given time range (optional) and node IDs (optional) from one spike detector. If no time range or node list is specified, it will return the spikes for whole time or all nodes respectively.
 
      # noqa: E501
@@ -460,7 +465,7 @@ def nest_get_spikes_by_spikedetector(spikedetector_id, from_time=None, to_time=N
         else:
             node_id_param = None
 
-        response = requests.get(node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikedetector_id})
+        response = requests.get(node+"/spikes", params={"fromTime": from_time, "toTime": to_time, "nodeIds": node_id_param, "spikedetectorId": spikerecorder_id})
          
         response = orjson.loads(response.content)
         lastFrame = response["lastFrame"]
