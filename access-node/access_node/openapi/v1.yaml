@@ -5,6 +5,14 @@ info:
   version: 1.0.0
 servers:
 - url: /v1
+
+x-tagGroups:
+  - name: NEST API
+    tags:
+      - Nest
+  - name: General API
+    tags:
+      - General
 paths:
   /nest/kernelStatus/:
     get:
@@ -26,7 +34,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retreives the current status of the NEST kernel.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/multimeters/:
@@ -49,7 +57,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retreives the available multimeters and their properties.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/multimeters/{multimeterId}/:
@@ -86,7 +94,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retreives the available multimeters and their properties.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/multimeters/{multimeterId}/attributes/{attributeName}/:
@@ -179,7 +187,7 @@ paths:
       summary: Retrieves the measurements for a multimeter, attribute and node IDs
         (optional).
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodeCollections/:
@@ -202,7 +210,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retrieves a list of all node collection IDs.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodeCollections/{nodeCollectionId}/nodes/:
@@ -241,7 +249,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retrieves the list of all node within the node collection.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodeCollections/{nodeCollectionId}/nodes/ids/:
@@ -284,7 +292,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retrieves the list of all node ids within the node collection.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodeCollections/{nodeCollectionId}/spikes/:
@@ -359,7 +367,7 @@ paths:
         node collection. This request merges the spikes recorded by all spike detectors
         and removes duplicates.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodes/:
@@ -382,7 +390,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retrieves all nodes of the simulation.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodes/ids/:
@@ -411,7 +419,7 @@ paths:
           description: Operation failed.
       summary: Retrieves a list of all node IDs.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/nodes/{nodeId}/:
@@ -448,7 +456,7 @@ paths:
           description: Operation failed due to server error.
       summary: Retrieves the properties of the specified node.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /nest/simulationTimeInfo/:
@@ -771,7 +779,7 @@ paths:
         spikes for whole time or all nodes respectively. This request merges the spikes
         recorded by all spike detectors and removes duplicates.
       tags:
-      - nest
+      - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
       x-openapi-router-controller: access_node.controllers.nest_controller
   /version/:
@@ -791,6 +799,8 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
       summary: Returns the deployed insite and API versions.
+      tags:
+        - General
       x-swagger-router-controller: access_node.controllers.version_controller
       x-openapi-router-controller: access_node.controllers.version_controller
 components:
