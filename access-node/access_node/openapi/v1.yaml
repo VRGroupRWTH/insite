@@ -32,7 +32,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retreives the current status of the NEST kernel.
+
+      description: Retrieves the current status of the NEST kernel.
+      summary: Get NEST Kernel Status
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -55,7 +57,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retreives the available multimeters and their properties.
+      summary: Get Multimeters
+      description: Retrieves a list with information about all available multimeters and their properties. Additionally, the ids of the nodes that are connected to the multimeter are returned.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -92,7 +95,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retreives the available multimeters and their properties.
+      summary: Get Multimeter Properties
+      description: Retrieves information about a specific multimeter that and its properties.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -208,7 +212,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves a list of all node collection IDs.
+      summary: Get Node Collections
+      description: Retrieves an list of all node collections. Returned are the node collection IDs, which nodes are part of the collection and which model is used by the collection.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -247,7 +252,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the list of all node within the node collection.
+      description: Retrieves the list of all nodes within the specified node collection.
+      summary: Get Nodes In Node Collection
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -290,7 +296,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the list of all node ids within the node collection.
+      description: Retrieves the list of all node ids within the node collection.
+      summary: Get Node Ids In Node Collection
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -363,9 +370,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the spikes for the given simulation steps (optional) and
-        node collection. This request merges the spikes recorded by all spike detectors
-        and removes duplicates.
+      summary: Get Spikes By Node Collection ID
+      description: Retrieves the spikes for the given simulation steps (optional) and node collection. This request merges the spikes recorded by all spike detectors and removes duplicates.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -388,7 +394,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves all nodes of the simulation.
+      summary: Get All Nodes
+      description: Retrieves all nodes that are part of the simulation.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -417,7 +424,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed.
-      summary: Retrieves a list of all node IDs.
+
+      description: Retrieves a list with the IDs of all node that are part of the simulation.
+      summary: Get All Node Ids
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -454,7 +463,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Retrieves the properties of the specified node.
+      summary: Get Node Properties By Node ID
+      description: Retrieves the properties of the specified node.
       tags:
       - Nest
       x-swagger-router-controller: access_node.controllers.nest_controller
@@ -475,6 +485,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed.
+      summary: Get Simulation Time Info
+      description: Retrieves simulation time information (stepSize, begin, current, end).
+      tags:
+      - Nest
+      x-swagger-router-controller: access_node.controllers.nest_controller
+      x-openapi-router-controller: access_node.controllers.nest_controller
+
   /nest/spikerecorders/:
     get:
       operationId: nest_get_spikerecorders
@@ -774,7 +791,8 @@ paths:
               schema:
                 type: string
           description: Operation failed due to server error.
-      summary: Retrieves the spikes for the given time range (optional) and node IDs
+      summary: Get All Spikes
+      description: Retrieves the spikes for the given time range (optional) and node IDs
         (optional). If no time range or node list is specified, it will return the
         spikes for whole time or all nodes respectively. This request merges the spikes
         recorded by all spike detectors and removes duplicates.
@@ -798,7 +816,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Operation failed due to server error.
-      summary: Returns the deployed insite and API versions.
+      summary: Get Insite and API version
+      description: Returns the deployed insite and API versions.
       tags:
         - General
       x-swagger-router-controller: access_node.controllers.version_controller
