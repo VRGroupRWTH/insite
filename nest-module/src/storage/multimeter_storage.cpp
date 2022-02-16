@@ -23,7 +23,6 @@ void MultimeterStorage::SetAttributes(const std::vector<Name>& double_attributes
   long_attributes_.clear();
   long_attributes_.reserve(long_attributes.size());
   attributes_.clear();
-
   for (const Name& double_attribute : double_attributes) {
     const std::string attribute_name = double_attribute.toString();
     auto attribute_storage = std::make_shared<AttributeStorage<double>>(attribute_name, simulation_times_.capacity());
@@ -95,29 +94,38 @@ void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t nod
   }
 }
 
-web::json::value MultimeterStorage::Serialize() const {
-  web::json::value serialized_object = web::json::value::object();
-  serialized_object["multimeterId"] = id_;
+void MultimeterStorage::Serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer) const {
+    rapidjson::StringBuffer a;
+    writer.StartObject();
+    writer.Key("multimeterId");
+    writer.Int64(id_);
 
   {
     std::unique_lock<std::mutex> lock(mutex_);
-
-    serialized_object["attributes"] = web::json::value::array(attributes_.size());
-    serialized_object["nodeIds"] = ToJsonArray(connected_nodes_);
+    writer.Key("nodeIds");
+    writer.StartArray();
+    for (const auto& node : connected_nodes_)
+    {
+        writer.Uint64(node);
+    }
+    writer.EndArray();
+    writer.Key("attributes");
+    writer.StartArray();
     size_t current_index = 0;
-    for (const auto attribute : attributes_) {
-      serialized_object["attributes"][current_index] = web::json::value(attribute.first);
+    for (const auto& attribute : attributes_) {
+      writer.String(attribute.first.c_str());
       ++current_index;
     }
+    writer.EndArray();
+    writer.EndObject();
   }
 
-  return serialized_object;
 }
 
-web::json::value MultimeterStorage::ExtractMeasurements(const std::string& attribute_name, const std::vector<uint64_t>& node_ids, double from_time, double to_time) {
+void MultimeterStorage::ExtractMeasurements(rapidjson::Writer<rapidjson::StringBuffer> &writer,const std::string& attribute_name, const std::vector<uint64_t>& node_ids, double from_time, double to_time) {
   auto attribute_storage_iterator = attributes_.find(attribute_name);
   if (attribute_storage_iterator == attributes_.end()) {
-    return {};
+    return;
   }
 
   const auto& nodes_to_query = node_ids.size() > 0 ? node_ids : connected_nodes_;
@@ -126,7 +134,6 @@ web::json::value MultimeterStorage::ExtractMeasurements(const std::string& attri
   nodes.reserve(nodes_to_query.size());
   node_indices.reserve(nodes_to_query.size());
 
-  // TODO: in the case that `nodes == connected_nodes_` this can be heavily optimized
   for (uint64_t node : nodes_to_query) {
     auto range = std::equal_range(connected_nodes_.begin(), connected_nodes_.end(), node);
     if (range.first != range.second) {
@@ -153,11 +160,26 @@ web::json::value MultimeterStorage::ExtractMeasurements(const std::string& attri
 
   web::json::value measurements = web::json::value::object();
   std::shared_ptr<AttributeStorageBase> attribute_storage = attribute_storage_iterator->second.lock();
-  measurements["simulationTimes"] = ToJsonArray(times);
-  measurements["nodeIds"] = ToJsonArray(nodes);
-  measurements["values"] = attribute_storage->ExtractValues(time_indices, node_indices);
 
-  return measurements;
+  writer.StartObject();
+  writer.Key("simulationTimes");
+  writer.StartArray();
+  for (const auto& time : times)
+  {
+    writer.Double(time);
+  }
+  writer.EndArray();
+
+  writer.Key("nodeIds");
+  writer.StartArray();
+  for (const auto& node : nodes_to_query)
+  {
+    writer.Uint64(node);
+  }
+  writer.EndArray();
+  writer.Key("values");
+  attribute_storage->ExtractValues(writer,time_indices,node_indices);
+  writer.EndObject();
 }
 
 double MultimeterStorage::GetLatestSimulationTimeNoLock() const {

@@ -13,6 +13,7 @@
 
 #include "nest_types.h"
 #include "node_collection.h"
+#include "../rapidjson/prettywriter.h"
 
 namespace insite {
 
@@ -24,7 +25,7 @@ class AttributeStorageBase {
   virtual void EraseTimestepValues(std::uint64_t time_offset) = 0;
 
   virtual std::string GetName() const = 0;
-  virtual web::json::value ExtractValues(const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const = 0;
+  virtual void ExtractValues(rapidjson::Writer<rapidjson::StringBuffer> &writer ,const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const = 0;
 };
 
 template <typename T>
@@ -57,8 +58,10 @@ class AttributeStorage : public AttributeStorageBase {
 
   inline std::string GetName() const override { return name_; }
 
-  inline web::json::value ExtractValues(const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const override {
+  inline void ExtractValues(rapidjson::Writer<rapidjson::StringBuffer> &writer, const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const override {
+    static_assert(std::is_same<T,long>::value || std::is_same<T,double>::value, "Attribute storage must be long or double");
     web::json::value values = web::json::value::array(time_indices.size() * node_indices.size());
+    writer.StartArray();
     for (uint64_t t = 0; t < time_indices.size(); ++t) {
       const uint64_t time_index = time_indices[t];
       assert(time_index < timestep_ring_buffer_size_);
@@ -66,13 +69,16 @@ class AttributeStorage : public AttributeStorageBase {
       for (uint64_t n = 0; n < node_indices.size(); ++n) {
         const uint64_t node_index = node_indices[n];
         assert(node_index < node_count_);
-
-        values[t * node_indices.size() + n] = values_[time_index * node_count_ + node_index];
+        auto array_offset = time_index * node_count_ + node_index;
+        if(std::is_same<T,long>::value)
+            writer.Int(values_[array_offset]);
+        if(std::is_same<T,double>::value)
+            writer.Double(values_[array_offset]);
       }
     }
-
-    return values;
+    writer.EndArray();
   }
+
 
  private:
   std::string name_;
@@ -98,11 +104,11 @@ class MultimeterStorage {
                       const std::vector<double>& double_values,
                       const std::vector<long>& long_values);
 
-  web::json::value Serialize() const;
-  web::json::value ExtractMeasurements(
+  void Serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer) const;
+
+  void ExtractMeasurements(rapidjson::Writer<rapidjson::StringBuffer> &writer,
       const std::string& attribute_name, const std::vector<uint64_t>& node_ids = {},
       double from_time = 0.0, double to_time = std::numeric_limits<double>::infinity());
-
  private:
   std::uint64_t id_;
 

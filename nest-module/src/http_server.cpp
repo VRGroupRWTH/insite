@@ -12,11 +12,14 @@
 #include "storage/data_storage.hpp"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
+/* #include "rapidjson/" */
 
 namespace insite {
 
 HttpServer::HttpServer(web::http::uri address, DataStorage* storage)
-    : http_listener_{address}, storage_(storage) {
+    : http_listener_{address}, storage_(storage)
+      {
   http_listener_.support([this](web::http::http_request request) {
     std::cout << "Incoming request: " << request.request_uri().to_string() << std::endl;
 
@@ -319,17 +322,21 @@ web::http::http_response HttpServer::GetMultimeters(
 
   const auto multimeters = storage_->GetMultimeters();
 
-  web::json::value response_body = web::json::value::array();
-  std::vector<std::uint64_t> connected_node_ids;
+  rapidjson::StringBuffer s;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer>  writer(s);
+
+    writer.StartArray();
 
   for (const auto& multimeter_id_storage : multimeters) {
-    response_body[response_body.size()] = multimeter_id_storage.second->Serialize();
+    multimeter_id_storage.second->Serialize(writer);
   }
+    writer.EndArray();
 
-  response.set_body(response_body);
 
+  response.set_body(s.GetString());
   return response;
 }
+
 
 web::http::http_response HttpServer::GetMultimeterMeasurement(
     const web::http::http_request& request) {
@@ -367,9 +374,14 @@ web::http::http_response HttpServer::GetMultimeterMeasurement(
   }
 
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(multimeter->second->ExtractMeasurements(attribute_name, filter_node_ids, from_time, to_time));
+  rapidjson::StringBuffer s;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer>  writer(s);
+
+  multimeter->second->ExtractMeasurements(writer, attribute_name, filter_node_ids, from_time, to_time);
+  response.set_body(s.GetString());
   return response;
 }
+
 
 web::json::value HttpServer::Error::Serialize() const {
   web::json::value error = web::json::value::object();
