@@ -989,9 +989,9 @@ paths:
       responses:
         "200":
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Spikes'
           description: Operation successful.
         "400":
           content:
@@ -1093,18 +1093,24 @@ components:
         nodeIds:
         - 1
         - 2
+        lastFrame:
+          False
       properties:
         simulationTimes:
-          description: This array is always sorted.
+          description: Array of times where a spike occured. This array is always sorted.
           items:
             format: double
             type: number
           type: array
         nodeIds:
+          description: Array of nodeIds that spiked. This array is sorted according to the spike times.
           items:
             format: uint64
             type: integer
           type: array
+        lastFrame:
+          description: Indicates if this frame includes the last spike of the finished simulation.
+          type: bool
       type: object
     MultimeterMeasurement:
       example:
