@@ -77,7 +77,7 @@ void HttpServer::SimulationHasEnded(double end_time_)
 web::http::http_response HttpServer::GetVersion(
     const web::http::http_request& request) {
   web::http::http_response response(web::http::status_codes::OK);
-  response.set_body(web::json::value::string("1.0"));
+  response.set_body(web::json::value::string("1.1"));
 
   return response;
 }
