@@ -50,7 +50,7 @@ def nest_get_multimeter_by_id(multimeter_id):  # noqa: E501
     return response, 500
     
 
-@lru_cache(maxsize=32)
+# @lru_cache(maxsize=32)
 def nest_get_nodes_by_multimeter_id(multimeter_id):
     mult_info = nest_get_multimeters()
     
@@ -142,7 +142,7 @@ def nest_get_multimeter_measurements(multimeter_id, attribute_name, from_time=No
     return ConnexionResponse(status_code=200, content_type='application/json', mimetype='text/plain',body=json_string)
     # return measurement
 
-@lru_cache(maxsize=32)
+# @lru_cache(maxsize=32)
 def nest_get_multimeters():  # noqa: E501
     """Retreives the available multimeters and their properties.
 
