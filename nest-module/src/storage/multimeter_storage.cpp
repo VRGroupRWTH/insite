@@ -46,7 +46,7 @@ void MultimeterStorage::Prepare(
 
   std::deque<nest::ConnectionID> connections;
   for (nest::synindex synapse_id = 0;
-       synapse_id < nest::kernel().model_manager.get_num_synapse_prototypes();
+       synapse_id < nest::kernel().model_manager.get_num_connection_models();
        ++synapse_id) {
     nest::kernel().connection_manager.get_connections(
         connections, multimeter_collection, all_nodes, synapse_id, -1);
