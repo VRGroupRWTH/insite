@@ -131,7 +131,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
       std::string model_name;
       web::json::value serialized_model_status;
       if (node_id_triple.model_id != nest::invalid_index) {
-        nest::Model* model = nest::kernel().model_manager.get_model(node_id_triple.model_id);
+        nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
         if (model != nullptr) {
           model_name = model->get_name();
 

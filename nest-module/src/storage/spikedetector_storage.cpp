@@ -21,7 +21,7 @@ void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
 
   std::deque<nest::ConnectionID> connections;
   for (nest::synindex synapse_id = 0;
-       synapse_id < nest::kernel().model_manager.get_num_synapse_prototypes();
+       synapse_id < nest::kernel().model_manager.get_num_connection_models();
        ++synapse_id) {
     nest::kernel().connection_manager.get_connections(
         connections, all_nodes, spike_detector_collection, synapse_id, -1);
