@@ -32,20 +32,11 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     python3-pip \
     python3-venv \
-    uwsgi \
     wget
 
 RUN apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 10
-
-
-# Install Python package for NEST Server
-RUN python3 -m pip install \
-    flask \
-    flask-cors \
-    RestrictedPython \
-    uwsgi
 
 
 # Install C++ REST SDK
@@ -62,21 +53,26 @@ RUN cmake \
     /cpprestsdk
 RUN ninja && ninja install
 
-#
+
 # Install NEST Simulator
-ARG NEST_VERSION=3.2
-ARG NEST_SRC_PATH=/tmp
+ARG NEST_SRC_PATH=/tmp/nest-simulator
 
-# Get released files.
-RUN wget https://github.com/nest/nest-simulator/archive/refs/tags/v${NEST_VERSION}.tar.gz -P ${NEST_SRC_PATH} && \
-    cd ${NEST_SRC_PATH} && tar -zxf v${NEST_VERSION}.tar.gz
+# Install dependencies for NEST Server
+RUN python3 -m pip install \
+    gunicorn \
+    Flask \
+    Flask-cors \
+    RestrictedPython
 
-# Patch version number in NEST
-RUN wget https://github.com/nest/nest-simulator/releases/download/v3.2/nest-simulator-3.2-p1-VersionNumber.patch -P ${NEST_SRC_PATH} && \
-    cd ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION} && patch -p1 < ${NEST_SRC_PATH}/nest-simulator-3.2-p1-VersionNumber.patch
+# Clone NEST Simulator
+RUN git clone https://github.com/nest/nest-simulator.git ${NEST_SRC_PATH}
+WORKDIR ${NEST_SRC_PATH}
 
-# Install requirements for Sphinx documentation of NEST
-RUN python3 -m pip install -r ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION}/doc/requirements.txt
+# Checkout tag of NEST Simulator (master, v3.2, v3.3)
+RUN git checkout v3.3
+
+# Install requirements for NEST documentation
+RUN python3 -m pip install -r ${NEST_SRC_PATH}/doc/requirements.txt
 
 # Compile and install NEST Simulator
 WORKDIR /nest-build
@@ -86,7 +82,7 @@ RUN cmake \
     -Dwith-python=ON\
     -DCMAKE_INSTALL_PREFIX=/nest-install \
     -DCMAKE_BUILD_TYPE=Release \
-    ${NEST_SRC_PATH}/nest-simulator-${NEST_VERSION}
+    ${NEST_SRC_PATH}
 RUN ninja \
     && ninja html \
     && ninja install
