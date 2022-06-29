@@ -65,7 +65,6 @@ RUN python3 -m pip install \
     RestrictedPython
 
 # Clone NEST Simulator
-
 ARG NEST_GIT_BRANCH=v3.3
 RUN git clone --depth 1 --branch ${NEST_GIT_BRANCH} https://github.com/nest/nest-simulator.git ${NEST_SRC_PATH}
 WORKDIR ${NEST_SRC_PATH}
