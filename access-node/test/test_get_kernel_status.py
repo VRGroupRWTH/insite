@@ -8,6 +8,7 @@ from requests.api import request
 from requests.sessions import Request
 from nest_general_test_functions import *
 from six import string_types
+import pytest
 
 #URL used for the "nest_get_kernel_status" HTTP-query
 URL_NEST_GET_KERNEL_STATUS = BASE_REQUEST_URL + "/kernelStatus"
@@ -43,7 +44,7 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
     "off_grid_spiking" : bool,
     "overwrite_files" : bool,
     "print_time" : bool,
-    "recording_backends" : dict,
+    "recording_backends" : list,
     "recv_buffer_size_secondary_events" : numbers.Number,
     "resolution" : numbers.Number,
     "rng_seed" : numbers.Number,
@@ -71,6 +72,7 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
 }
 
 #Tests a nest_get_kernel_status by checking if the response code is valid, all required information is included and the has the correct data-type for every kernel_status
+@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_get_kernel_status(nest_simulation):
 
     kernel_statuses = return_json_body_if_status_ok(URL_NEST_GET_KERNEL_STATUS)
