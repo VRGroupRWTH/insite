@@ -38,7 +38,7 @@ class HttpServer {
     web::json::value Serialize() const;
   };
   static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
-  std::vector<std::uint64_t> CommaListToUintVector(std::string input, std::regex regex = std::regex("((\\%2C)+)"));
+  std::vector<std::uint64_t> CommaListToUintVector(std::string input, std::regex regex = std::regex("((\\%2C|,)+)"));
 };
 
 }  // namespace insite
