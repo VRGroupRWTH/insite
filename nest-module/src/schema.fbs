@@ -1,0 +1,13 @@
+namespace Test.Foo;
+
+struct Spikes {
+   spike_time:double;
+   node_id:uint64;
+}
+
+table SpikyTable {
+   spikes: [Spikes];
+   last_frame: bool;
+}
+
+root_type SpikyTable;
