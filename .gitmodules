@@ -1,0 +1,18 @@
+[submodule "nest-module/src/extern/flatbuffers"]
+	path = nest-module/src/extern/flatbuffers
+	url = https://github.com/google/flatbuffers
+[submodule "nest-module/src/extern/crow"]
+	path = nest-module/src/extern/crow
+	url = https://github.com/CrowCpp/Crow.git
+[submodule "nest-module/src/extern/spdlog"]
+	path = nest-module/src/extern/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "nest-module/src/extern/extern/websocketpp"]
+	path = nest-module/src/extern/extern/websocketpp
+	url = https://github.com/gabime/spdlog
+[submodule "nest-module/src/extern/websocketpp"]
+	path = nest-module/src/extern/websocketpp
+	url = https://github.com/zaphoyd/websocketpp.git
+[submodule "nest-module/src/extern/asio"]
+	path = nest-module/src/extern/asio
+	url = https://github.com/chriskohlhoff/asio.git

@@ -158,7 +158,6 @@ void MultimeterStorage::ExtractMeasurements(rapidjson::Writer<rapidjson::StringB
     }
   }
 
-  web::json::value measurements = web::json::value::object();
   std::shared_ptr<AttributeStorageBase> attribute_storage = attribute_storage_iterator->second.lock();
 
   writer.StartObject();
