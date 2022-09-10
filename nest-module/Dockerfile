@@ -54,9 +54,6 @@ RUN cmake \
 RUN ninja && ninja install
 
 
-# Install NEST Simulator
-ARG NEST_SRC_PATH=/tmp/nest-simulator
-
 # Install dependencies for NEST Server
 RUN python3 -m pip install \
     gunicorn \
@@ -64,10 +61,13 @@ RUN python3 -m pip install \
     Flask-cors \
     RestrictedPython
 
-# Clone NEST Simulator
-ARG NEST_GIT_BRANCH=v3.3
-RUN git clone --depth 1 --branch ${NEST_GIT_BRANCH} https://github.com/nest/nest-simulator.git ${NEST_SRC_PATH}
-WORKDIR ${NEST_SRC_PATH}
+ARG NEST_SRC_PATH=/tmp/nest-simulator
+ARG NEST_VERSION=3.3
+
+RUN wget https://github.com/nest/nest-simulator/archive/refs/tags/v${NEST_VERSION}.tar.gz && \
+    tar -zxf v${NEST_VERSION}.tar.gz && \
+    rm -rf v${NEST_VERSION}.tar.gz && \
+    mv nest-simulator-${NEST_VERSION} ${NEST_SRC_PATH}
 
 # Install requirements for NEST documentation
 RUN python3 -m pip install -r ${NEST_SRC_PATH}/doc/requirements.txt
