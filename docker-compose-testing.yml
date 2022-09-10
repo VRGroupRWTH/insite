@@ -16,8 +16,3 @@ services:
       - "9000-9005:9000-9005"
     environment:
       INSITE_DOCKER_USE_NEST_SERVER: 0
-      NEST_SERVER_HOST: "0.0.0.0"
-      NEST_SERVER_MODULES: "nest,numpy"
-      NEST_SERVER_PORT: 5000
-      NEST_SERVER_RESTRICTION_OFF: 1
-      NEST_SERVER_STDOUT: 1
