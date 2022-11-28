@@ -85,7 +85,7 @@ void RecordingBackendInsite::pre_run_hook() {
 
 void RecordingBackendInsite::post_run_hook() {
     data_storage_.SetCurrentSimulationTime(data_storage_.GetSimulationEndTime());
-    http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
+    // http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
 }
 //TODO: Move timerange to pre_run_hook after NEST PR is done
 void RecordingBackendInsite::post_step_hook() {

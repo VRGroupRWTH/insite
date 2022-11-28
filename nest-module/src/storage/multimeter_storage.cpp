@@ -5,6 +5,7 @@
 
 #include "kernel_manager.h"
 #include "../serialize.hpp"
+#include "spdlog/spdlog.h"
 
 namespace insite {
 

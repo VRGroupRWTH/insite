@@ -1,4 +1,6 @@
 #ifndef MULTIMETER_STORAGE_HPP
+
+
 #define MULTIMETER_STORAGE_HPP
 
 #include <cpprest/json.h>
@@ -13,7 +15,9 @@
 
 #include "nest_types.h"
 #include "node_collection.h"
-#include "../rapidjson/prettywriter.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+// #include "../rapidjson/prettywriter.h"
 
 namespace insite {
 
@@ -109,8 +113,8 @@ class MultimeterStorage {
   void ExtractMeasurements(rapidjson::Writer<rapidjson::StringBuffer> &writer,
       const std::string& attribute_name, const std::vector<uint64_t>& node_ids = {},
       double from_time = 0.0, double to_time = std::numeric_limits<double>::infinity());
- private:
   std::uint64_t id_;
+ private:
 
   std::vector<double> simulation_times_;
   std::uint64_t first_time_index_ = 0;

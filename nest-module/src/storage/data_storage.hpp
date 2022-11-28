@@ -2,7 +2,12 @@
 #define DATA_STORATE_HPP
 
 #include <cpprest/json.h>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
+#include "../serialize.hpp"
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -10,18 +15,29 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
+#include "dictdatum.h"
+#include "model.h"
 #include "multimeter_storage.hpp"
 #include "node_collection.h"
 #include "spikedetector_storage.hpp"
 
 namespace insite {
 
+struct Node {
+  uint64_t node_id;
+  uint64_t node_collection_id;
+  uint64_t simulation_node_id;
+  std::vector<double> position;
+  std::string model_name;
+  DictionaryDatum status;
+};
+
 struct NodeCollection {
   std::uint64_t first_node_id;
   std::uint64_t node_count;
   std::string model_name;
-  web::json::value model_status;
+  // web::json::value model_status;
+  std::string model_status;
 
   bool operator<(const NodeCollection& c2) const
   {
@@ -42,6 +58,7 @@ class DataStorage {
   DataStorage();
 
   void SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection);
+  void SetNodesFromCollection2(const nest::NodeCollectionPTR& local_node_collection);
   inline size_t GetNodeCollectionCount() const {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_.size();
@@ -54,7 +71,7 @@ class DataStorage {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return node_collections_;
   }
-  inline std::unordered_map<uint64_t, web::json::value> GetNodes() const {
+  inline std::unordered_map<uint64_t, std::string> GetNodes() const {
     std::unique_lock<std::mutex> lock(node_collections_mutex_);
     return nodes_;
   }
@@ -89,11 +106,20 @@ class DataStorage {
     kernel_status_ = kernel_status;
   }
 
+  inline void SetDictKernelStatus(const DictionaryDatum& kernel_status) {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    dict_kernel_status_ = kernel_status;
+  }
+
   inline web::json::value GetKernelStatus() const {
     std::unique_lock<std::mutex> lock(kernel_status_mutex_);
     return kernel_status_;
   }
 
+  inline void GetKernelStatus(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    SerializeDatum(dict_kernel_status_, writer);
+  }
   void Reset();
 
  private:
@@ -102,7 +128,8 @@ class DataStorage {
   std::vector<NodeCollection> ReceiveCollectionsFromNode(int source);
   mutable std::mutex node_collections_mutex_;
   std::vector<NodeCollection> node_collections_;
-  std::unordered_map<uint64_t, web::json::value> nodes_;
+  // std::unordered_map<uint64_t, web::json::value> nodes_;
+  std::unordered_map<uint64_t, std::string> nodes_;
 
   std::atomic_uint64_t current_simulation_time_;
   std::atomic_uint64_t simulation_begin_time_;
@@ -110,6 +137,7 @@ class DataStorage {
 
   mutable std::mutex kernel_status_mutex_;
   web::json::value kernel_status_;
+  DictionaryDatum dict_kernel_status_;
 
   mutable std::mutex spikedetectors_mutex_;
   std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spikedetectors_;
