@@ -1,7 +1,7 @@
 #ifndef DATA_STORATE_HPP
 #define DATA_STORATE_HPP
 
-#include <cpprest/json.h>
+// #include <cpprest/json.h>
 #include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/stringbuffer.h>
