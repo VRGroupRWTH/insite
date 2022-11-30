@@ -1,6 +1,8 @@
 #include "data_storage.hpp"
 
 #include <mpi.h>
+#include <rapidjson/stringbuffer.h>
+#include <sys/types.h>
 
 #include <algorithm>
 #include <cassert>
@@ -10,6 +12,8 @@
 #include "../serialize.hpp"
 #include "kernel_manager.h"
 #include "node.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include "spatial.h"
 
 namespace insite {
@@ -30,13 +34,14 @@ std::ostream& operator<<(std::ostream& os, const NodeCollection& c) {
   return os;
 }
 
-DataStorage::DataStorage() { SetCurrentSimulationTime(0.0); }
+DataStorage::DataStorage() {
+  SetCurrentSimulationTime(0.0);
+}
 
-void DataStorage::Reset()
-{
-    spikedetectors_.clear();
-    multimeters_.clear();
-    node_collections_.clear();
+void DataStorage::Reset() {
+  spikedetectors_.clear();
+  multimeters_.clear();
+  node_collections_.clear();
 }
 
 NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
@@ -73,127 +78,8 @@ void SendNodeCollection(const NodeCollection& node_collection, int dest = 0, int
 void SendNodeCollections(const std::vector<NodeCollection>& node_collections, int dest = 0, int tag = 0) {
   auto collection_size = node_collections.size();
   MPI_Send(&collection_size, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
-  for (const auto &node_collection : node_collections) SendNodeCollection(node_collection, dest, tag);
-}
-
-void DataStorage::SetNodesFromCollection2(const nest::NodeCollectionPTR& local_node_collection) {
-  std::unique_lock<std::mutex> lock(node_collections_mutex_);
-  std::set<nest::NodeCollection*> node_handles_node_connections;
-  node_collections_.clear();
-  nodes_.clear();
-  nodes_.reserve(local_node_collection->size());
-
-  DictionaryDatum node_properties(new Dictionary());
-
-  int mpi_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-
-  web::json::value node = web::json::value::object();
-  for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
-    nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
-    nest::NodeCollectionPTR node_collection = nest_node->get_nc();
-
-    // This is a null pointer for nodes simulated on other MPI ranks. However, as only the
-    // local nodes should be passed into this function, this should never happen!
-    // EXCEPT for nodes representing multimeters, spike recorders, generators, etc..
-    // They are present ob every rank but only have a collection set on their "home" rank.
-    if (node_collection == nullptr) {
-      continue;
-    }
-
-    node["nodeId"] = node_id_triple.node_id;
-    node["nodeCollectionId"] = 0;
-    node["simulationNodeId"] = mpi_rank;
-    node["model"] = web::json::value("");
-
-    DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
-    node["nodeStatus"] = SerializeDatum(node_status);
-
-    // Check if the node has spatial positions attached to it.
-    // This should probably be replaced by something more accessible
-    // than checking against NaN.
-    std::vector<double> position = nest::get_position(node_id_triple.node_id);
-    if (!std::isnan(position[0])) {
-      node["position"] = ToJsonArray(position);
-    } else {
-      node["position"] = web::json::value::null();
-    }
-
-    nodes_.insert(std::make_pair(node_id_triple.node_id, node.serialize()));
-
-    // Check if we already handles this node collection
-    if (node_handles_node_connections.count(node_collection.get()) == 0) {
-      assert(node_collection->is_range());
-      assert(node_collection->size() > 0);
-
-      std::string model_name;
-      web::json::value serialized_model_status;
-      if (node_id_triple.model_id != nest::invalid_index) {
-        nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
-        if (model != nullptr) {
-          model_name = model->get_name();
-
-          // segfaults for some reason:
-          auto model_status = model->get_status();
-          if (model_status.valid()) {
-            serialized_model_status = SerializeDatum(model_status);
-          }
-        }
-      }
-
-      node_collections_.push_back({(*node_collection)[0], node_collection->size(), model_name,serialized_model_status.serialize()});
-      node_handles_node_connections.insert(node_collection.get());
-    }
-  }
-  int comm_size_world;
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size_world);
-
-  std::sort(node_collections_.begin(), node_collections_.end());
-  node_collections_.erase(std::unique(node_collections_.begin(), node_collections_.end()), node_collections_.end());
-
-  if (mpi_rank == 0) {
-    for (int i = 1; i < comm_size_world; i++) {
-      auto node_collection = ReceiveCollectionsFromNode(i);
-      node_collections_.insert(node_collections_.end(), node_collection.begin(), node_collection.end());
-    }
-
-    std::sort(node_collections_.begin(), node_collections_.end());
-    node_collections_.erase(std::unique(node_collections_.begin(), node_collections_.end()), node_collections_.end());
-
-    for (int i = 1; i < comm_size_world; i++) {
-      {
-        SendNodeCollections(node_collections_, i);
-      }
-    }
-  } else {
-    SendNodeCollections(node_collections_);
-    auto node_collections_complete = ReceiveCollectionsFromNode(0);
-    node_collections_.clear();
-    node_collections_.insert(node_collections_.end(), node_collections_complete.begin(), node_collections_complete.end());
-  }
-
-  const auto find_node_collection_index_for_node_id = [this](uint64_t node_id) {
-    for (size_t i = 0; i < node_collections_.size(); ++i) {
-      if (node_id >= node_collections_[i].first_node_id && node_id < node_collections_[i].first_node_id + node_collections_[i].node_count) {
-        return i;
-      }
-    }
-    throw std::runtime_error("Invalid node id");
-  };
-
-  for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
-    const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
-    const NodeCollection& node_collection = node_collections_[node_collection_index];
-
-    // Be careful because of these nodes that are not actually local (see above).
-    auto node_iterator = nodes_.find(node_id_triple.node_id);
-    if (node_iterator != nodes_.end()) {
-      web::json::value node = web::json::value::parse(node_iterator->second);
-      node["nodeCollectionId"] = node_collection_index;
-      node["model"] = web::json::value(node_collection.model_name);
-      node_iterator->second = node.serialize();
-    }
-  }
+  for (const auto& node_collection : node_collections)
+    SendNodeCollection(node_collection, dest, tag);
 }
 
 void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_node_collection) {
@@ -205,10 +91,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
 
   DictionaryDatum node_properties(new Dictionary());
 
-  int mpi_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-
-  web::json::value node = web::json::value::object();
+  // web::json::value node = web::json::value::object();
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
     nest::NodeCollectionPTR node_collection = nest_node->get_nc();
@@ -221,33 +104,15 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
       continue;
     }
 
-    node["nodeId"] = node_id_triple.node_id;
-    node["nodeCollectionId"] = 0;
-    node["simulationNodeId"] = mpi_rank;
-    node["model"] = web::json::value("");
-
-    DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
-    node["nodeStatus"] = SerializeDatum(node_status);
-
-    // Check if the node has spatial positions attached to it.
-    // This should probably be replaced by something more accessible
-    // than checking against NaN.
-    std::vector<double> position = nest::get_position(node_id_triple.node_id);
-    if (!std::isnan(position[0])) {
-      node["position"] = ToJsonArray(position);
-    } else {
-      node["position"] = web::json::value::null();
-    }
-
-    nodes_.insert(std::make_pair(node_id_triple.node_id, node.serialize()));
-
     // Check if we already handles this node collection
     if (node_handles_node_connections.count(node_collection.get()) == 0) {
       assert(node_collection->is_range());
       assert(node_collection->size() > 0);
 
       std::string model_name;
-      web::json::value serialized_model_status;
+      std::string serialized_model_status;
+      rapidjson::StringBuffer model_status_buffer;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(model_status_buffer);
       if (node_id_triple.model_id != nest::invalid_index) {
         nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
         if (model != nullptr) {
@@ -256,16 +121,19 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
           // segfaults for some reason:
           auto model_status = model->get_status();
           if (model_status.valid()) {
-            serialized_model_status = SerializeDatum(model_status);
+            SerializeDatum(model_status, writer);
+            serialized_model_status = model_status_buffer.GetString();
           }
         }
       }
 
-      node_collections_.push_back({(*node_collection)[0], node_collection->size(), model_name, serialized_model_status.serialize()});
+      node_collections_.push_back({(*node_collection)[0], node_collection->size(), model_name, serialized_model_status});
       node_handles_node_connections.insert(node_collection.get());
     }
   }
   int comm_size_world;
+  int mpi_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size_world);
 
   std::sort(node_collections_.begin(), node_collections_.end());
@@ -292,28 +160,63 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
     node_collections_.insert(node_collections_.end(), node_collections_complete.begin(), node_collections_complete.end());
   }
 
-  const auto find_node_collection_index_for_node_id = [this](uint64_t node_id) {
-    for (size_t i = 0; i < node_collections_.size(); ++i) {
-      if (node_id >= node_collections_[i].first_node_id && node_id < node_collections_[i].first_node_id + node_collections_[i].node_count) {
-        return i;
-      }
-    }
-    throw std::runtime_error("Invalid node id");
-  };
-
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
-    const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
-    const NodeCollection& node_collection = node_collections_[node_collection_index];
+    rapidjson::StringBuffer node_json_buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(node_json_buffer);
+    writer.StartObject();
 
-    // Be careful because of these nodes that are not actually local (see above).
-    auto node_iterator = nodes_.find(node_id_triple.node_id);
-    if (node_iterator != nodes_.end()) {
-      web::json::value node = web::json::value::parse(node_iterator->second);
-      node["nodeCollectionId"] = node_collection_index;
-      node["model"] = web::json::value(node_collection.model_name);
-      node_iterator->second = node.serialize();
+    SerializeNode(writer, node_id_triple);
+    writer.EndObject();
+    nodes_.insert(std::make_pair(node_id_triple.node_id, node_json_buffer.GetString()));
+  }
+}
+
+uint64_t DataStorage::find_node_collection_index_for_node_id(const uint64_t node_id) const {
+  for (size_t i = 0; i < node_collections_.size(); ++i) {
+    if (node_id >= node_collections_[i].first_node_id && node_id < node_collections_[i].first_node_id + node_collections_[i].node_count) {
+      return i;
     }
   }
+  throw std::runtime_error("Invalid node id");
+};
+
+void DataStorage::SerializeNode(rapidjson::Writer<rapidjson::StringBuffer>& writer, const nest::NodeIDTriple& node_id_triple) const {
+  const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
+  const NodeCollection& node_collection = node_collections_[node_collection_index];
+
+  if (!nest::kernel().node_manager.is_local_node_id(node_id_triple.node_id)) {
+    return;
+  }
+
+  writer.Key("nodeId");
+  writer.Uint(node_id_triple.node_id);
+
+  writer.Key("simulationNodeId");
+  writer.Uint(nest::kernel().get_kernel_manager().mpi_manager.get_rank());
+
+  DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
+  writer.Key("nodeStatus");
+  SerializeDatum(node_status, writer);
+
+  // Check if the node has spatial positions attached to it.
+  // This should probably be replaced by something more accessible
+  // than checking against NaN.
+  std::vector<double> position = nest::get_position(node_id_triple.node_id);
+  writer.Key("position");
+  if (!std::isnan(position[0])) {
+    writer.Int(42);
+  } else {
+    writer.Null();
+  }
+  // Be careful because of these nodes that are not actually local (see above).
+  // auto node_iterator = nodes_.find(node_id_triple.node_id);
+  // if (node_iterator != nodes_.end()) {
+  writer.Key("model");
+  writer.String(node_collection.model_name.c_str());
+  writer.Key("nodeCollectionId");
+  writer.Uint(node_collection_index);
+  // node_iterator->second = node_json_buffer.GetString();
+  // }
 }
 
 uint64_t DataStorage::GetNodeCollectionIdForNodeId(uint64_t node_id) const {
@@ -357,7 +260,9 @@ std::shared_ptr<MultimeterStorage> DataStorage::GetMultimeterStorage(std::uint64
   return multimeter_iterator == multimeters_.end() ? nullptr : multimeter_iterator->second;
 }
 
-void DataStorage::AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t node_id) { GetSpikeDetectorStorage(spikedetector_id)->AddSpike(simulation_time, node_id); }
+void DataStorage::AddSpike(std::uint64_t spikedetector_id, double simulation_time, std::uint64_t node_id) {
+  GetSpikeDetectorStorage(spikedetector_id)->AddSpike(simulation_time, node_id);
+}
 
 void DataStorage::AddMultimeterMeasurement(std::uint64_t multimeter_id, double simulation_time, std::uint64_t node_id, const std::vector<double>& double_values, const std::vector<long>& long_values) {
   GetMultimeterStorage(multimeter_id)->AddMeasurement(simulation_time, node_id, double_values, long_values);

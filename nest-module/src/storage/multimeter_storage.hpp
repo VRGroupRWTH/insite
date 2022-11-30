@@ -64,7 +64,7 @@ class AttributeStorage : public AttributeStorageBase {
 
   inline void ExtractValues(rapidjson::Writer<rapidjson::StringBuffer> &writer, const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const override {
     static_assert(std::is_same<T,long>::value || std::is_same<T,double>::value, "Attribute storage must be long or double");
-    web::json::value values = web::json::value::array(time_indices.size() * node_indices.size());
+    // web::json::value values = web::json::value::array(time_indices.size() * node_indices.size());
     writer.StartArray();
     for (uint64_t t = 0; t < time_indices.size(); ++t) {
       const uint64_t time_index = time_indices[t];
