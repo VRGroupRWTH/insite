@@ -136,7 +136,8 @@ std::string RecordingBackendInsite::get_port_string() const {
 void RecordingBackendInsite::UpdateKernelStatus() {
   DictionaryDatum kernel_status(new Dictionary());
   nest::kernel().get_status(kernel_status);
-  data_storage_.SetKernelStatus(SerializeDatum(&kernel_status));
+  // data_storage_.SetKernelStatus(SerializeDatum(&kernel_status));
+  data_storage_.SetDictKernelStatus(kernel_status);
 }
 
 }  // namespace insite
