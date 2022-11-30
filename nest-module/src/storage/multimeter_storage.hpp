@@ -3,7 +3,7 @@
 
 #define MULTIMETER_STORAGE_HPP
 
-#include <cpprest/json.h>
+// #include <cpprest/json.h>
 
 #include <atomic>
 #include <cstdint>

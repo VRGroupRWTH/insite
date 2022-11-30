@@ -1,7 +1,7 @@
 #ifndef HTTP_SERVER_HPP
 #define HTTP_SERVER_HPP
 
-#include <cpprest/http_listener.h>
+// #include <cpprest/http_listener.h>
 #include <future>
 #include <string>
 #include <memory>
@@ -57,7 +57,7 @@ class HttpServer {
 
     // web::json::value Serialize() const;
   };
-  static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
+  // static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
   std::vector<std::uint64_t> CommaListToUintVector(std::string input, std::regex regex = std::regex("((\\%2C|,)+)"));
 };
 
