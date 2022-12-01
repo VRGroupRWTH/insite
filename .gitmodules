@@ -16,3 +16,6 @@
 [submodule "nest-module/src/extern/asio"]
 	path = nest-module/src/extern/asio
 	url = https://github.com/chriskohlhoff/asio.git
+[submodule "nest-module/src/extern/rapidjson"]
+	path = nest-module/src/extern/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
