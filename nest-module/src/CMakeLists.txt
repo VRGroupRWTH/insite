@@ -66,6 +66,7 @@ set( MODULE_VERSION "${MODULE_VERSION_MAJOR}.${MODULE_VERSION_MINOR}" )
 
 # Set the `nest-config` executable to use during configuration.
 set( with-nest OFF CACHE STRING "Specify the `nest-config` executable." )
+set(ASIO_INCLUDE_DIR extern/asio/asio/include)
 
 # If it is not set, look for a `nest-config` in the PATH.
 if ( NOT with-nest )
