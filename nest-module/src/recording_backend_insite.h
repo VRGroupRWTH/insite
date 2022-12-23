@@ -12,9 +12,27 @@
 
 #include "neuron_info.hpp"
 
+#undef UNKNOWN
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#include "websocketpp/connection.hpp"
+
 namespace insite {
 
+using websocketpp::lib::bind;
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
+typedef websocketpp::client<websocketpp::config::asio_client> client;
+
+enum SimulationEvents {
+  Prepare = 0,
+  PreRunHook = 1,
+  PostRunHook = 2,
+  Cleanup = 3
+};
+
 class RecordingBackendInsite : public nest::RecordingBackend {
+
  public:
   RecordingBackendInsite();
 
@@ -58,13 +76,16 @@ class RecordingBackendInsite : public nest::RecordingBackend {
                          DictionaryDatum& params) const override;
 
  private:
+  client c;
+  client::connection_ptr con;
+  std::thread ws_thread;
   std::string get_port_string() const;
-
   void UpdateKernelStatus();
   DataStorage data_storage_;
   HttpServer http_server_;
   int simulation_node_id_;
   double latest_simulation_time_ = 0.0;
+  std::vector<Spike> spikes;
 };
 
 }  // namespace insite

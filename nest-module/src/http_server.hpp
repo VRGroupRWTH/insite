@@ -19,6 +19,7 @@ class HttpServer {
  public:
   // HttpServer(web::http::uri address, DataStorage* storage);
   HttpServer(std::string address, DataStorage* storage);
+  ~HttpServer() {app.stop();};
   void SimulationHasEnded(double end_time);
   void ClearSimulationHasEnded();
  private:

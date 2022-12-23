@@ -101,6 +101,7 @@ HttpServer::HttpServer(std::string address, DataStorage* storage)
     return "hello, world!";
   });
 
+
   app.stream_threshold(std::numeric_limits<unsigned int>::max());
   crow_server = app.port(18080 + nest::kernel().mpi_manager.get_rank()).multithreaded().run_async();
   app.wait_for_server_start();
@@ -607,6 +608,8 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
   auto parseString = (parameter_gids == parameters.end()) ? std::string("") : parameter_gids->second;
   auto filter_node_ids = CommaListToUintVector(parseString);
   spdlog::info("Parameter parsing took: {}", sw.elapsed());
+  spdlog::info("Parameters: from_time: {}, to_time: {}", from_time, to_time);
+  spdlog::info("Parameter string: {}", request.raw_url);
   sw.reset();
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
@@ -665,6 +668,7 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
   spdlog::info("Extracting spikes took: {}", sw.elapsed());
   sw.reset();
   bool last_frame = simulation_has_ended_ != -1 && (to_time >= simulation_has_ended_);
+  spdlog::info("sim_has_ended: {}, to_time: {}, lastFrame: {}",simulation_has_ended_, to_time, last_frame);
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
