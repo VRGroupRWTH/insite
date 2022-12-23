@@ -14,6 +14,7 @@ services:
     ports:
       - "5000:5000"
       - "9000-9005:9000-9005"
+      - "18080:18080"
     environment:
       INSITE_DOCKER_USE_NEST_SERVER: 0
       NEST_SERVER_HOST: "0.0.0.0"

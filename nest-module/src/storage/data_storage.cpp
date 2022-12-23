@@ -204,7 +204,11 @@ void DataStorage::SerializeNode(rapidjson::Writer<rapidjson::StringBuffer>& writ
   std::vector<double> position = nest::get_position(node_id_triple.node_id);
   writer.Key("position");
   if (!std::isnan(position[0])) {
-    writer.Int(42);
+    writer.StartArray();
+    for (const auto& pos : position) {
+      writer.Double(pos);
+    }
+    writer.EndArray();
   } else {
     writer.Null();
   }
