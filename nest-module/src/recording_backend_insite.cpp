@@ -1,22 +1,29 @@
+#include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 // Includes from libnestutil:
 #include "compose.hpp"
 
 // Includes from nestkernel:
+#include "connection_id.h"
+#include "connection_label.h"
+#include "dict.h"
+#include "dictdatum.h"
 #include "extern/flatbuffers/tests/native_type_test_impl.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "kernel_manager.h"
+#include "nest_datums.h"
+#include "node_collection.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "recording_device.h"
 #include "schema_generated.h"
 #include "simulation_manager.h"
+#include "spatial.h"
 #include "spdlog/spdlog.h"
 #include "vp_manager_impl.h"
-
-#include "spatial.h"
 // Includes from topology:
 // #include "topology.h"
 
@@ -107,6 +114,8 @@ void RecordingBackendInsite::set_value_names(
 }
 
 void RecordingBackendInsite::prepare() {
+  std::unordered_map<uint64_t, int> nc_maps;
+  int nc_counter = 0;
   std::cout << "[insite] prepare" << std::endl;
   DictionaryDatum properties(new Dictionary());
   nest::NodeCollectionPTR local_nodes = nest::kernel().node_manager.get_nodes(properties, true);
@@ -137,6 +146,15 @@ void RecordingBackendInsite::prepare() {
   Writer.StartArray();
   for (const nest::NodeIDTriple& node_id_triple : *local_nodes.get()) {
     auto node_id = node_id_triple.node_id;
+    nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+    int nc_first_node = -1;
+    if (nest_node) {
+      nest::NodeCollectionPTR node_collection = nest_node->get_nc();
+      auto nc_first_node_ptr = node_collection->get_metadata();
+      if (nc_first_node_ptr) {
+        nc_first_node = nc_first_node_ptr->get_first_node_id();
+      }
+    }
     Writer.StartObject();
     Writer.Key("node_id");
     Writer.Uint64(node_id);
@@ -151,7 +169,54 @@ void RecordingBackendInsite::prepare() {
     } else {
       Writer.Null();
     }
+    Writer.Key("Population");
+    int nc_id = -1;
+    if (nc_maps.count(nc_first_node)) {
+      nc_id = nc_maps[nc_first_node];
+    } else {
+      nc_maps[nc_first_node] = nc_counter++;
+      nc_id = nc_counter;
+    }
+    Writer.Int(nc_id);
+
+    Writer.Key("Model");
+    nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
+    Writer.String(model->get_name().c_str());
     Writer.EndObject();
+  }
+  Writer.EndArray();
+  Writer.EndObject();
+  con->send(Buf.GetString());
+  // DictionaryDatum dat(new Dictionary());
+  std::deque<nest::ConnectionID> conn_deq;
+  // void get_connections( std::deque< ConnectionID >& connectome,
+  //   NodeCollectionPTR source,
+  //   NodeCollectionPTR target,
+  //   synindex syn_id,
+  //   long synapse_label ) const;
+
+  Buf.Clear();
+  Writer.StartObject();
+  Writer.Key("type");
+  Writer.Int(3);
+  Writer.Key("connections");
+  Writer.StartArray();
+  spdlog::info("Num connections: {}", nest::kernel().connection_manager.get_num_connections());
+  for (int i = 0; i < nest::kernel().model_manager.get_num_connection_models(); i++) {
+    nest::kernel().connection_manager.get_connections(conn_deq, nest::NodeCollectionPTR(0), nest::NodeCollectionPTR(0), i, -1);
+  }
+  for (auto& conn : conn_deq) {
+    spdlog::info("conn: {}, {}", conn.get_source_node_id(), conn.get_target_node_id());
+  }
+
+  for (auto& res : conn_deq) {
+    auto source = res.get_source_node_id();
+    auto target = res.get_target_node_id();
+
+    Writer.StartArray();
+    Writer.Int(source);
+    Writer.Int(target);
+    Writer.EndArray();
   }
   Writer.EndArray();
   Writer.EndObject();
@@ -185,6 +250,8 @@ void RecordingBackendInsite::pre_run_hook() {
   Writer.Int(0);
   Writer.Key("event");
   Writer.Int(SimulationEvents::PreRunHook);
+  Writer.Key("duration");
+  Writer.Double(nest::kernel().simulation_manager.run_duration().get_ms());
   Writer.EndObject();
   con->send(Buf.GetString());
 }
