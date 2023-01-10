@@ -64,8 +64,13 @@ RUN python3 -m pip install \
     Flask-cors \
     RestrictedPython
 
+# Install dependencies for NEST Server MPI
+RUN python3 -m pip install \
+    docopt \
+    mpi4py
+
 # Clone NEST Simulator
-ARG NEST_GIT_BRANCH=v3.3
+ARG NEST_GIT_BRANCH=master
 RUN git clone --depth 1 --branch ${NEST_GIT_BRANCH} https://github.com/nest/nest-simulator.git ${NEST_SRC_PATH}
 WORKDIR ${NEST_SRC_PATH}
 
@@ -82,7 +87,7 @@ RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     ${NEST_SRC_PATH}
 RUN ninja \
-    && ninja html \
+    # && ninja html \
     && ninja install
 
 
