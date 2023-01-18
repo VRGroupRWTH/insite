@@ -13,6 +13,7 @@
 #include "dictdatum.h"
 #include "extern/flatbuffers/tests/native_type_test_impl.h"
 #include "flatbuffers/flatbuffer_builder.h"
+#include "insite_nest_events.h"
 #include "kernel_manager.h"
 #include "nest_datums.h"
 #include "node_collection.h"
@@ -131,13 +132,8 @@ void RecordingBackendInsite::prepare() {
   UpdateKernelStatus();
   rapidjson::StringBuffer Buf;
   rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(0);
-  Writer.Key("event");
-  Writer.Int(SimulationEvents::Prepare);
-  Writer.EndObject();
-  con->send(Buf.GetString());
+  rapidjson::StringBuffer PrepareEventJSON = InsiteSimulatorEvent(SimulationEvents::Cleanup).SerializeToJSON();
+  con->send(PrepareEventJSON.GetString());
   Buf.Clear();
   Writer.StartObject();
   Writer.Key("type");
@@ -226,15 +222,9 @@ void RecordingBackendInsite::prepare() {
 
 void RecordingBackendInsite::cleanup() {
   std::cout << "[Insite] Cleanup" << std::endl;
-  rapidjson::StringBuffer Buf;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(0);
-  Writer.Key("event");
-  Writer.Int(SimulationEvents::Cleanup);
-  Writer.EndObject();
-  con->send(Buf.GetString());
+
+  rapidjson::StringBuffer CleanupEventJSON = InsiteSimulatorEvent(SimulationEvents::Cleanup).SerializeToJSON();
+  con->send(CleanupEventJSON.GetString());
 }
 
 void RecordingBackendInsite::pre_run_hook() {
@@ -243,17 +233,9 @@ void RecordingBackendInsite::pre_run_hook() {
       nest::kernel().simulation_manager.run_start_time().get_ms(),
       nest::kernel().simulation_manager.run_end_time().get_ms());
   spdlog::info("Run duration: {}", nest::kernel().simulation_manager.run_duration().get_ms());
-  rapidjson::StringBuffer Buf;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(0);
-  Writer.Key("event");
-  Writer.Int(SimulationEvents::PreRunHook);
-  Writer.Key("duration");
-  Writer.Double(nest::kernel().simulation_manager.run_duration().get_ms());
-  Writer.EndObject();
-  con->send(Buf.GetString());
+
+  rapidjson::StringBuffer PreRunEventJSON = InsiteSimulatorEvent(SimulationEvents::PreRunHook).SerializeToJSON();
+  con->send(PreRunEventJSON.GetString());
 }
 
 void RecordingBackendInsite::post_run_hook() {
@@ -261,15 +243,8 @@ void RecordingBackendInsite::post_run_hook() {
   data_storage_.SetCurrentSimulationTime(data_storage_.GetSimulationEndTime());
   // http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
 
-  rapidjson::StringBuffer Buf;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(0);
-  Writer.Key("event");
-  Writer.Int(SimulationEvents::PostRunHook);
-  Writer.EndObject();
-  con->send(Buf.GetString());
+  rapidjson::StringBuffer PostRunEventJSON = InsiteSimulatorEvent(SimulationEvents::PostRunHook).SerializeToJSON();
+  con->send(PostRunEventJSON.GetString());
 }
 
 void RecordingBackendInsite::post_step_hook() {
