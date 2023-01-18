@@ -239,9 +239,9 @@ void RecordingBackendInsite::cleanup() {
 
 void RecordingBackendInsite::pre_run_hook() {
   std::cout << "[Insite] Pre Run Hook" << std::endl;
-  // data_storage_.SetSimulationTimeRange(
-  //     nest::kernel().simulation_manager.get_simulate_from().get_ms(),
-  //     nest::kernel().simulation_manager.get_simulate_to().get_ms());
+  data_storage_.SetSimulationTimeRange(
+      nest::kernel().simulation_manager.run_start_time().get_ms(),
+      nest::kernel().simulation_manager.run_end_time().get_ms());
   spdlog::info("Run duration: {}", nest::kernel().simulation_manager.run_duration().get_ms());
   rapidjson::StringBuffer Buf;
   rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
@@ -271,15 +271,11 @@ void RecordingBackendInsite::post_run_hook() {
   Writer.EndObject();
   con->send(Buf.GetString());
 }
-// TODO: Move timerange to pre_run_hook after NEST PR is done
+
 void RecordingBackendInsite::post_step_hook() {
-  data_storage_.SetCurrentSimulationTime(latest_simulation_time_);
-  // data_storage_.SetSimulationTimeRange(
-  //     nest::kernel().simulation_manager.run_start_time().get_ms(),
-  //     nest::kernel().simulation_manager.run_end_time().get_ms());
-  // std::cout << "Get current simulation time: " << latest_simulation_time_ << std::endl;
-  // std::cout << "Get time from kernel: " << nest::kernel().simulation_manager.get_time().get_ms() << std::endl;
-  UpdateKernelStatus();
+  auto current_time = nest::kernel().simulation_manager.get_clock().get_ms();
+  data_storage_.SetCurrentSimulationTime(current_time);
+  // UpdateKernelStatus();
   flatbuffers::FlatBufferBuilder fbb;
   auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes>(spikes, flatbuffers::Pack);
   auto fb_spike_table = Test::Foo::CreateSpikyTable(fbb, fb_spikes);
