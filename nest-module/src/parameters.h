@@ -41,8 +41,21 @@ tl::optional<T> GetParameter(const crow::query_string& query_string, const std::
   return ConvertStringToType<T>(parameter_value);
 }
 
+inline std::vector<std::uint64_t> CommaListToUintVector(std::string input) {
+  auto regex = std::regex("((\\%2C|,)+)");
+  std::vector<std::uint64_t> filter_node_ids;
+  if (input == "")
+    return filter_node_ids;
+  std::sregex_token_iterator it{input.begin(), input.end(), regex, -1};
+  std::vector<std::string> filter_gid_strings{it, {}};
+  std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
+                 std::back_inserter(filter_node_ids),
+                 [](const std::string& str) { return std::stoll(str); });
+  return filter_node_ids;
+}
+
 inline std::vector<std::uint64_t> CommaListToUintVector(std::string input,
-                                                        std::regex regex = std::regex("((\\%2C|,)+)")) {
+                                                        std::regex regex) {
   std::vector<std::uint64_t> filter_node_ids;
   if (input == "")
     return filter_node_ids;
@@ -81,7 +94,7 @@ struct SpikeParameter {
     node_collection_id = GetParameter<uint64_t>(query_string, "nodeCollectionId");
     spike_detector_id = GetParameter<uint64_t>(query_string, "spikedetectorId");
     auto parameter_gids = GetParameter<std::string>(query_string, "nodeIds");
-    // node_gids = parameter_gids.map_or(&CommaListToUintVector, std::vector<std::uint64_t>());
+    node_gids = parameter_gids.map_or([](tl::optional<std::string> parameter_gids) { return CommaListToUintVector(parameter_gids.value()); }, std::vector<std::uint64_t>());
   }
 
  public:
