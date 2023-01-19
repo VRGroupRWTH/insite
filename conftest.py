@@ -8,20 +8,33 @@ import os
 @pytest.fixture(scope="session")
 def nest_simulation(request):
     logfile = open("docker-compose.log", "w")
+    logfile_access_node = open("access_node.log", "w")
 
-    subprocess.run(["docker-compose", "build"], stdout=logfile, stderr=subprocess.STDOUT)
-    process = subprocess.Popen(["docker-compose", "-f", "docker-compose-testing.yml" ,"up"], stdout=logfile, stderr=subprocess.STDOUT)
+    print("Starting docker-compose build")
+    # subprocess.run(["docker-compose", "build"], stdout=logfile, stderr=subprocess.STDOUT)
+    print("Finished docker-compose build")
+    print("Starting docker-compose")
+    # process = subprocess.Popen(["docker-compose", "-f", "docker-compose-testing.yml" ,"up"], stdout=logfile, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(["python","./nest-module/example/pytest_simulation.py"], stdout=logfile, stderr=subprocess.STDOUT)
+    process2 = subprocess.Popen(["./insite-access-node"], stdout=logfile_access_node, stderr=subprocess.STDOUT)
 
     def finalize():
         # process.send_signal(signal.SIGINT)
-        os.kill(process.pid, signal.SIGINT)
+        process.send_signal(signal.SIGINT)
+        process2.send_signal(signal.SIGINT)
+        # os.kill(process.pid, signal.SIGINT)
+        # os.kill(process2.pid, signal.SIGINT)
         try:
             process.wait(10)
         except subprocess.TimeoutExpired:
             print("\nSending SIGKILL to docker-compose")
-            os.kill(process.pid, signal.SIGKILL)
+            # os.kill(process.pid, signal.SIGKILL)
+            # os.kill(process2.pid, signal.SIGKILL)
+            process.kill()
+            process2.kill()
             process.wait()
-        subprocess.run(["docker-compose", "down"], stdout=logfile, stderr=subprocess.STDOUT)
+            process2.wait()
+        # subprocess.run(["docker-compose", "down"], stdout=logfile, stderr=subprocess.STDOUT)
         logfile.close()
     request.addfinalizer(finalize)
 
@@ -31,7 +44,7 @@ def nest_simulation(request):
         print(".",end='',flush=True)
         time.sleep(1.0)
         try:
-            r = requests.get("http://localhost:9000/version")
+            r = requests.get("http://localhost:18080/version")
             if r.status_code == 200:
                 print("started.")
                 break
