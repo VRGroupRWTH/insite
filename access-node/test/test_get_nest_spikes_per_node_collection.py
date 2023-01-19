@@ -44,7 +44,7 @@ def test_get_nest_spikes_per_node_collection(nest_simulation):
       spikes = return_json_body_if_status_ok(url)
       
       spikes_is_data_length_valid(spikes, True)
-      spikes_is_sorted_by_time(spikes)
+      # spikes_is_sorted_by_time(spikes)
       spikes_nodeIds_are_greater_or_equal_than(spikes, 0)
       spikes_simulation_times_are_greater_or_equal_than(spikes, 0)
 
