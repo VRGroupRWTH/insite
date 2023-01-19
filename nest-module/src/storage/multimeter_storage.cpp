@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
-#include "kernel_manager.h"
 #include "../serialize.hpp"
+#include "kernel_manager.h"
 #include "spdlog/spdlog.h"
 
 namespace insite {
@@ -72,9 +72,7 @@ void MultimeterStorage::ExtractConnectedNodeIds(std::vector<std::uint64_t>* node
   *node_ids = connected_nodes_;
 }
 
-void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t node_id,
-                                       const std::vector<double>& double_values,
-                                       const std::vector<long>& long_values) {
+void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t node_id, const std::vector<double>& double_values, const std::vector<long>& long_values) {
   std::unique_lock<std::mutex> lock(mutex_);
 
   // Find index of the node
@@ -95,19 +93,18 @@ void MultimeterStorage::AddMeasurement(double simulation_time, std::uint64_t nod
   }
 }
 
-void MultimeterStorage::Serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer) const {
-    rapidjson::StringBuffer a;
-    writer.StartObject();
-    writer.Key("multimeterId");
-    writer.Int64(id_);
+void MultimeterStorage::Serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) const {
+  rapidjson::StringBuffer a;
+  writer.StartObject();
+  writer.Key("multimeterId");
+  writer.Int64(id_);
 
   {
     std::unique_lock<std::mutex> lock(mutex_);
     writer.Key("nodeIds");
     writer.StartArray();
-    for (const auto& node : connected_nodes_)
-    {
-        writer.Uint64(node);
+    for (const auto& node : connected_nodes_) {
+      writer.Uint64(node);
     }
     writer.EndArray();
     writer.Key("attributes");
@@ -120,10 +117,9 @@ void MultimeterStorage::Serialize(rapidjson::PrettyWriter<rapidjson::StringBuffe
     writer.EndArray();
     writer.EndObject();
   }
-
 }
 
-void MultimeterStorage::ExtractMeasurements(rapidjson::Writer<rapidjson::StringBuffer> &writer,const std::string& attribute_name, const std::vector<uint64_t>& node_ids, double from_time, double to_time) {
+void MultimeterStorage::ExtractMeasurements(rapidjson::Writer<rapidjson::StringBuffer>& writer, const std::string& attribute_name, const std::vector<uint64_t>& node_ids, double from_time, double to_time) {
   auto attribute_storage_iterator = attributes_.find(attribute_name);
   if (attribute_storage_iterator == attributes_.end()) {
     return;
@@ -164,21 +160,19 @@ void MultimeterStorage::ExtractMeasurements(rapidjson::Writer<rapidjson::StringB
   writer.StartObject();
   writer.Key("simulationTimes");
   writer.StartArray();
-  for (const auto& time : times)
-  {
+  for (const auto& time : times) {
     writer.Double(time);
   }
   writer.EndArray();
 
   writer.Key("nodeIds");
   writer.StartArray();
-  for (const auto& node : nodes_to_query)
-  {
+  for (const auto& node : nodes_to_query) {
     writer.Uint64(node);
   }
   writer.EndArray();
   writer.Key("values");
-  attribute_storage->ExtractValues(writer,time_indices,node_indices);
+  attribute_storage->ExtractValues(writer, time_indices, node_indices);
   writer.EndObject();
 }
 
