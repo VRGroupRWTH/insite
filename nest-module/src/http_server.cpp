@@ -37,6 +37,7 @@
 // #include <websocketpp/config/asio_no_tls.hpp>
 // #include <websocketpp/client.hpp>
 /* #include "rapidjson/" */
+#define CROW_ROUTE_LAMBA(APP, ENDPOINT, FUNCTION) CROW_ROUTE(APP, ENDPOINT)([this](const crow::request& request) { return FUNCTION(request); });
 
 namespace flatbuffers {
 
@@ -56,69 +57,22 @@ namespace insite {
 HttpServer::HttpServer(std::string address, DataStorage* storage)
     : storage_(storage) {
   // websocketpp::server
-  CROW_ROUTE(app, "/spikesfb")
-  ([this](const crow::request& request) {
-    return GetSpikesFB(request);
-  });
-  CROW_ROUTE(app, "/spikes")
-  ([this](const crow::request& request) {
-    return GetSpikes(request);
-  });
-  CROW_ROUTE(app, "/version")
-  ([this](const crow::request& request) {
-    return GetVersion(request);
-  });
-  CROW_ROUTE(app, "/simulationtimeinfo")
-  ([this](const crow::request& request) {
-    return GetCurrentSimulationTime(request);
-  });
-  CROW_ROUTE(app, "/kernelstatus")
-  ([this](const crow::request& request) {
-    return GetKernelStatus(request);
-  });
-  CROW_ROUTE(app, "/multimeters")
-  ([this](const crow::request& request) {
-    return GetMultimeters(request);
-  });
-  CROW_ROUTE(app, "/multimeter_measurement")
-  ([this](const crow::request& request) {
-    return GetMultimeterMeasurement(request);
-  });
-  CROW_ROUTE(app, "/nodecollections")
-  ([this](const crow::request& request) {
-    return GetCollections(request);
-  });
-  CROW_ROUTE(app, "/nodes")
-  ([this](const crow::request& request) {
-    return GetNodes(request);
-  });
-  CROW_ROUTE(app, "/spikerecorders")
-  ([this](const crow::request& request) {
-    return GetSpikeRecorders(request);
-  });
-  CROW_ROUTE(app, "/")
-  ([]() {
-    return "hello, world!";
-  });
-
+  CROW_ROUTE_LAMBA(app, "/spikesfb", GetSpikesFB)
+  CROW_ROUTE_LAMBA(app, "/spikes", GetSpikes)
+  CROW_ROUTE_LAMBA(app, "/version", GetVersion)
+  CROW_ROUTE_LAMBA(app, "/simulationTimeInfo", GetCurrentSimulationTime)
+  CROW_ROUTE_LAMBA(app, "/kernelStatus", GetKernelStatus)
+  CROW_ROUTE_LAMBA(app, "/multimeters", GetMultimeters)
+  CROW_ROUTE_LAMBA(app, "/multimeter_measurement", GetMultimeterMeasurement)
+  CROW_ROUTE_LAMBA(app, "/nodeCollections", GetCollections)
+  CROW_ROUTE_LAMBA(app, "/nodes", GetNodes)
+  CROW_ROUTE_LAMBA(app, "/spikerecorders", GetSpikeRecorders)
 
   app.stream_threshold(std::numeric_limits<unsigned int>::max());
   crow_server = app.port(18080 + nest::kernel().mpi_manager.get_rank()).multithreaded().run_async();
   app.wait_for_server_start();
 
-  std::cout << "[insite] http server is listening...\n";
-
-  // server print_server;
-  //
-  //   print_server.set_message_handler(&on_message);
-  //   print_server.set_access_channels(websocketpp::log::alevel::all);
-  //   print_server.set_error_channels(websocketpp::log::elevel::all);
-  //
-  //   print_server.init_asio();
-  //   print_server.listen(9002);
-  //   print_server.start_accept();
-  //
-  //   print_server.run();
+  spdlog::info("[insite] http server is listening...");
 }
 
 // httpserver::httpserver(web::http::uri address, datastorage* storage)
