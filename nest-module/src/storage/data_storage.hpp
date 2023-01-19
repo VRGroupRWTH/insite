@@ -23,6 +23,13 @@
 
 namespace insite {
 
+struct SimulationTimeInfo {
+  double current_time;
+  double begin_time;
+  double end_time;
+  double step_size;
+};
+
 struct Node {
   uint64_t node_id;
   uint64_t node_collection_id;
@@ -95,6 +102,7 @@ class DataStorage {
   double GetCurrentSimulationTime() const;
   double GetSimulationBeginTime() const;
   double GetSimulationEndTime() const;
+  SimulationTimeInfo GetSimulationTimeInfo() const;
 
   // inline void SetKernelStatus(const web::json::value& kernel_status) {
   //   std::unique_lock<std::mutex> lock(kernel_status_mutex_);
