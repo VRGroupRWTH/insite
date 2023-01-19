@@ -44,6 +44,15 @@ void DataStorage::Reset() {
   node_collections_.clear();
 }
 
+SimulationTimeInfo DataStorage::GetSimulationTimeInfo() const {
+  SimulationTimeInfo info;
+  info.current_time = GetCurrentSimulationTime();
+  info.begin_time = GetSimulationBeginTime();
+  info.end_time = GetSimulationEndTime();
+  info.step_size = nest::Time(nest::Time::step(1)).get_ms();
+  return info;
+}
+
 NodeCollection ReceiveNodeCollection(int source, int tag = 0) {
   NodeCollection received_collection;
   MPI_Status status;
