@@ -41,6 +41,8 @@ set( MODULE_NAME ${SHORT_NAME}module )
 # 2) Add all your sources here and specify dependencies, e.g., link libraries
 set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
+     parameters.h 
+     json_serializer.h json_serializer.cpp
      recording_backend_insite.h recording_backend_insite.cpp
      http_server.hpp http_server.cpp
      serialize.hpp serialize.cpp
@@ -278,7 +280,7 @@ add_compile_definitions(ASIO_STANDALONE _WEBSOCKETPP_CPP11_STRICT_)
 add_subdirectory(extern/flatbuffers)
 add_subdirectory(extern/crow)
 add_subdirectory(extern/spdlog)
-# include_directories(extern/asio/asio/include/)
+include_directories(extern/asio/asio/include/)
 include_directories(extern/websocketpp/)
 # include_directories(/home/mk821590/Code/Work/HBP/nest/cpprestsdk/Release/libs/websocketpp/)
 if ( BUILD_SHARED_LIBS )
