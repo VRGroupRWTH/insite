@@ -54,7 +54,7 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
     "sort_connections_by_source" : bool,
     "structural_plasticity_synapses" : dict,
     "structural_plasticity_update_interval" : numbers.Number,
-    "tics_per_ms" : int,
+    "tics_per_ms" : numbers.Number,
     "tics_per_step" : int,
     "time_communicate_prepare" : numbers.Number,
     "time_construction_connect" : numbers.Number,
@@ -62,7 +62,7 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
     "time_simulate" : numbers.Number,
     "to_do" : int,
     "total_num_virtual_procs" : int,
-    "update_time_limit" : numbers.Number,
+    "update_time_limit" : (type(None),numbers.Number),
     "use_compressed_spikes" : bool,
     "use_wfr" : bool,
     "wfr_comm_interval" : numbers.Number,
@@ -74,7 +74,6 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
 #Tests a nest_get_kernel_status by checking if the response code is valid, all required information is included and the has the correct data-type for every kernel_status
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_get_kernel_status(nest_simulation):
-
     kernel_statuses = return_json_body_if_status_ok(URL_NEST_GET_KERNEL_STATUS)
     assert (isinstance(kernel_statuses, list))
 
