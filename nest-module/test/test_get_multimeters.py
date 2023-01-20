@@ -2,7 +2,7 @@ import requests
 import numbers
 
 def test_get_multimeters(nest_simulation):
-    request = requests.get("http://localhost:9000/multimeters")
+    request = requests.get("http://localhost:18080/multimeters")
     assert(request.status_code == 200)
     
     multimeters = request.json()
