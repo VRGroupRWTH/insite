@@ -2,7 +2,7 @@ import requests
 import numbers
 
 def test_get_spikedetectors(nest_simulation):
-    request = requests.get("http://localhost:9000/spikedetectors")
+    request = requests.get("http://localhost:18080/spikerecorders")
     assert(request.status_code == 200)
     
     spike_detectors = request.json()
@@ -10,8 +10,8 @@ def test_get_spikedetectors(nest_simulation):
     assert(isinstance(spike_detectors, list))
 
     for spike_detector in spike_detectors:
-        assert('spikedetectorId' in spike_detector)
-        assert(isinstance(spike_detector['spikedetectorId'], int))
+        assert('spikerecorderId' in spike_detector)
+        assert(isinstance(spike_detector['spikerecorderId'], int))
 
         assert('nodeIds' in spike_detector)
         assert(isinstance(spike_detector['nodeIds'], list))
