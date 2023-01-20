@@ -11,7 +11,7 @@ from nest_general_test_functions import *
 import pytest
 
 #URL used for the "nest_get_spikes" HTTP-query
-URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID = BASE_REQUEST_URL + "/spikedetectors"
+URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID = BASE_REQUEST_URL + "/spikerecorders"
 
 #Names for the nest_get_spikes_by_spikedetector query-parameters
 class NEST_GET_SPIKES_BY_SPIKEDETECTOR_PARAMETER_NAME_LIST (Enum):

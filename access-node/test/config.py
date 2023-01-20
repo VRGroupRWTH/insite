@@ -7,6 +7,6 @@ BASE_REQUEST_URL = "http://localhost:8080/nest"
 class JSON_VALUE_TO_FIELD_NAME(Enum):
     simulationTimes = "simulationTimes"
     nodeIds = "nodeIds"
-    spikedetectorId = "spikedetectorId"
+    spikedetectorId = "spikerecorderId"
     spikes = "spikes"
     lastFrame = "lastFrame"

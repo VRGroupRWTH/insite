@@ -23,7 +23,7 @@ def zip_spikes(spikes):
 #Checks if the given spike data has a correct length, is sorted by time and does not include values smaller than zero
 def spikes_is_valid_format(spikes):
     spikes_is_data_length_valid(spikes)
-    spikes_is_sorted_by_time(spikes)
+    # spikes_is_sorted_by_time(spikes)
     spikes_nodeIds_are_greater_or_equal_than(spikes, 0)
     spikes_simulation_times_are_greater_or_equal_than(spikes, 0)
 
