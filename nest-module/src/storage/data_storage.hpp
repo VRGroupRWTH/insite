@@ -121,7 +121,7 @@ class DataStorage {
 
   inline void GetKernelStatus(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
     std::unique_lock<std::mutex> lock(kernel_status_mutex_);
-    SerializeDatum(dict_kernel_status_, writer);
+    SerializeDatum(&dict_kernel_status_, writer);
   }
   void Reset();
 

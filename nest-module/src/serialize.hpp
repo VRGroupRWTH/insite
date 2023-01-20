@@ -5,6 +5,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <token.h>
 
 #include <vector>
 
@@ -16,9 +17,10 @@ namespace insite {
 // }
 
 void SerializeDatum(Datum* datum, rapidjson::Writer<rapidjson::StringBuffer>& writer);
-inline void SerializeDatum(Datum& datum, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
-  return SerializeDatum(&datum, writer);
-}
+
+// inline void SerializeDatum(Datum& datum, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+//   return SerializeDatum(&datum, writer);
+// }
 
 // template <typename T>
 // inline web::json::value ToJsonArray(const std::vector<T>& vector) {

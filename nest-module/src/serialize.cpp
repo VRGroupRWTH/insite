@@ -10,6 +10,7 @@
 #include "booldatum.h"
 #include "dictdatum.h"
 #include "doubledatum.h"
+#include "extern/spdlog/include/spdlog/spdlog.h"
 #include "integerdatum.h"
 #include "namedatum.h"
 #include "rapidjson/document.h"
@@ -28,9 +29,11 @@ void SerializeDatum(Datum* datum, rapidjson::Writer<rapidjson::StringBuffer>& wr
       writer.Null();
     }
   } else if (StringDatum* string_datum = dynamic_cast<StringDatum*>(datum)) {
-    writer.String(string_datum->c_str());
+    writer.String(string_datum->data(), string_datum->size(), true);
   } else if (NameDatum* name_datum = dynamic_cast<NameDatum*>(datum)) {
-    writer.String(name_datum->toString().c_str());
+    writer.String(name_datum->toString().c_str(), name_datum->toString().size(), true);
+  } else if (LiteralDatum* literal_datum = dynamic_cast<LiteralDatum*>(datum)) {
+    writer.String(literal_datum->toString().c_str());
   } else if (BoolDatum* bool_datum = dynamic_cast<BoolDatum*>(datum)) {
     writer.Bool(*bool_datum);
   } else if (ArrayDatum* array_datum = dynamic_cast<ArrayDatum*>(datum)) {
