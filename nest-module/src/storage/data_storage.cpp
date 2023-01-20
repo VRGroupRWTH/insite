@@ -130,7 +130,7 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
           // segfaults for some reason:
           auto model_status = model->get_status();
           if (model_status.valid()) {
-            SerializeDatum(model_status, writer);
+            SerializeDatum(&model_status, writer);
             serialized_model_status = model_status_buffer.GetString();
           }
         }
@@ -205,7 +205,7 @@ void DataStorage::SerializeNode(rapidjson::Writer<rapidjson::StringBuffer>& writ
 
   DictionaryDatum node_status = nest::kernel().node_manager.get_status(node_id_triple.node_id);
   writer.Key("nodeStatus");
-  SerializeDatum(node_status, writer);
+  SerializeDatum(&node_status, writer);
 
   // Check if the node has spatial positions attached to it.
   // This should probably be replaced by something more accessible
