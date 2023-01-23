@@ -3,21 +3,50 @@
 #     - 'nest-module/.gitlab-ci.yml'
 
 stages:
+    - build
     - test
     # - deploy
 
-test:
-    image: insite/base
+build:
+    stage: build
+    image: registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/base:latest
     tags:
-        - docker-executor
+        - docker-runner
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
     artifacts:
         paths:
-        - docker-compose.log
-        expire_in: 1 week
+        - build_access_node
+        - build_nest_module
+        expire_in: 1 day
         when: always
     script:
-        - pip3 install --user -r test-requirements.txt
-        - mkdir build
-        - cd build
-        - cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ..
+        - mkdir build_nest_module
+        - cd build_nest_module
+        - cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ../nest-module/src
         - ninja install
+
+        - cd .. && mkdir build_access_node && cd build_access_node
+        - cmake -G Ninja ../access-node/access_node
+        - ninja insite-access-node
+
+test:
+    stage: test
+    image: registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/base:latest
+    tags:
+        - docker-runner
+    artifacts:
+        paths:
+        - build_access_node
+        - build_nest_module
+        expire_in: 1 day
+        when: always
+    before_script:
+        - pip3 install -r test-requirements.txt
+        - cd build_nest_module
+        - ninja install
+        - cd ..
+        - cp build_access_node/insite-access-node .
+    script:
+        - pytest --count=2 --repeat-scope=session -x --showlocals --ignore-glob=**/_deps/* --ignore-glob=**/extern/* -s
+
