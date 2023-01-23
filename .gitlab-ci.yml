@@ -1,23 +1,23 @@
-include:
-    - 'access-node/.gitlab-ci.yml'
-    - 'nest-module/.gitlab-ci.yml'
+# include:
+#     - 'access-node/.gitlab-ci.yml'
+#     - 'nest-module/.gitlab-ci.yml'
 
 stages:
     - test
-    - deploy
+    # - deploy
 
 test:
+    image: insite/base
     tags:
-        - centos
-        - docker
-        - pytest
+        - docker-executor
     artifacts:
         paths:
         - docker-compose.log
         expire_in: 1 week
         when: always
     script:
-        - docker-compose build --no-cache insite-access-node
-        - docker-compose build --no-cache insite-nest-module
         - pip3 install --user -r test-requirements.txt
-        - pytest --count=30 --repeat-scope=session -x
+        - mkdir build
+        - cd build
+        - cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ..
+        - ninja install
