@@ -1,0 +1,13 @@
+namespace Insite.Nest;
+
+struct Spikes {
+   spike_time:double;
+   node_id:uint64;
+}
+
+table SpikeTable {
+   spikes: [Spikes];
+   last_frame: bool;
+}
+
+root_type SpikeTable;
