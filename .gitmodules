@@ -19,3 +19,31 @@
 [submodule "nest-module/src/extern/rapidjson"]
 	path = nest-module/src/extern/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+
+[submodule "spdlog"]
+	path = access-node/access_node/extern/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "cpr"]
+	path = access-node/access_node/extern/cpr
+	url = https://github.com/libcpr/cpr.git
+[submodule "Crow"]
+	path = access-node/access_node/extern/Crow
+	url = https://github.com/CrowCpp/Crow.git
+[submodule "rapidjson"]
+	path = access-node/access_node/extern/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "flatbuffers"]
+	path = access-node/access_node/flatbuffers
+	url = https://github.com/google/flatbuffers
+[submodule "extern/flatbuffers"]
+	path = access-node/access_node/extern/flatbuffers
+	url = https://github.com/google/flatbuffers
+[submodule "pdqsort"]
+	path = access-node/access_node/pdqsort
+	url = https://github.com/orlp/pdqsort
+[submodule "extern/pdqsort"]
+	path = access-node/access_node/extern/pdqsort
+	url = https://github.com/orlp/pdqsort
+[submodule "extern/rapidyaml"]
+	path = access-node/access_node/extern/rapidyaml
+	url = https://github.com/biojppm/rapidyaml
