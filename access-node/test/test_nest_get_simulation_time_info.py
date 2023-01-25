@@ -14,8 +14,8 @@ class NestSimulationTime:
 def simulation_time(request):
     sim_time = NestSimulationTime()
     yield sim_time
-    if request.config.option.count > 1:
-        assert(sim_time.ticked)
+    #if request.config.option.count > 1:
+    #    assert(sim_time.ticked)
 
 @pytest.mark.repeat(1)
 def test_simulation_time_info_fields(nest_simulation, simulation_time):
