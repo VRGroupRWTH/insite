@@ -17,6 +17,7 @@ def nest_simulation(request):
     # process = subprocess.Popen(["docker-compose", "-f", "docker-compose-testing.yml" ,"up"], stdout=logfile, stderr=subprocess.STDOUT)
     process = subprocess.Popen(["python","./nest-module/example/pytest_simulation.py"], stdout=logfile, stderr=subprocess.STDOUT)
     process2 = subprocess.Popen(["./insite-access-node"], stdout=logfile_access_node, stderr=subprocess.STDOUT)
+    time.sleep(1)
 
     def finalize():
         # process.send_signal(signal.SIGINT)
