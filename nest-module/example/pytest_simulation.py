@@ -242,9 +242,8 @@ endbuild = time.time()
 
 print("Simulating")
 
-while True:
-    nest.Simulate(simtime)
-    time.sleep(5.0)
+nest.Simulate(simtime)
+time.sleep(5.0)
 
 ###############################################################################
 # Storage of the time point after the simulation of the network in a variable.
