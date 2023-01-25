@@ -219,7 +219,6 @@ void RecordingBackendInsite::prepare() {
     Writer.EndObject();
     con->send(Buf.GetString());
   }
-  sleep(2);
 }
 
 void RecordingBackendInsite::cleanup() {
