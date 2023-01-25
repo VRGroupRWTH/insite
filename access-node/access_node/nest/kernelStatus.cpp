@@ -10,8 +10,8 @@
 #include "utilityFunctions.h"
 namespace insite {
 // Get all kernelStatuses from the nest-server
-rapidjson::Value NestGetKernelStatuses() {
-  rapidjson::MemoryPoolAllocator<> json_alloc;
+rapidjson::Value NestGetKernelStatuses(
+    rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
   std::vector<std::future<std::string>> kernel_statuses = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, "/kernelStatus");
@@ -21,7 +21,6 @@ rapidjson::Value NestGetKernelStatuses() {
 
   // loop through all kernelStatus-data-sets and create a new object for each
   for (std::future<std::string>& kernel_status : kernel_statuses) {
-
     // create rapidjson-document for current kernelStatus-data-set and parse
     // data into it
     rapidjson::Document kernel_data_old;
@@ -51,7 +50,9 @@ rapidjson::Value NestGetKernelStatuses() {
 //
 
 crow::response KernelStatus() {
-  rapidjson::Value kernel_status_result_array = NestGetKernelStatuses();
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value kernel_status_result_array =
+      NestGetKernelStatuses(json_alloc);
 
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
