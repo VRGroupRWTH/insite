@@ -50,6 +50,7 @@ void SerializeDatum(Datum* datum, rapidjson::Writer<rapidjson::StringBuffer>& wr
     }
     writer.EndObject();
   } else {
+    spdlog::error("Couldnt cast Datum: {}", datum->gettypename().toString());
     writer.Null();
   }
 }

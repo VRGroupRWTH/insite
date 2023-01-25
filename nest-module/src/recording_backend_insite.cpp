@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <exception>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -12,6 +13,7 @@
 #include "dict.h"
 #include "dictdatum.h"
 #include "extern/flatbuffers/tests/native_type_test_impl.h"
+#include "extern/spdlog/include/spdlog/spdlog.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "insite_nest_events.h"
 #include "kernel_manager.h"
@@ -24,8 +26,6 @@
 #include "simulation_manager.h"
 #include "spatial.h"
 #include "spdlog/spdlog.h"
-#include "vp_manager_impl.h"
-// Includes from topology:
 // #include "topology.h"
 
 // Includes from sli:
@@ -77,7 +77,11 @@ RecordingBackendInsite::RecordingBackendInsite()
 }
 
 RecordingBackendInsite::~RecordingBackendInsite() throw() {
-  con->close(websocketpp::close::status::normal, "Simulation finished");
+  try {
+    con->close(websocketpp::close::status::normal, "Simulation finished");
+  } catch (std::exception e) {
+    spdlog::error("{}", e.what());
+  }
   c.stop();
   ws_thread.join();
 }
@@ -93,6 +97,8 @@ void RecordingBackendInsite::finalize() {
 
 void RecordingBackendInsite::enroll(const nest::RecordingDevice& device,
                                     const DictionaryDatum& params) {
+  updateValue<bool>(params, "send_positions", send_positions);
+  spdlog::info("ENROLL: {}", send_positions);
   if (device.get_type() == nest::RecordingDevice::SPIKE_RECORDER) {
     std::cout << "[insite] enroll spike recorder (" << device.get_label() << ") with id " << device.get_node_id() << "\n";
     data_storage_.CreateSpikeDetectorStorage(device.get_node_id());
@@ -183,40 +189,36 @@ void RecordingBackendInsite::prepare() {
   Writer.EndArray();
   Writer.EndObject();
   con->send(Buf.GetString());
-  // DictionaryDatum dat(new Dictionary());
   std::deque<nest::ConnectionID> conn_deq;
-  // void get_connections( std::deque< ConnectionID >& connectome,
-  //   NodeCollectionPTR source,
-  //   NodeCollectionPTR target,
-  //   synindex syn_id,
-  //   long synapse_label ) const;
 
-  Buf.Clear();
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(3);
-  Writer.Key("connections");
-  Writer.StartArray();
-  spdlog::info("Num connections: {}", nest::kernel().connection_manager.get_num_connections());
-  for (int i = 0; i < nest::kernel().model_manager.get_num_connection_models(); i++) {
-    nest::kernel().connection_manager.get_connections(conn_deq, nest::NodeCollectionPTR(0), nest::NodeCollectionPTR(0), i, -1);
-  }
-  for (auto& conn : conn_deq) {
-    spdlog::info("conn: {}, {}", conn.get_source_node_id(), conn.get_target_node_id());
-  }
-
-  for (auto& res : conn_deq) {
-    auto source = res.get_source_node_id();
-    auto target = res.get_target_node_id();
-
+  if (send_positions) {
+    Buf.Clear();
+    Writer.StartObject();
+    Writer.Key("type");
+    Writer.Int(3);
+    Writer.Key("connections");
     Writer.StartArray();
-    Writer.Int(source);
-    Writer.Int(target);
+    spdlog::info("Num connections: {}", nest::kernel().connection_manager.get_num_connections());
+    for (int i = 0; i < nest::kernel().model_manager.get_num_connection_models(); i++) {
+      nest::kernel().connection_manager.get_connections(conn_deq, nest::NodeCollectionPTR(0), nest::NodeCollectionPTR(0), i, -1);
+    }
+    for (auto& conn : conn_deq) {
+      spdlog::info("conn: {}, {}", conn.get_source_node_id(), conn.get_target_node_id());
+    }
+
+    for (auto& res : conn_deq) {
+      auto source = res.get_source_node_id();
+      auto target = res.get_target_node_id();
+
+      Writer.StartArray();
+      Writer.Int(source);
+      Writer.Int(target);
+      Writer.EndArray();
+    }
     Writer.EndArray();
+    Writer.EndObject();
+    con->send(Buf.GetString());
   }
-  Writer.EndArray();
-  Writer.EndObject();
-  con->send(Buf.GetString());
   sleep(2);
 }
 
@@ -234,6 +236,7 @@ void RecordingBackendInsite::pre_run_hook() {
       nest::kernel().simulation_manager.run_end_time().get_ms());
   spdlog::info("Run duration: {}", nest::kernel().simulation_manager.run_duration().get_ms());
 
+  UpdateKernelStatus();
   rapidjson::StringBuffer PreRunEventJSON = InsiteSimulatorEvent(SimulationEvents::PreRunHook).SerializeToJSON();
   con->send(PreRunEventJSON.GetString());
 }
@@ -241,7 +244,8 @@ void RecordingBackendInsite::pre_run_hook() {
 void RecordingBackendInsite::post_run_hook() {
   std::cout << "[Insite] Post Run Hook" << std::endl;
   data_storage_.SetCurrentSimulationTime(data_storage_.GetSimulationEndTime());
-  // http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
+  http_server_.SimulationHasEnded(data_storage_.GetSimulationEndTime());
+  UpdateKernelStatus();
 
   rapidjson::StringBuffer PostRunEventJSON = InsiteSimulatorEvent(SimulationEvents::PostRunHook).SerializeToJSON();
   con->send(PostRunEventJSON.GetString());
@@ -250,7 +254,7 @@ void RecordingBackendInsite::post_run_hook() {
 void RecordingBackendInsite::post_step_hook() {
   auto current_time = nest::kernel().simulation_manager.get_clock().get_ms();
   data_storage_.SetCurrentSimulationTime(current_time);
-  // UpdateKernelStatus();
+
   flatbuffers::FlatBufferBuilder fbb;
   auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes>(spikes, flatbuffers::Pack);
   auto fb_spike_table = Test::Foo::CreateSpikyTable(fbb, fb_spikes);
@@ -297,7 +301,6 @@ std::string RecordingBackendInsite::get_port_string() const {
 void RecordingBackendInsite::UpdateKernelStatus() {
   DictionaryDatum kernel_status(new Dictionary());
   nest::kernel().get_status(kernel_status);
-  // data_storage_.SetKernelStatus(SerializeDatum(&kernel_status));
   data_storage_.SetDictKernelStatus(kernel_status);
 }
 
