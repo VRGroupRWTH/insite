@@ -23,16 +23,6 @@
 #include "utilityFunctions.h"
 
 namespace insite {
-// converts a cpr-response into a string
-std::string ParseResponseToString(const cpr::Response& response) {
-  return response.text;
-}
-
-SpikeContainer ParseResponseToString2(const cpr::Response& response) {
-  SpikeContainer spikes;
-  spikes.AddSpikesFromJson(response.text.c_str());
-  return spikes;
-}
 // Takes a reference to a rapidjson writer and a reference to a vector of Spikes
 // (node_id,time pairs) and writes the spikes into the JSON writer
 //  jsonStrings::simTimes: [0.0,0.1,...], jsonStrings::nodeIds:[3,6,...]
@@ -113,21 +103,4 @@ CprResponseVec GetAccessNodeRequests(
                                query_string);
 }
 
-CprResponseVec NestNodeRequests(const std::string& endpoint) {
-  std::vector<std::shared_ptr<cpr::Session>> sessions;
-  // Create MultiPerform object
-  cpr::MultiPerform multiperform;
-  auto urls = ServerConfig::GetInstance().request_urls;
-  for (const auto& url : urls) {
-    auto session = std::make_shared<cpr::Session>();
-    session->SetUrl(url + endpoint);
-    sessions.emplace_back(std::move(session));
-    multiperform.AddSession(sessions.back());
-    spdlog::debug(
-        "[GetAccessNodeRequests2] Added {} to the multiperform request.",
-        url + endpoint);
-  }
-  // Add sessions to the MultiPerform
-  return multiperform.Get();
-}
 }  // namespace insite

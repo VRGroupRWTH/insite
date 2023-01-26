@@ -20,11 +20,6 @@
 #include <spike.h>
 namespace insite {
 
-// converts a cpr-response into a string
-std::string ParseResponseToString(const cpr::Response& response);
-
-SpikeContainer ParseResponseToString2(const cpr::Response& response);
-
 using CprResponseVec = std::vector<cpr::Response>;
 
 void SpikesToJson(rapidjson::Writer<rapidjson::StringBuffer>& writer,
@@ -44,5 +39,4 @@ CprResponseVec GetAccessNodeRequests(
     const std::string& endpoint,
     const std::vector<OptionalParameter>& params);
 
-CprResponseVec NestNodeRequests(const std::string& endpoint);
 }  // namespace insite
