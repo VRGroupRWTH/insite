@@ -38,18 +38,18 @@ void CheckNodeCollectionDataValid(
 rapidjson::Value NestGetNodes() {
   rapidjson::MemoryPoolAllocator<> json_alloc;
   // get request results back and store in array
-  std::vector<std::future<std::string>> node_data_sets =
+  auto node_data_sets =
       GetAccessNodeRequests(ServerConfig::GetInstance().request_urls, "/nodes");
 
   // create array to store the different kernel-data sets
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (std::future<std::string>& node_data_set : node_data_sets) {
+  for (auto& node_data_set : node_data_sets) {
     // create rapidjson-document for current kernelStatus-data-set and parse
     // data into it
     rapidjson::Document current_node_data;
-    current_node_data.Parse(node_data_set.get().c_str());
+    current_node_data.Parse(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
@@ -67,18 +67,18 @@ rapidjson::Value NestGetNodes() {
 rapidjson::Value NestGetNodes(std::unordered_set<int>& param_node_ids) {
   rapidjson::MemoryPoolAllocator<> json_alloc;
   // get request results back and store in array
-  std::vector<std::future<std::string>> node_data_sets =
+  auto node_data_sets =
       GetAccessNodeRequests(ServerConfig::GetInstance().request_urls, "/nodes");
 
   // create array to store the different kernel-data sets
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (std::future<std::string>& node_data_set : node_data_sets) {
+  for (auto& node_data_set : node_data_sets) {
     // create rapidjson-document for current kernelStatus-data-set and parse
     // data into it
     rapidjson::Document current_node_data;
-    current_node_data.Parse(node_data_set.get().c_str());
+    current_node_data.Parse(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
@@ -101,9 +101,8 @@ rapidjson::Value NestGetNodes(std::unordered_set<int>& param_node_ids) {
 rapidjson::Value NestGetNodeCollections() {
   // get request results and store in array
   rapidjson::MemoryPoolAllocator<> json_alloc;
-  std::vector<std::future<std::string>> node_collection_data_sets =
-      GetAccessNodeRequests(ServerConfig::GetInstance().request_urls,
-                            "/nodeCollections");
+  auto node_collection_data_sets = GetAccessNodeRequests(
+      ServerConfig::GetInstance().request_urls, "/nodeCollections");
 
   // create array to store the different node-collection-data-sets sets
   rapidjson::Value node_collection_result_array(rapidjson::kArrayType);
@@ -115,7 +114,7 @@ rapidjson::Value NestGetNodeCollections() {
   for (auto& node_collection_set : node_collection_data_sets) {
     // create rapidjson-document for current nodeCollection-data-set and parse
     // data into it
-    auto str = node_collection_set.get();
+    auto str = node_collection_set.text;
     rapidjson::Document node_collection_data_old;
     node_collection_data_old.Parse(str.c_str());
 
@@ -161,9 +160,8 @@ crow::response NodeCollections() {
 crow::response NodesByCollectionId(int requested_node_collection_id) {
   rapidjson::MemoryPoolAllocator<> json_alloc;
   // get request results and store in array
-  std::vector<std::future<std::string>> node_collection_data_sets =
-      GetAccessNodeRequests(ServerConfig::GetInstance().request_urls,
-                            "/nodeCollections");
+  auto node_collection_data_sets = GetAccessNodeRequests(
+      ServerConfig::GetInstance().request_urls, "/nodeCollections");
 
   // create array to store the different nodeIds
   std::unordered_set<int> param_nodes;
@@ -181,7 +179,7 @@ crow::response NodesByCollectionId(int requested_node_collection_id) {
     // create rapidjson-document for current nodeCollection-data-set and parse
     // data into it
     rapidjson::Document node_collection_data_old;
-    node_collection_data_old.Parse(node_collection_set.get().c_str());
+    node_collection_data_old.Parse(node_collection_set.text.c_str());
 
     assert(node_collection_data_old.IsArray());
 
@@ -231,9 +229,8 @@ crow::response NodesByCollectionId(int requested_node_collection_id) {
 crow::response NodeIdsByNodeCollectionId(int requested_node_collecton_id) {
   rapidjson::MemoryPoolAllocator<> json_alloc;
   // get request results and store in array
-  std::vector<std::future<std::string>> node_collection_data_sets =
-      GetAccessNodeRequests(ServerConfig::GetInstance().request_urls,
-                            "/nodeCollections");
+  auto node_collection_data_sets = GetAccessNodeRequests(
+      ServerConfig::GetInstance().request_urls, "/nodeCollections");
 
   // create array to store the different nodeIds
   rapidjson::Value nodes_result_array(rapidjson::kArrayType);
@@ -251,7 +248,7 @@ crow::response NodeIdsByNodeCollectionId(int requested_node_collecton_id) {
     // create rapidjson-document for current nodeCollection-data-set and parse
     // data into it
     rapidjson::Document node_collection_data_old;
-    node_collection_data_old.Parse(node_collection_set.get().c_str());
+    node_collection_data_old.Parse(node_collection_set.text.c_str());
 
     assert(node_collection_data_old.IsArray());
 

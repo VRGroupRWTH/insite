@@ -59,7 +59,7 @@ SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
   spdlog::debug("Getting spikes from nodes...");
   std::string query_string = BuildQueryString("/spikesfb", params);
 
-  auto spike_data_sets = GetAccessNodeRequests2(
+  auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, query_string);
   spdlog::debug("Got spikes in {}", stopwatch.elapsed());
 
@@ -112,7 +112,7 @@ SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
   spdlog::debug("Getting spikes from nodes...");
   std::string query_string = BuildQueryString("/spikes", params);
 
-  auto spike_data_sets = GetAccessNodeRequests2(
+  auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, query_string);
   spdlog::debug("Got spikes in {}", stopwatch.elapsed());
 
