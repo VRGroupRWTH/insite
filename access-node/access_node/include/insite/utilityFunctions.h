@@ -1,6 +1,7 @@
 #pragma once
 #include <cpr/cpr.h>
 #include <crow.h>
+#include <params.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
 #include <iostream>
@@ -9,7 +10,6 @@
 #include <unordered_set>
 #include <vector>
 #include "cpr/response.h"
-#include <params.h>
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -35,17 +35,12 @@ std::string DocumentToString(const rapidjson::Document& document);
 std::string QueryRandomNode(const std::vector<std::string>& urls,
                             const std::string& postfix);
 // create and allocate storage for http-response
-std::vector<std::future<std::string>> GetAccessNodeRequests(
-    const std::vector<std::string>& urls,
-    const std::string& postfix);
 // Send and return the requests to the accessNode you get when combining all the
 // given urls with the given postfix
-CprResponseVec GetAccessNodeRequests2(const std::vector<std::string>& urls,
-                                      const std::string& postfix);
+CprResponseVec GetAccessNodeRequests(const std::vector<std::string>& urls,
+                                     const std::string& postfix);
 
-CprResponseVec GetAccessNodeRequests2(const std::string& query_string);
-
-CprResponseVec GetAccessNodeRequests2(
+CprResponseVec GetAccessNodeRequests(
     const std::string& endpoint,
     const std::vector<OptionalParameter>& params);
 

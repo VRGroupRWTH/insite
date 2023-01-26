@@ -13,18 +13,18 @@ namespace insite {
 rapidjson::Value NestGetKernelStatuses(
     rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
-  std::vector<std::future<std::string>> kernel_statuses = GetAccessNodeRequests(
+  CprResponseVec kernel_statuses = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, "/kernelStatus");
 
   // create array to store the different kernel-data sets
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (std::future<std::string>& kernel_status : kernel_statuses) {
+  for (cpr::Response& kernel_status : kernel_statuses) {
     // create rapidjson-document for current kernelStatus-data-set and parse
     // data into it
     rapidjson::Document kernel_data_old;
-    kernel_data_old.Parse(kernel_status.get().c_str());
+    kernel_data_old.Parse(kernel_status.text.c_str());
 
     assert(kernel_data_old.IsObject());
 

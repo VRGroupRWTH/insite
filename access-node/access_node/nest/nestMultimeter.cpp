@@ -43,7 +43,8 @@ void CheckMultimeterDataValid(
 std::unordered_map<uint64_t, MultimeterContainer> NestGetMultimeters() {
   // get request results and store in array
   rapidjson::MemoryPoolAllocator<> json_alloc;
-  CprResponseVec multimeter_responses = GetAccessNodeRequests2("/multimeters");
+  CprResponseVec multimeter_responses = GetAccessNodeRequests(
+      ServerConfig::GetInstance().request_urls, "/multimeters");
 
   std::unordered_map<uint64_t, MultimeterContainer> merged_multimeters;
 
@@ -88,7 +89,8 @@ crow::response MultimeterByIdResponse(uint64_t requested_multimeter_id) {
 }
 
 MultimeterContainer NestGetMultimeterById(uint64_t requested_multimeter_id) {
-  CprResponseVec multimeter_responses = GetAccessNodeRequests2("/multimeters");
+  CprResponseVec multimeter_responses = GetAccessNodeRequests(
+      ServerConfig::GetInstance().request_urls, "/multimeters");
 
   MultimeterContainer result_multimeter;
 
@@ -122,7 +124,7 @@ MultimeterValueContainer NestGetMultimeterAttributes(
   passthrough_params.emplace_back(parameters.GetValue(json_strings::kNodeIds));
 
   CprResponseVec responses =
-      GetAccessNodeRequests2("/multimeter_measurement", passthrough_params);
+      GetAccessNodeRequests("/multimeter_measurement", passthrough_params);
 
   std::vector<uint64_t> node_id_vec;
   if (!parameters.GetValue(json_strings::kNodeIds)) {
