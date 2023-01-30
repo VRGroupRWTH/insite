@@ -52,9 +52,9 @@ struct OptionalParameter {
 
     if (query.get(name) != nullptr) {
       result = ConvertStringToType<T>(query.get(name));
-      spdlog::debug("{}: {}", name, result.value());
+      SPDLOG_DEBUG("{}: {}", name, result.value());
     } else {
-      spdlog::debug("{}: no value", name);
+      SPDLOG_DEBUG("{}: no value", name);
     }
 
     return {name, result};

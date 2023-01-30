@@ -31,9 +31,9 @@ class TVBHttpEndpoint {
     auto query_params =
         betterinsite::TVBDataQueryParameters(request.url_params);
 
-    spdlog::debug("fromTime: {}, toTime: {}",
-                  query_params["fromTime"].ValueAsTOrDefault<double>(),
-                  query_params["toTime"].ValueAsTOrDefault<double>());
+    SPDLOG_DEBUG("fromTime: {}, toTime: {}",
+                 query_params["fromTime"].ValueAsTOrDefault<double>(),
+                 query_params["toTime"].ValueAsTOrDefault<double>());
     writer.StartArray();
     for (auto& monitor : tvb_handler->double_monitors_) {
       if (query_params["uid"] &&

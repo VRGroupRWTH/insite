@@ -337,7 +337,7 @@ crow::response SpikesByNodeCollectionId(const crow::request& req,
   query_node_vec.insert(query_node_vec.end(), query_node_ids.begin(),
                         query_node_ids.end());
   params.node_gids = query_node_vec;
-  spdlog::info("filtered ids: {}", query_node_vec);
+  SPDLOG_INFO("filtered ids: {}", query_node_vec);
 
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

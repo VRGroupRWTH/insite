@@ -89,10 +89,10 @@ struct OptionalParameter {
       const char* name,
       const ParameterValue& default_value) {
     if (auto* parameter = query.get(name); parameter) {
-      spdlog::debug("Parsed parameter {}: {}", name, parameter);
+      SPDLOG_DEBUG("Parsed parameter {}: {}", name, parameter);
       return {name, std::string(parameter), default_value};
     }
-    spdlog::debug("Parsed parameter {}: no value", name);
+    SPDLOG_DEBUG("Parsed parameter {}: no value", name);
     return {name, std::nullopt, default_value};
   }
 

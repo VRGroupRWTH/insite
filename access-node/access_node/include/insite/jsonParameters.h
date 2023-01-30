@@ -49,9 +49,9 @@ std::optional<T> GetParam(const crow::query_string& query_string,
 
   if (query_string.get(name) != nullptr) {
     result = ConvertStringToType<T>(query_string.get(name));
-    spdlog::debug("{}: {}", name, result.value());
+    SPDLOG_DEBUG("{}: {}", name, result.value());
   } else {
-    spdlog::debug("{}: no value", name);
+    SPDLOG_DEBUG("{}: no value", name);
   }
 
   return result;
@@ -63,9 +63,9 @@ std::optional<T> GetParam(const crow::request& req, const char* name) {
 
   if (params.get(name) != nullptr) {
     result = ConvertStringToType<T>(params.get(name));
-    spdlog::debug("{}: {}", name, result.value());
+    SPDLOG_DEBUG("{}: {}", name, result.value());
   } else {
-    spdlog::debug("{}: no value", name);
+    SPDLOG_DEBUG("{}: no value", name);
   }
 
   return result;
@@ -98,7 +98,7 @@ std::unordered_set<T> GetParamUSet(const crow::request& req, const char* name) {
   if (param_list.size() > 1) {
     std::vector<char*> value_strings = params.pop_list(name, false);
     for (char* value_string : value_strings) {
-      spdlog::info("GetParamUSet: {}", value_string);
+      SPDLOG_INFO("GetParamUSet: {}", value_string);
       T value_as_type = ConvertStringToType<T>(value_string);
       parameter_set_as_type.insert(value_as_type);
     }

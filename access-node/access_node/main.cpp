@@ -52,7 +52,7 @@ int main() {
   app.port(ServerConfig::GetInstance().port_number_access);
   app.run();
   srv.StopServer();
-  spdlog::debug("Stopped WebsocketServer");
+  SPDLOG_DEBUG("Stopped WebsocketServer");
   tvb_handler.StopThread();
   nest_handler.StopThread();
 }

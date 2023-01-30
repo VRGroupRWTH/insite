@@ -39,7 +39,7 @@ class TvbMonitor {
     stride_length.push_back(1);
     stride_length.push_back(76);
     stride_length.push_back(2);
-    spdlog::debug(stride_length);
+    SPDLOG_DEBUG(stride_length);
   };
 
   void SerializeMetadataToJson(
