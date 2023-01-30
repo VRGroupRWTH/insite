@@ -4,11 +4,11 @@
 #include <unordered_map>
 // #include <cpprest/http_client.h>
 
-#include "storage/data_storage.hpp"
 #include "http_server.hpp"
-#include "recording_backend.h"
 #include "nest_types.h"
 #include "node_collection.h"
+#include "recording_backend.h"
+#include "storage/data_storage.hpp"
 
 #include "neuron_info.hpp"
 
@@ -32,7 +32,6 @@ enum SimulationEvents {
 };
 
 class RecordingBackendInsite : public nest::RecordingBackend {
-
  public:
   RecordingBackendInsite();
 
@@ -60,9 +59,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
 
   void post_step_hook() override;
 
-  void write(const nest::RecordingDevice& device, const nest::Event& event,
-             const std::vector<double>& double_values,
-             const std::vector<long>& long_values) override;
+  void write(const nest::RecordingDevice& device, const nest::Event& event, const std::vector<double>& double_values, const std::vector<long>& long_values) override;
 
   void set_status(const DictionaryDatum& params) override;
 

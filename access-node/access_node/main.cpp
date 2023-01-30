@@ -9,14 +9,14 @@
 #include <nest/nestSpikes.h>
 #include <nest/nestVersion.h>
 #include <tvb_handler.h>
-#include "nest_handler.h"
 #include <tvb_http_endpoints.h>
 #include <websocket_server.h>
 #include <exception>
 #include <limits>
 #include <websocketpp/config/asio_no_tls.hpp>
-#include "spdlog/spdlog.h"
 #include "nest/nest_endpoints.h"
+#include "nest_handler.h"
+#include "spdlog/spdlog.h"
 
 using Server = websocketpp::server<websocketpp::config::asio>;
 
