@@ -18,12 +18,12 @@ void WebsocketServer::BroadcastAll(const std::string& msg,
                                    ResourceFlag resource_flags) {
   for (const auto& connection : client_hdl_map_) {
     if (connection.second.resource_flags & resource_flags) {
-      spdlog::debug("Sending broadcast message to client {}: {}",
-                    connection.second.id, msg);
+      SPDLOG_DEBUG("Sending broadcast message to client {}: {}",
+                   connection.second.id, msg);
       try {
         server_.send(connection.first, msg, websocketpp::frame::opcode::text);
       } catch (websocketpp::lib::error_code e) {
-        spdlog::error("Exception caught in BroadcastAll: {}", e.message());
+        SPDLOG_ERROR("Exception caught in BroadcastAll: {}", e.message());
       }
     }
   }
@@ -49,7 +49,7 @@ void WebsocketServer::StartServer() {
 
   server_.start_accept();
   server_thread_ = std::move(std::thread([this]() {
-    spdlog::debug("Starting websocket server on port: {}", port_);
+    SPDLOG_DEBUG("Starting websocket server on port: {}", port_);
     server_.run();
   }));
 
@@ -68,7 +68,7 @@ ResourceFlag WebsocketServer::GetResourceFlag(const std::string& resource) {
 
 void WebsocketServer::StopServer() {
   runSendLoop_ = false;
-  spdlog::debug("Shutting down connections.");
+  SPDLOG_DEBUG("Shutting down connections.");
   for (const auto& con : client_hdl_map_) {
     server_.close(con.first, websocketpp::close::status::going_away,
                   "Server shutdown");
@@ -93,7 +93,7 @@ void WebsocketServer::SendLoop() {
       send_queue_.pop_front();
     }
   }
-  spdlog::debug("Finished WebsocketServer SendLoop");
+  SPDLOG_DEBUG("Finished WebsocketServer SendLoop");
 }
 
 void WebsocketServer::Send(WebsocketMessage&& message) {
@@ -120,7 +120,7 @@ void WebsocketServer::OnOpen(const websocketpp::connection_hdl& hdl) {
     });
   }
 
-  spdlog::debug(
+  SPDLOG_DEBUG(
       "[WebsocketServer::OnOpen] New Websocket Client connected on endpoint "
       "{0}: client id:{1}, flags: {2:b} ",
       con->get_remote_endpoint(), params.id,
@@ -130,8 +130,8 @@ void WebsocketServer::OnOpen(const websocketpp::connection_hdl& hdl) {
 
 void WebsocketServer::OnClose(const websocketpp::connection_hdl& hdl) {
   if (auto conn = client_hdl_map_.find(hdl); conn != client_hdl_map_.end()) {
-    spdlog::debug("[WebsocketServer::OnClose] Removing connection with id: {}",
-                  conn->second.id);
+    SPDLOG_DEBUG("[WebsocketServer::OnClose] Removing connection with id: {}",
+                 conn->second.id);
     Send({"Client removed with id: " + std::to_string(conn->second.id), 0,
           ResourceFlag::kDebug});
     client_hdl_map_.erase(hdl);
@@ -143,7 +143,7 @@ void WebsocketServer::OnMessage(const websocketpp::connection_hdl& hdl,
   if (tvb_handler_ != nullptr) {
     auto conn = client_hdl_map_.find(hdl);
 
-    spdlog::debug("Adding message from {} to tvb queue", conn->second.id);
+    SPDLOG_DEBUG("Adding message from {} to tvb queue", conn->second.id);
     tvb_handler_->AddMessageIntoQueue(std::move(message->get_raw_payload()));
   }
 }

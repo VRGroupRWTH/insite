@@ -210,8 +210,9 @@ class CircularTimeSeries {
 
   SizeType GetLowerBoundIndex(double time) {
     TimeIt lb_itr = std::lower_bound(time_itr_begin(), time_itr_end(), time);
-    spdlog::debug("GetLowerBound Offset: {}, IsEnd: {}",lb_itr.GetOffset(),lb_itr.IsEnd());
-    
+    SPDLOG_DEBUG("GetLowerBound Offset: {}, IsEnd: {}", lb_itr.GetOffset(),
+                 lb_itr.IsEnd());
+
     return lb_itr.GetOffset();
   }
 
@@ -285,7 +286,7 @@ class CircularTimeSeries {
       index -= capacity_;
     }
     auto start = data_.data() + index * strides_product_;
-    // spdlog::debug("Getting data from index: {}", index);
+    // SPDLOG_DEBUG("Getting data from index: {}", index);
     return {timesteps_[index], start, start + strides_product_};
   }
 
@@ -295,7 +296,7 @@ class CircularTimeSeries {
       index -= capacity_;
     }
     auto start = data_.data() + index * strides_product_ + var * dimensions_[1];
-    // spdlog::debug("Getting data from index: {}", index);
+    // SPDLOG_DEBUG("Getting data from index: {}", index);
     return {timesteps_[index], start, start + dimensions_[1]};
   }
 
@@ -312,7 +313,7 @@ class CircularTimeSeries {
       data_.insert(data_.end(), items_begin, items_end);
       Increment(end_);
     }
-    // spdlog::debug(timesteps_);
+    // SPDLOG_DEBUG(timesteps_);
   }
 
   void Increment(SizeType& index) {

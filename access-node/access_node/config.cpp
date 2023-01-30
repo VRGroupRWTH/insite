@@ -77,8 +77,8 @@ void ServerConfig::ParseTomlConfigFromFile(const std::string& filename) {
   auto config = toml::parse_file(filename);
   std::stringstream yaml;
   yaml << toml::yaml_formatter(config);
-  spdlog::debug("[ServerConfig::ParseTomlConfigFromFile] Toml as Yaml:\n {}",
-                yaml.str());
+  SPDLOG_DEBUG("[ServerConfig::ParseTomlConfigFromFile] Toml as Yaml:\n {}",
+               yaml.str());
   ParseYamlConfigFromString(yaml.str());
 }
 
@@ -88,7 +88,7 @@ void ServerConfig::GenerateRequestUrls() {
       std::string url("http://" + base_url + ":" +
                       std::to_string(port_number_nodes + i));
       request_urls.push_back(url);
-      spdlog::debug(
+      SPDLOG_DEBUG(
           "[ServerConfig::GenerateRequestUrls] Added {} to the request urls",
           url);
     }
@@ -118,7 +118,7 @@ void ServerConfig::ParseConfigIfExists() {
     ParseTomlConfigFromFile("config.toml");
   }
 
-  spdlog::debug("{}", ToString());
+  SPDLOG_DEBUG("{}", ToString());
 }
 
 }  // namespace insite

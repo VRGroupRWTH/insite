@@ -56,12 +56,12 @@ SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
     params.emplace_back(json_strings::kNodeIds, UnorderedSetToCsv(node_ids));
   }
   spdlog::stopwatch stopwatch;
-  spdlog::debug("Getting spikes from nodes...");
+  SPDLOG_DEBUG("Getting spikes from nodes...");
   std::string query_string = BuildQueryString("/spikesfb", params);
 
   auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, query_string);
-  spdlog::debug("Got spikes in {}", stopwatch.elapsed());
+  SPDLOG_DEBUG("Got spikes in {}", stopwatch.elapsed());
 
   bool last_frame;
   SpikeContainer spikes;
@@ -71,16 +71,16 @@ SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
   for (const cpr::Response& spike_data_set : spike_data_sets) {
     spikes.AddSpikesFromFlatbuffer(spike_data_set.text.c_str());
   }
-  spdlog::debug("Added spikes in {}", stopwatch.elapsed());
+  SPDLOG_DEBUG("Added spikes in {}", stopwatch.elapsed());
 
   if (sort && sort.value() == json_strings::kSimTimes) {
     spdlog::stopwatch stopwatch_sort;
     spikes.SortByTime();
-    spdlog::debug("Sorted spikes in {}", stopwatch_sort.elapsed());
+    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch_sort.elapsed());
   } else if (sort && sort.value() == json_strings::kNodeIds) {
     spdlog::stopwatch stopwatch_sort;
     spikes.SortByTimePdq();
-    spdlog::debug("Sorted spikes in {}", stopwatch_sort.elapsed());
+    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch_sort.elapsed());
     // spikes.sortByNodeId();
   }
 
@@ -109,12 +109,12 @@ SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
     params.emplace_back(json_strings::kNodeIds, UnorderedSetToCsv(node_ids));
   }
   spdlog::stopwatch stopwatch;
-  spdlog::debug("Getting spikes from nodes...");
+  SPDLOG_DEBUG("Getting spikes from nodes...");
   std::string query_string = BuildQueryString("/spikes", params);
 
   auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, query_string);
-  spdlog::debug("Got spikes in {}", stopwatch.elapsed());
+  SPDLOG_DEBUG("Got spikes in {}", stopwatch.elapsed());
 
   bool last_frame;
   SpikeContainer spikes;
@@ -137,11 +137,11 @@ SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
   if (sort && sort.value() == json_strings::kSimTimes) {
     spdlog::stopwatch sw_sorting;
     spikes.SortByTime();
-    spdlog::debug("Sorted spikes in {}", stopwatch.elapsed());
+    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
   } else if (sort && sort.value() == json_strings::kNodeIds) {
     spdlog::stopwatch sw_sorting;
     spikes.SortByTimePdq();
-    spdlog::debug("Sorted spikes in {}", stopwatch.elapsed());
+    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
     // spikes.sortByNodeId();
   }
 
@@ -205,7 +205,7 @@ crow::response Spikesfb(const crow::request& req) {
       std::move(NestGetSpikesFB(from_time, to_time, node_ids, skip, top, sort));
   spdlog::stopwatch sw_serialize;
   spikes.SerializeToJson(writer, spikes.Begin(skip, top), true);
-  spdlog::debug("Serialized in {}", sw_serialize.elapsed());
+  SPDLOG_DEBUG("Serialized in {}", sw_serialize.elapsed());
 
   return {buffer.GetString()};
 }
@@ -219,7 +219,7 @@ crow::response Spikes(const crow::request& req) {
   SpikeContainer spikes = std::move(NestGetSpikes(params));
   spdlog::stopwatch sw_serialize;
   spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
-  spdlog::debug("Serialized in {}", sw_serialize.elapsed());
+  SPDLOG_DEBUG("Serialized in {}", sw_serialize.elapsed());
 
   return {buffer.GetString()};
 }

@@ -64,7 +64,7 @@ std::string QueryRandomNode(const std::vector<std::string>& urls,
   // Loop through all generic URLs, attach kernelStatus postfix and send async
   // request
   std::string url = *rand_it + postfix;
-  // spdlog::debug("REQUEST: {}", url);
+  // SPDLOG_DEBUG("REQUEST: {}", url);
   auto response = cpr::GetAsync(cpr::Url(url));
 
   response.wait();
@@ -85,7 +85,7 @@ CprResponseVec GetAccessNodeRequests(const std::vector<std::string>& urls,
     session->SetUrl(url + postfix);
     sessions.emplace_back(std::move(session));
     multiperform.AddSession(sessions.back());
-    spdlog::debug(
+    SPDLOG_DEBUG(
         "[GetAccessNodeRequests2] Added {} to the multiperform request.",
         url + postfix);
   }
@@ -96,7 +96,7 @@ CprResponseVec GetAccessNodeRequests(const std::vector<std::string>& urls,
 CprResponseVec GetAccessNodeRequests(
     const std::string& endpoint,
     const std::vector<OptionalParameter>& params) {
-  spdlog::debug("params: {}\n", OptionalParameters::ToQueryString(params));
+  SPDLOG_DEBUG("params: {}\n", OptionalParameters::ToQueryString(params));
   std::string query_string =
       endpoint + OptionalParameters::ToQueryString(params);
   return GetAccessNodeRequests(ServerConfig::GetInstance().request_urls,

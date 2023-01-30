@@ -33,13 +33,13 @@ void WebsocketSender::BroadcastAll(const std::string& msg,
                                    ResourceFlag resource) {
   for (const auto& connection : connection_map) {
     if (connection.second.resource_flags & resource) {
-      // spdlog::debug("Sending broadcast message to client {}: {}",
+      // SPDLOG_DEBUG("Sending broadcast message to client {}: {}",
       //               connection.second.id, msg);
       try {
         websocket_server.send(connection.first, msg,
                               websocketpp::frame::opcode::text);
       } catch (websocketpp::lib::error_code e) {
-        spdlog::error("Exception caught in BroadcastAll: {}", e.message());
+        SPDLOG_ERROR("Exception caught in BroadcastAll: {}", e.message());
       }
     }
   }

@@ -26,7 +26,7 @@ void NestHandler::AddMessageIntoQueue(websocketpp::frame::opcode::value value,
 }
 
 void NestHandler::Consumer() {
-  spdlog::debug("Started NestHandler Consumer Thread");
+  SPDLOG_DEBUG("Started NestHandler Consumer Thread");
   while (runConsumerLoop_) {
     std::unique_lock mutex(mut_);
     var_.wait_for(mutex, 500ms, [&]() { return !(message_queue_.empty()); });
@@ -49,30 +49,30 @@ void NestHandler::Consumer() {
         writer.Key("lastTimestamp");
         writer.Double(lastTimestamp);
         writer.EndObject();
-        spdlog::debug(
+        SPDLOG_DEBUG(
             "[NestHandler::Consumer] Received {} spikes with latest timestamp: "
             "{}",
             spike_table->spikes()->size(), lastTimestamp);
         try {
           ws_server->Send({buf.GetString(), 0, ResourceFlag::kDebug});
         } catch (websocketpp::lib::error_code e) {
-          spdlog::error("Exception caught in Nest Consumer: {}", e.message());
+          SPDLOG_ERROR("Exception caught in Nest Consumer: {}", e.message());
         }
       } else {
-        spdlog::debug("[NestHandler::Consumer] Received {}",
-                      message_queue_.back().second);
+        SPDLOG_DEBUG("[NestHandler::Consumer] Received {}",
+                     message_queue_.back().second);
         try {
           ws_server->Send(
               {message_queue_.back().second, 0, ResourceFlag::kDebug});
         } catch (websocketpp::lib::error_code e) {
-          spdlog::error("Exception caught in Nest Consumer: {}", e.message());
+          SPDLOG_ERROR("Exception caught in Nest Consumer: {}", e.message());
         }
       }
 
       message_queue_.pop_back();
     }
   }
-  spdlog::debug("Finished NestHandler Consumer Thread");
+  SPDLOG_DEBUG("Finished NestHandler Consumer Thread");
 }
 
 }  // namespace insite

@@ -30,7 +30,7 @@ void SpikeContainer::AddSpikesFromJson(const char* input) {
   for (std::uint64_t i = 0; i < times.Size(); ++i) {
     spikes_.emplace_back(times[i].GetDouble(), node_ids[i].GetUint64());
   }
-  spdlog::debug(
+  SPDLOG_DEBUG(
       "[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
       "SpikeContainer for a total size of {}",
       times.Size(), spikes_.size());
@@ -46,7 +46,7 @@ void SpikeContainer::AddSpikesFromJson(const rapidjson::Document& json_doc) {
         json_doc[json_strings::kNodeIds].GetArray()[i].GetUint64();
     spikes_.emplace_back(sim_time, node_id);
   }
-  spdlog::debug(
+  SPDLOG_DEBUG(
       "[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
       "SpikeContainer for a total size of {}",
       json_doc[json_strings::kSimTimes].GetArray().Size(), spikes_.size());
@@ -59,7 +59,7 @@ void SpikeContainer::AddSpikesFromFlatbuffer(const char* buffer_pointer) {
     // spikes_[i] = UnPack(*spikes->Get(i));
     spikes_.emplace_back(UnPack(*spikes->Get(i)));
   }
-  spdlog::debug(
+  SPDLOG_DEBUG(
       "[SpikeContainer::addSpikesFromFlatbuffer] Added {} spikes for a "
       "total size of {}",
       spikes->size(), spikes_.size());
@@ -83,8 +83,8 @@ void SpikeContainer::SerializeToJson(
     SpikeVector::const_iterator begin,
     SpikeVector::const_iterator end,
     bool last_frame) {
-  spdlog::debug("[SpikeContainer::serializeToJSON] serializing {} spikes",
-                spikes_.size());
+  SPDLOG_DEBUG("[SpikeContainer::serializeToJSON] serializing {} spikes",
+               spikes_.size());
   writer.StartObject();
   writer.SetMaxDecimalPlaces(14);
 
@@ -109,8 +109,8 @@ void SpikeContainer::SerializeToJson(
 
 void SpikeContainer::SerializeToFlatbuffer(
     flatbuffers::FlatBufferBuilder& builder) {
-  spdlog::debug("[SpikeContainer::serializeToFlatbuffer] serializing {} spikes",
-                spikes_.size());
+  SPDLOG_DEBUG("[SpikeContainer::serializeToFlatbuffer] serializing {} spikes",
+               spikes_.size());
   auto fb_spikes = builder.CreateVectorOfNativeStructs<Insite::Nest::Spikes>(
       spikes_, SpikeContainer::Pack);
   auto fb_spike_table = Insite::Nest::CreateSpikeTable(builder, fb_spikes);
@@ -118,21 +118,21 @@ void SpikeContainer::SerializeToFlatbuffer(
 }
 
 void SpikeContainer::SortByTime() {
-  spdlog::debug("[SpikeContainer::sortByTime] called");
+  SPDLOG_DEBUG("[SpikeContainer::sortByTime] called");
   std::sort(
       spikes_.begin(), spikes_.end(),
       static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareByTime));
 }
 
 void SpikeContainer::SortByTimePdq() {
-  spdlog::debug("[SpikeContainer::sortByTimePdq] called");
+  SPDLOG_DEBUG("[SpikeContainer::sortByTimePdq] called");
   pdqsort_branchless(
       spikes_.begin(), spikes_.end(),
       static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareByTime));
 }
 
 void SpikeContainer::SortByNodeId() {
-  spdlog::debug("[SpikeContainer::sortByNodeId] called");
+  SPDLOG_DEBUG("[SpikeContainer::sortByNodeId] called");
   std::sort(
       spikes_.begin(), spikes_.end(),
       static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareById));
