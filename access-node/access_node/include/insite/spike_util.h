@@ -1,7 +1,7 @@
 #pragma once
+#include <schema_generated.h>
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "flatbuffer-schema/schema_generated.h"
 #include "spdlog/spdlog.h"
 
 namespace insite {

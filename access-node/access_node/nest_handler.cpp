@@ -1,10 +1,10 @@
 #include "nest_handler.h"
 #include <rapidjson/document.h>
+#include <schema_generated.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/fmt/ranges.h>
 #include <chrono>
 #include <cstdint>
-#include "flatbuffer-schema/schema_generated.h"
 #include "opcodes.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"

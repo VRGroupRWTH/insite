@@ -1,81 +1,46 @@
 cmake_minimum_required(VERSION 3.14)
 project(insite-access-node)
 include(FetchContent)
+include(CPM.cmake)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DASIO_STANDALONE -pthread")
+set(ASIO_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps/asio/asio/include)
 
-set(CMAKE_PREFIX_PATH CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/asio-src/asio/include")
+CPMAddPackage("gh:jbeder/yaml-cpp#yaml-cpp-0.7.0")
+CPMAddPackage("gh:libcpr/cpr#master")
+CPMAddPackage("gh:zaphoyd/websocketpp#master")
+CPMAddPackage("gh:gabime/spdlog@1.10.0")
+CPMAddPackage("gh:google/flatbuffers@2.0.6")
+CPMAddPackage("gh:marzer/tomlplusplus@3.1.0")
+CPMAddPackage("gh:OlivierLDff/asio.cmake@1.1.3")
+CPMAddPackage("gh:TartanLlama/optional@1.0.0")
 
-FetchContent_Declare(
-    asio
-    GIT_REPOSITORY https://github.com/chriskohlhoff/asio
-    GIT_TAG asio-1-24-0
-)
 
-FetchContent_Declare(
-    websocketpp
-    GIT_REPOSITORY https://github.com/zaphoyd/websocketpp
-    GIT_TAG master
-)
-
-FetchContent_Declare(
-    yaml-cpp
-    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-    GIT_TAG yaml-cpp-0.7.0
-)
-
-FetchContent_Declare(
-    cpr
-    GIT_REPOSITORY https://github.com/libcpr/cpr.git
-    GIT_TAG master
-)
-
-FetchContent_Declare(
-    spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog
-    GIT_TAG v1.10.0
-)
-
-FetchContent_Declare(
-    rapidjson
+CPMAddPackage(
+    NAME rapidjson
     GIT_REPOSITORY https://github.com/Tencent/rapidjson
     GIT_TAG master
+    DOWNLOAD_ONLY TRUE
+    EXCLUDE_FROM_ALL TRUE
 )
 
-FetchContent_Declare(
-  flatbuffersFC
-    GIT_REPOSITORY https://github.com/google/flatbuffers
-    GIT_TAG v2.0.6
-)
-
-FetchContent_Declare(
-    Crow
+CPMAddPackage(
+    NAME Crow
     GIT_REPOSITORY https://github.com/CrowCpp/Crow
     GIT_TAG master
+    EXCLUDE_FROM_ALL TRUE
+    OPTIONS "CROW_INSTALL OFF"
 )
 
-FetchContent_Declare(
-    tomlplusplus
-    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG        v3.1.0
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/schema_generated.h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include
+    COMMAND flatc --cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/insite/flatbuffer-schema/schema.fbs
+    MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/include/insite/flatbuffer-schema/schema.fbs
 )
-
-FetchContent_MakeAvailable(
-  asio
-  websocketpp
-  yaml-cpp
-  cpr
-  spdlog
-  rapidjson
-  Crow
-  flatbuffersFC
-  tomlplusplus
-)
-
 
 include_directories("extern/pdqsort")
-set(ASIO_INCLUDE_DIR ${asio_SOURCE_DIR}/asio/include)
 
 add_executable(
   insite-access-node
@@ -108,10 +73,11 @@ add_executable(
   include/insite/utilityFunctions.h utilityFunctions.cpp
   include/insite/websocket_sender.h websocket_sender.cpp
   include/insite/websocket_server.h websocket_server.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/include/schema_generated.h
 )
 
-target_include_directories(insite-access-node INTERFACE ${asio_SOURCE_DIR}/asio/include)
 target_include_directories(insite-access-node PRIVATE include/insite)
+target_include_directories(insite-access-node PRIVATE ${CMAKE_BINARY_DIR}/include)
 set_property(
   TARGET insite-access-node 
   PROPERTY CXX_STANDARD 17
@@ -128,6 +94,8 @@ target_link_libraries(
   flatbuffers
   yaml-cpp::yaml-cpp
   tomlplusplus::tomlplusplus
+  optional
+  asio::asio
 )
 
 target_include_directories(
@@ -135,5 +103,7 @@ target_include_directories(
   PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/rapidjson-src/include
     ${CMAKE_BINARY_DIR}/_deps/websocketpp-src
-    ${CMAKE_BINARY_DIR}/_deps/crow-src/include
+    # ${asio_INCLUDE_DIR}/include
 )
+
+message("${ASIO_INCLUDE_DIR}")

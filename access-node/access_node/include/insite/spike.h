@@ -1,11 +1,11 @@
 #pragma once
+#include <schema_generated.h>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <tl/optional.hpp>
 #include <vector>
-#include "flatbuffer-schema/schema_generated.h"
-#include "optional.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
