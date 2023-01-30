@@ -41,6 +41,7 @@ static Test::Foo::Spikes Pack(const insite::Spike& spike) {
   return Test::Foo::Spikes{spike.simulation_time, spike.node_id};
 };
 }  // namespace flatbuffers
+
 namespace insite {
 
 void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
@@ -190,7 +191,6 @@ void RecordingBackendInsite::prepare() {
   Writer.EndObject();
   con->send(Buf.GetString());
   std::deque<nest::ConnectionID> conn_deq;
-
   if (send_positions) {
     Buf.Clear();
     Writer.StartObject();
