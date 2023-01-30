@@ -5,11 +5,11 @@
 #include <rapidjson/writer.h>
 #include <exception>
 #include <iterator>
+#include <tl/optional.hpp>
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/vector.h"
 #include "jsonStrings.h"
-#include "optional.h"
 #include "pdqsort.h"
 #include "spdlog/spdlog.h"
 

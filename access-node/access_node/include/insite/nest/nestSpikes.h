@@ -1,8 +1,8 @@
 #pragma once
-#include <flatbuffer-schema/schema_generated.h>
 #include <pdqsort.h>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
+#include <schema_generated.h>
 #include <spdlog/fmt/chrono.h>
 #include <spdlog/spdlog.h>
 #include <spike.h>
