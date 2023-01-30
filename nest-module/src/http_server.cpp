@@ -222,21 +222,11 @@ crow::response HttpServer::GetSpikesFB(const crow::request& request) {
 }
 
 crow::response HttpServer::GetSpikes(const crow::request& request) {
-  spdlog::stopwatch sw;
   StopwatchHelper swh;
-
-  // We are parsing the following values into tl::optionals:
-  // from time (default: 0)
-  // to time (default: max double)
-  // node collection id (optional)
-  // spike detector id (optional)
-  // node ids (optional)
 
   SpikeParameter params(request.url_params);
 
   swh.checkpoint("Parameter parsing");
-  spdlog::info("Parameter parsing took: {}", sw.elapsed());
-  sw.reset();
   std::uint64_t from_node_id = 0;
   std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
   if (not params.node_gids.empty()) {
@@ -244,7 +234,6 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
     to_node_id = *std::max_element(params.node_gids.begin(), params.node_gids.end());
   }
 
-  sw.reset();
   swh.reset();
   if (params.node_collection_id) {
     if (params.node_collection_id >= storage_->GetNodeCollectionCount()) {
@@ -264,7 +253,6 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
         storage_->GetSpikeDetectorStorage(params.spike_detector_id.value());
     if (spike_detector == nullptr) {
       return crow::response("InvalidSpikeDetectorId");
-      spdlog::info("[insite] invalid spikedetector id: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
     }
 
     spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
@@ -280,15 +268,12 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
   }
 
   swh.checkpoint("Extracting Spikes");
-  spdlog::info("Extracting spikes took: {}", sw.elapsed());
-  sw.reset();
 
   bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   json_serializer::Spikes(writer, spikes, last_frame);
   swh.checkpoint("Serializing Spikes");
-  spdlog::info("Serializing spikes took: {}", sw.elapsed());
   swh.print();
   return crow::response(s.GetString());
 }
