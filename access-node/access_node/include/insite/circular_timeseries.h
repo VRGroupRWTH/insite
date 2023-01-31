@@ -18,7 +18,8 @@ class CircularTimeSeries {
   using ConstPointerType = const T*;
   using DataBuffer = std::vector<T>;
   using TimeBuffer = std::vector<double>;
-  public:
+
+ public:
   std::vector<int> dimensions_;
   uint32_t strides_product_ = 1;
   DataBuffer data_;
@@ -216,11 +217,12 @@ class CircularTimeSeries {
     return lb_itr.GetOffset();
   }
 
-  std::pair<SizeType,SizeType> GetIndiciesFromToTime(double from_time, double to_time)
-  {
-    TimeIt lb_itr = std::lower_bound(time_itr_begin(), time_itr_end(), from_time);
+  std::pair<SizeType, SizeType> GetIndiciesFromToTime(double from_time,
+                                                      double to_time) {
+    TimeIt lb_itr =
+        std::lower_bound(time_itr_begin(), time_itr_end(), from_time);
     TimeIt ub_itr = std::lower_bound(time_itr_begin(), time_itr_end(), to_time);
-    
+
     auto lower_index = int(lb_itr.GetOffset() - head_);
     if (lower_index < 0) {
       lower_index += Capacity();
@@ -231,11 +233,12 @@ class CircularTimeSeries {
     }
 
     if (lower_index < upper_index) {
-      return std::make_pair(lower_index,upper_index);
+      return std::make_pair(lower_index, upper_index);
     }
-   
+
     if (ub_itr.IsEnd()) {
-      return std::make_pair(lb_itr.GetOffset(), ub_itr.GetOffset() + Capacity()); 
+      return std::make_pair(lb_itr.GetOffset(),
+                            ub_itr.GetOffset() + Capacity());
     }
     // if (lb_itr.GetOffset() > ub_itr.GetOffset()) {
     //   return std::make_pair(lb_itr.GetOffset(), ub_itr.GetOffset() + )
