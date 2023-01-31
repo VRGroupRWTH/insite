@@ -48,5 +48,6 @@ test:
         - cd ..
         - cp build_access_node/insite-access-node .
     script:
-        - pytest --count=2 --repeat-scope=session -x --showlocals --ignore-glob=**/_deps/* --ignore-glob=**/extern/* -s
+        - pytest --count=2 --repeat-scope=session -x --showlocals ./test
+        # - pytest --count=2 --repeat-scope=session -x --showlocals --ignore-glob=**/_deps/* --ignore-glob=**/extern/* -s
 
