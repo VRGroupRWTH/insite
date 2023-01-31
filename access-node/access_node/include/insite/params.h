@@ -1,18 +1,18 @@
 #pragma once
 #include <crow/http_request.h>
 #include <crow/query_string.h>
+#include <jsonParameters.h>
+#include <jsonStrings.h>
 #include <spdlog/spdlog.h>
 #include <array>
-#include <string>
 #include <optional>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
-#include <jsonParameters.h>
-#include <jsonStrings.h>
 
 // template <std::size_t N, typename... Types>
 // using NthParameterT = std::tuple_element_t<N, std::tuple<Types...>>;
@@ -38,7 +38,9 @@ struct Param {
   [[nodiscard]] ParameterName Name() const { return name; };
   [[nodiscard]] ParameterValue Value() const { return value; };
   template <typename T>
-  [[nodiscard]] T ValueAsT() const { return std::get<T>(value); };
+  [[nodiscard]] T ValueAsT() const {
+    return std::get<T>(value);
+  };
 };
 
 struct OptionalParameter {
@@ -46,8 +48,9 @@ struct OptionalParameter {
   OptionalParameterValue value;
 
   template <class T>
-  [[nodiscard]] static OptionalParameter GetFromQueryString(const crow::query_string& query,
-                                              const char* name) {
+  [[nodiscard]] static OptionalParameter GetFromQueryString(
+      const crow::query_string& query,
+      const char* name) {
     std::optional<T> result;
 
     if (query.get(name) != nullptr) {
@@ -97,13 +100,17 @@ struct OptionalParameter {
   [[nodiscard]] ParameterValue Value() { return value.value(); };
 
   template <class T>
-  [[nodiscard]] T ValueAsT() { return std::get<T>(value.value()); };
-  
+  [[nodiscard]] T ValueAsT() {
+    return std::get<T>(value.value());
+  };
+
   template <class T>
-  [[nodiscard]] T ValueAsTOr(T default_value) { return value.has_value() ? std::get<T>(value.value()) : default_value; };
+  [[nodiscard]] T ValueAsTOr(T default_value) {
+    return value.has_value() ? std::get<T>(value.value()) : default_value;
+  };
 
   [[nodiscard]] bool HasValue() const { return value.has_value(); };
-  
+
   operator bool() const { return value.has_value(); }
 };
 

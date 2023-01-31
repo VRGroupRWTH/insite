@@ -1,13 +1,13 @@
 #include "config.h"
-#include "filesystem"
-#include "yaml-cpp/node/parse.h"
-#include <iterator>
 #include <spdlog/spdlog.h>
-#include <string_view>
 #include <toml++/toml.h>
+#include <yaml-cpp/yaml.h>
+#include <iterator>
+#include <string_view>
 #include <type_traits>
 #include <vector>
-#include <yaml-cpp/yaml.h>
+#include "filesystem"
+#include "yaml-cpp/node/parse.h"
 
 namespace insite {
 
@@ -63,8 +63,8 @@ void ServerConfig::ParseYamlConfigFromString(const std::string& content) {
   port_number_access =
       ParseIfFieldExists<int>(config["accessNode"], "port", port_number_access);
 
-  port_number_access_ws =
-      ParseIfFieldExists<int>(config["accessNode"], "websocketPort", port_number_access_ws);
+  port_number_access_ws = ParseIfFieldExists<int>(
+      config["accessNode"], "websocketPort", port_number_access_ws);
 }
 
 void ServerConfig::ParseYamlConfigFromFile(const std::string& filename) {
@@ -95,7 +95,7 @@ void ServerConfig::GenerateRequestUrls() {
   }
 }
 
-std::string ServerConfig::ToString() const{
+std::string ServerConfig::ToString() const {
   return fmt::format(
       "Server Config:\n"
       "Simulation Nodes #: {}\n"
@@ -104,9 +104,9 @@ std::string ServerConfig::ToString() const{
       "Simulation Nodes Same Base URL: {}\n"
       "Simulation Nodes Ports Consecutive: {}\n"
       "Access Node Port: {}\n",
-      "Access Node Websocket Port: {}\n",
-      number_of_nodes, port_number_nodes, base_url, same_base_url,
-      ports_consecutive, port_number_access, port_number_access_ws);
+      "Access Node Websocket Port: {}\n", number_of_nodes, port_number_nodes,
+      base_url, same_base_url, ports_consecutive, port_number_access,
+      port_number_access_ws);
 }
 
 void ServerConfig::ParseConfigIfExists() {

@@ -1,10 +1,10 @@
 #include "tvb_handler.h"
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/fmt/ranges.h>
+#include <chrono>
 #include <cstdint>
 #include "opcodes.h"
 #include "spdlog/spdlog.h"
-#include <chrono>
 using namespace std::chrono_literals;
 
 namespace insite {
@@ -31,7 +31,7 @@ void TvbHandler::Consumer() {
   SPDLOG_DEBUG("Started TvbHandler Consumer Thread");
   while (runConsumerLoop_) {
     std::unique_lock mutex(mut_);
-    var_.wait_for(mutex, 500ms ,[&]() { return !(message_queue_.empty()); });
+    var_.wait_for(mutex, 500ms, [&]() { return !(message_queue_.empty()); });
 
     // SPDLOG_DEBUG("Consuming message from tvb handler");
     while (!message_queue_.empty()) {
