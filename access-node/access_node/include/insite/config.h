@@ -5,7 +5,7 @@
 
 namespace insite {
 
-inline constexpr int kDefaultPortNumberAccessNode = 8080;
+inline constexpr int kDefaultPortNumberAccessNode = 52056;
 inline constexpr int kDefaultPortNumberSimulationNode = 18080;
 inline constexpr int kDefaultPortNumberAccessWebsocket = 9010;
 
