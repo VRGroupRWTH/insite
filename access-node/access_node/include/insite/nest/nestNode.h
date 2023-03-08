@@ -1,8 +1,8 @@
 #pragma once
 
-#include <unordered_set>
 #include <crow.h>
 #include <rapidjson/document.h>
+#include <unordered_set>
 
 namespace insite {
 
@@ -23,7 +23,8 @@ crow::response NodesByCollectionId(int requested_node_collection_id);
 
 crow::response NodeIdsByNodeCollectionId(int requested_node_collection_id);
 
-crow::response SpikesByNodeCollectionId(const crow::request& req, int requested_node_collection_id);
+crow::response SpikesByNodeCollectionId(const crow::request& req,
+                                        int requested_node_collection_id);
 
 crow::response Nodes();
 

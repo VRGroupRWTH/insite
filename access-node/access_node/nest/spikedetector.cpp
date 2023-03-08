@@ -33,7 +33,8 @@ void Spikerecorder::WriteToJson(
 
 void Spikerecorder::ParseFromJson(rapidjson::Document input) {}
 
-std::ostream& operator<<(std::ostream& ostream, const Spikerecorder& spikerecorder) {
+std::ostream& operator<<(std::ostream& ostream,
+                         const Spikerecorder& spikerecorder) {
   ostream << "Spikerecorder: {" << std::endl;
   ostream << "spikerecorderId: " << spikerecorder.spikerecorder_id << std::endl;
   ostream << ", nodes: [";
