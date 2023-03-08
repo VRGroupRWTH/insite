@@ -46,6 +46,7 @@ int main() {
   // TVBHttpEndpoint::RegisterRoutes(app);
   NestHttpEndpoint::RegisterRoutes(app);
   CROW_ROUTE(app, "/version/")(Version);
+  CROW_ROUTE(app, "/")(Version);
 
   app.stream_threshold(std::numeric_limits<unsigned int>::max());
   app.port(ServerConfig::GetInstance().port_number_access);
