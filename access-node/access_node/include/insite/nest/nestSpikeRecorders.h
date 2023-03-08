@@ -40,7 +40,6 @@ std::vector<Spikerecorder> GetSpikerecorder() {
     spikerecorders.emplace_back(recorder);
   }
 
-  SPDLOG_INFO("{}", spikerecorders);
   return spikerecorders;
 }
 
@@ -82,7 +81,6 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
 
   std::vector<uint64_t> query_node_ids;
   if (!params.node_gids) {
-    SPDLOG_INFO("Node ids empty querying: {}", spikerecorder->nodes);
     params.node_gids = spikerecorder->nodes;
     SpikeContainer spikes = std::move(NestGetSpikes(params));
     spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
@@ -95,7 +93,6 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
     return {buffer.GetString()};
   }
 
-  SPDLOG_INFO("Node ids not empty: {}", params.node_gids.value());
   for (const auto nodes : spikerecorder->nodes) {
     if (std::find(params.node_gids.value().begin(),
                   params.node_gids.value().end(),
@@ -104,7 +101,6 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
     }
   }
 
-  SPDLOG_INFO("Node ids querying node: {}", query_node_ids);
   if (query_node_ids.empty()) {
     SpikeContainer empty{};
     empty.SerializeToJson(writer, false);
