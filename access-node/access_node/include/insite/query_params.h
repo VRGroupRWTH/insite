@@ -5,6 +5,7 @@
 #include <string>
 #include <tl/optional.hpp>
 #include "spdlog/spdlog.h"
+using Parameter = std::pair<std::string, std::string>;
 
 template <typename T>
 T ConvertStringToType(const char* input_string);
@@ -40,6 +41,20 @@ tl::optional<T> GetParameter(const crow::query_string& query_string,
     return tl::nullopt;
   }
   return ConvertStringToType<T>(parameter_value);
+}
+
+template <typename T>
+inline std::string VectorToCsv(const std::vector<T>& values) {
+  std::string ret;
+
+  for (auto it = values.begin(); it != values.end(); ++it) {
+    if (it != values.begin()) {
+      ret += ",";
+    }
+    ret += std::to_string(*it);
+  }
+
+  return ret;
 }
 
 inline std::vector<std::uint64_t> CommaListToUintVector(std::string input) {
@@ -94,9 +109,8 @@ struct MultimeterParameter {
 
 struct SpikeParameter {
   SpikeParameter(const crow::query_string& query_string) {
-    from_time = GetParameter<double>(query_string, "fromTime").value_or(0.0);
-    to_time = GetParameter<double>(query_string, "toTime")
-                  .value_or(std::numeric_limits<double>::max());
+    from_time = GetParameter<double>(query_string, "fromTime");
+    to_time = GetParameter<double>(query_string, "toTime");
 
     skip = GetParameter<int>(query_string, "skip");
     top = GetParameter<int>(query_string, "top");
@@ -115,6 +129,43 @@ struct SpikeParameter {
     } else {
       reverse_order = false;
     }
+  }
+
+  [[nodiscard]] std::vector<Parameter> GetParameterVector() const {
+    std::vector<Parameter> params;
+
+    if (from_time) {
+      params.emplace_back("fromTime", std::to_string(from_time.value()));
+    }
+
+    if (to_time) {
+      params.emplace_back("toTime", std::to_string(to_time.value()));
+    }
+
+    if (skip) {
+      params.emplace_back("skip", std::to_string(skip.value()));
+    }
+
+    if (sort) {
+      params.emplace_back("sort",
+                          std::to_string(static_cast<int>(sort.value())));
+    }
+
+    if (node_collection_id) {
+      params.emplace_back("nodeCollectionId",
+                          std::to_string(node_collection_id.value()));
+    }
+
+    if (spike_detector_id) {
+      params.emplace_back("spikedetectorId",
+                          std::to_string(spike_detector_id.value()));
+    }
+
+    if (node_gids) {
+      params.emplace_back("nodeIds", VectorToCsv(node_gids.value()));
+    }
+
+    return params;
   }
 
  public:

@@ -33,7 +33,8 @@ rapidjson::Value NestGetKernelStatuses(
 
     // copy all members from the old data-set to the new one
     for (auto& member : kernel_data_old.GetObject()) {
-      rapidjson::Value key(member.name.GetString(), json_alloc);
+      // rapidjson::Value key(member.name.GetString(), json_alloc);
+      rapidjson::Value key(member.name.GetString(), member.name.Size());
       kernel_data_new.AddMember(key, member.value, json_alloc);
     }
 

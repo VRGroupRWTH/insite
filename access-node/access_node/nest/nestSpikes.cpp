@@ -86,31 +86,12 @@ SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
 
   return spikes;
 }
-// Get all spikes from the nest-server by using the optional parameters
-// fromTime, toTime, nodeIds, skip, top and sort
-SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
-                             const std::optional<double>& to_time,
-                             const std::unordered_set<uint64_t>& node_ids,
-                             const std::optional<uint64_t>& skip,
-                             const std::optional<uint64_t>& top,
-                             const std::optional<std::string>& sort) {
-  std::vector<Parameter> params;
 
-  if (from_time) {
-    params.emplace_back(json_strings::kFromTime,
-                        std::to_string(from_time.value()));
-  }
-
-  if (to_time) {
-    params.emplace_back(json_strings::kToTime, std::to_string(to_time.value()));
-  }
-
-  if (!node_ids.empty()) {
-    params.emplace_back(json_strings::kNodeIds, UnorderedSetToCsv(node_ids));
-  }
+SpikeContainer NestGetSpikes(const SpikeParameter& parameter) {
   spdlog::stopwatch stopwatch;
   SPDLOG_DEBUG("Getting spikes from nodes...");
-  std::string query_string = BuildQueryString("/spikes", params);
+  std::string query_string =
+      BuildQueryString("/spikes", parameter.GetParameterVector());
 
   auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, query_string);
@@ -118,32 +99,22 @@ SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
 
   bool last_frame;
   SpikeContainer spikes;
-  SpikeContainer spikes2;
 
   stopwatch.reset();
   for (const cpr::Response& spike_data_set : spike_data_sets) {
-    // rapidjson::Document spike_data_new;
-    // spike_data_new.Parse(spike_data_set.c_str());
-    //
-    // assert(spike_data_new.IsObject());
-    // checkSpikeDataValid(spike_data_new.GetObject());
-    //
-    // lastFrame =
-    // spike_data_new.GetObject()[json_strings::lastFrame].GetBool();
-
     spikes.AddSpikesFromJson(spike_data_set.text.c_str());
   }
 
-  if (sort && sort.value() == json_strings::kSimTimes) {
-    spdlog::stopwatch sw_sorting;
-    spikes.SortByTime();
-    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
-  } else if (sort && sort.value() == json_strings::kNodeIds) {
-    spdlog::stopwatch sw_sorting;
-    spikes.SortByTimePdq();
-    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
-    // spikes.sortByNodeId();
-  }
+  // if (parasort && sort.value() == json_strings::kSimTimes) {
+  //   spdlog::stopwatch sw_sorting;
+  //   spikes.SortByTime();
+  //   SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
+  // } else if (sort && sort.value() == json_strings::kNodeIds) {
+  //   spdlog::stopwatch sw_sorting;
+  //   spikes.SortByTimePdq();
+  //   SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
+  //   // spikes.sortByNodeId();
+  // }
 
   return spikes;
 }
