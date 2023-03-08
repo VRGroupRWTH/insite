@@ -7,7 +7,7 @@ import os
 
 @pytest.fixture(scope="session")
 def nest_simulation(request):
-    logfile = open("docker-compose.log", "w")
+    logfile = open("insite.log", "w")
     logfile_access_node = open("access_node.log", "w")
 
     print("Starting docker-compose build")
@@ -60,7 +60,7 @@ def nest_simulation(request):
         print(".",end='',flush=True)
         time.sleep(1.0)
         try:
-            r = requests.get("http://localhost:8080/version")
+            r = requests.get("http://localhost:52056/version")
             if r.status_code == 200:
                 print("started.")
                 break

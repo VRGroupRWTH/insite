@@ -1,7 +1,7 @@
 from enum import Enum
 
 #Base URL and prefix for every HTTP-querie to the NEST-Server
-BASE_REQUEST_URL = "http://localhost:8080/nest"
+BASE_REQUEST_URL = "http://localhost:52056/nest"
 
 #Relates every value to its corresponding name in the spike-data JSON-field
 class JSON_VALUE_TO_FIELD_NAME(Enum):

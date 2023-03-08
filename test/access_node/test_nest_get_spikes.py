@@ -10,7 +10,7 @@ from nest_general_test_functions import *
 import pytest
 
 #URL used for the "nest_get_spikes" HTTP-query
-URL_NEST_GET_SPIKES = BASE_REQUEST_URL + "/spikes"
+URL_NEST_GET_SPIKES = BASE_REQUEST_URL + "/spikes/"
 
 #Names for the "nest_get_spikes" request-parameters
 class NEST_GET_SPIKES_PARAMETER_NAME_LIST (Enum):
