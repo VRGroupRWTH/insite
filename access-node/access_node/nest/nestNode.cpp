@@ -35,8 +35,7 @@ void CheckNodeCollectionDataValid(
 }
 
 // Get all kernelStatuses from the nest-server
-rapidjson::Value NestGetNodes() {
-  rapidjson::MemoryPoolAllocator<> json_alloc;
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
   auto node_data_sets =
       GetAccessNodeRequests(ServerConfig::GetInstance().request_urls, "/nodes");
@@ -64,8 +63,8 @@ rapidjson::Value NestGetNodes() {
 }
 
 // Get all kernelStatuses from the nest-server
-rapidjson::Value NestGetNodes(std::unordered_set<int>& param_node_ids) {
-  rapidjson::MemoryPoolAllocator<> json_alloc;
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc,
+                              std::unordered_set<int>& param_node_ids) {
   // get request results back and store in array
   auto node_data_sets =
       GetAccessNodeRequests(ServerConfig::GetInstance().request_urls, "/nodes");
@@ -98,9 +97,9 @@ rapidjson::Value NestGetNodes(std::unordered_set<int>& param_node_ids) {
 }
 
 // Get all nest nodeCollections from the nest-server
-rapidjson::Value NestGetNodeCollections() {
+rapidjson::Value NestGetNodeCollections(
+    rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results and store in array
-  rapidjson::MemoryPoolAllocator<> json_alloc;
   auto node_collection_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, "/nodeCollections");
 
@@ -148,8 +147,9 @@ crow::response NodeCollections() {
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
   result_doc.SetArray();
-
-  rapidjson::Value node_collection_result_array = NestGetNodeCollections();
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value node_collection_result_array =
+      NestGetNodeCollections(json_alloc);
 
   // set result_doc to result_array
   result_doc.GetArray() = node_collection_result_array.GetArray();
@@ -212,7 +212,7 @@ crow::response NodesByCollectionId(int requested_node_collection_id) {
 
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
-  rapidjson::Value result_nodes = NestGetNodes(param_nodes);
+  rapidjson::Value result_nodes = NestGetNodes(json_alloc, param_nodes);
   result_doc.SetArray();
 
   // set result array as the result document
@@ -298,7 +298,9 @@ crow::response SpikesByNodeCollectionId(const crow::request& req,
                                         int requested_node_collection_id) {
   SpikeParameter params(req.url_params);
 
-  rapidjson::Value node_collection_result_array = NestGetNodeCollections();
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value node_collection_result_array =
+      NestGetNodeCollections(json_alloc);
   assert(node_collection_result_array.IsArray());
 
   std::unordered_set<int> response_node_ids;
@@ -359,7 +361,8 @@ crow::response Nodes() {
   rapidjson::Document result_doc;
   result_doc.SetArray();
 
-  rapidjson::Value nodes_result_array = NestGetNodes();
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value nodes_result_array = NestGetNodes(json_alloc);
 
   // awr result array as result document
   result_doc.GetArray() = nodes_result_array.GetArray();
@@ -371,7 +374,9 @@ crow::response NodesById(int node_id) {
   std::unordered_set<int> param_node_ids;
   param_node_ids.insert(node_id);
 
-  rapidjson::Value nodes_result_array = NestGetNodes(param_node_ids);
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value nodes_result_array =
+      NestGetNodes(json_alloc, param_node_ids);
 
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
@@ -384,7 +389,7 @@ crow::response NodesById(int node_id) {
 
 crow::response NodeIds() {
   rapidjson::MemoryPoolAllocator<> json_alloc;
-  rapidjson::Value nodes_result_array = NestGetNodes();
+  rapidjson::Value nodes_result_array = NestGetNodes(json_alloc);
   rapidjson::Value node_ids_result_array(rapidjson::kArrayType);
 
   for (const auto& node_result : nodes_result_array.GetArray()) {

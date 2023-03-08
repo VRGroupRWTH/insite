@@ -52,6 +52,7 @@ crow::response SpikeRecorders() {
   rapidjson::StringBuffer json_buffer;
   rapidjson::Writer<rapidjson::StringBuffer> json_writer(json_buffer);
 
+  rapidjson::MemoryPoolAllocator<> json_alloc;
   json_writer.StartArray();
   for (const auto& spikerecorder : GetSpikerecorder()) {
     spikerecorder.WriteToJson(json_writer);

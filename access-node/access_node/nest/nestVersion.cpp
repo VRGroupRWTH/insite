@@ -56,8 +56,7 @@ rapidjson::Value NestGetSimulationTimeInfo(
   return result;
 }
 
-rapidjson::Value NestGetVersion() {
-  rapidjson::MemoryPoolAllocator<> json_alloc;
+rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
   auto nest_version_infos = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_urls, "/version");
@@ -89,7 +88,7 @@ rapidjson::Value NestGetVersion() {
     insite_version_doc.Parse(insite_version_text.c_str());
     insite_version.SetString(insite_version_doc.GetString(), json_alloc);
   } else {
-    insite_version_text = "unknown";
+    insite_version.SetString("2.0_rc1", json_alloc);
   }
 
   rapidjson::Value result(rapidjson::kObjectType);
@@ -119,7 +118,8 @@ crow::response SimulationTimeInfo() {
 }
 
 crow::response Version() {
-  rapidjson::Value version_info = NestGetVersion();
+  rapidjson::MemoryPoolAllocator<> json_alloc;
+  rapidjson::Value version_info = NestGetVersion(json_alloc);
 
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
