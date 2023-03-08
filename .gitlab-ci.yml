@@ -35,6 +35,9 @@ test:
     image: registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/base:latest
     tags:
         - docker-runner
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
+
     artifacts:
         paths:
         - build_access_node
