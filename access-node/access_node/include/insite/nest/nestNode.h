@@ -9,11 +9,13 @@ namespace insite {
 void CheckNodeCollectionDataValid(
     const rapidjson::GenericObject<false, rapidjson::Value>& n);
 
-rapidjson::Value NestGetNodes();
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc);
 
-rapidjson::Value NestGetNodes(std::unordered_set<int>& param_node_ids);
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc,
+                              std::unordered_set<int>& param_node_ids);
 
-rapidjson::Value NestGetNodeCollections();
+rapidjson::Value NestGetNodeCollections(
+    rapidjson::MemoryPoolAllocator<>& json_alloc);
 
 crow::response NodeCollections();
 
