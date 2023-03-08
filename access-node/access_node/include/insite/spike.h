@@ -60,6 +60,12 @@ class SpikeContainer {
                        SpikeVector::const_iterator end,
                        bool last_frame);
 
+  void SerializeToJson(rapidjson::Writer<rapidjson::StringBuffer>& writer,
+                       tl::optional<int> skip,
+                       tl::optional<int> top,
+                       tl::optional<bool> reverse_order,
+                       bool last_frame);
+
   void SerializeToFlatbuffer(flatbuffers::FlatBufferBuilder& builder);
 
   void SortByTime();

@@ -3,6 +3,7 @@
 #include <rapidjson/encodings.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <algorithm>
 #include <exception>
 #include <iterator>
 #include <tl/optional.hpp>
@@ -76,6 +77,88 @@ void SpikeContainer::SerializeToJson(
     SpikeVector::const_iterator begin,
     bool last_frame) {
   SerializeToJson(writer, begin, End(), last_frame);
+}
+
+void SpikeContainer::SerializeToJson(
+    rapidjson::Writer<rapidjson::StringBuffer>& writer,
+    tl::optional<int> skip,
+    tl::optional<int> top,
+    tl::optional<bool> reverse_order,
+    bool last_frame) {
+  SPDLOG_DEBUG("[SpikeContainer::serializeToJSON] serializing {} spikes",
+               spikes_.size());
+  writer.StartObject();
+  writer.SetMaxDecimalPlaces(14);
+  SpikeVector::iterator end;
+  SpikeVector::iterator begin;
+  const std::size_t number_of_spikes = Size();
+
+  if (!reverse_order || reverse_order == false) {
+    begin = Begin();
+    if (skip) {
+      const std::size_t skip_value = skip.value();
+      auto start_offset =
+          std::clamp(skip_value, static_cast<std::size_t>(0), number_of_spikes);
+      std::advance(begin, start_offset);
+    }
+
+    if (top) {
+      const std::size_t skip_value = skip.value_or(0);
+      const std::size_t top_value = top.value();
+      auto end_offset =
+          std::clamp(skip_value + top_value, static_cast<std::size_t>(0),
+                     number_of_spikes);
+
+      end = Begin();
+      std::advance(end, end_offset);
+    } else {
+      end = End();
+    }
+
+  } else if (reverse_order == true) {
+    end = End();
+    if (skip) {
+      const std::size_t skip_value = skip.value();
+      auto start_offset =
+          std::clamp(skip_value, static_cast<std::size_t>(0), number_of_spikes);
+      std::advance(end, -start_offset);
+    }
+
+    if (top) {
+      begin = End();
+
+      const std::size_t skip_value = skip.value_or(0);
+      const std::size_t top_value = top.value();
+      auto end_offset =
+          std::clamp(skip_value + top_value, static_cast<std::size_t>(0),
+                     number_of_spikes);
+      std::advance(begin, -end_offset);
+    } else {
+      begin = Begin();
+    }
+  }
+
+  writer.Key("simulationTimes");
+  writer.StartArray();
+  for (auto it = begin; it != end; it++) {
+    writer.Double(it->time);
+  }
+  writer.EndArray();
+
+  writer.Key("nodeIds");
+  writer.StartArray();
+  for (auto it = begin; it != end; it++) {
+    writer.Uint64(it->node_id);
+  }
+  writer.EndArray();
+  writer.Key("lastFrame");
+  if (end != End()) {
+    writer.Bool(false);
+  } else {
+    writer.Bool(last_frame_);
+  }
+
+  writer.EndObject();
 }
 
 void SpikeContainer::SerializeToJson(
