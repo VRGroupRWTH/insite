@@ -14,6 +14,7 @@
 #include <exception>
 #include <limits>
 #include <websocketpp/config/asio_no_tls.hpp>
+#include "crow/middlewares/cors.h"
 #include "nest/nest_endpoints.h"
 #include "nest_handler.h"
 #include "spdlog/spdlog.h"
@@ -29,7 +30,7 @@ int main() {
   ServerConfig::GetInstance().ParseConfigIfExists();
   ServerConfig::GetInstance().GenerateRequestUrls();
 
-  crow::SimpleApp app;
+  crow::App<crow::CORSHandler> app;
   WebsocketServer srv(ServerConfig::GetInstance().port_number_access_ws + 1);
   TvbHandler tvb_handler;
   NestHandler nest_handler;
