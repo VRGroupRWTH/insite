@@ -1,0 +1,20 @@
+FROM docker-registry.ebrains.eu/nest/nest-simulator:3.4
+
+RUN apt-get update && apt-get install -y git ninja-build libssl-dev libfmt-dev libspdlog-dev
+COPY ./ ./nest-module
+
+WORKDIR build_nest_module
+
+RUN cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ../nest-module/src -DSPDLOG_INSTALL=ON
+RUN ninja install
+
+ 
+
+FROM docker-registry.ebrains.eu/nest/nest-simulator:3.4
+
+RUN apt-get update && apt-get install -y libssl-dev libfmt-dev libspdlog-dev 
+
+COPY --from=0 /opt/nest/lib/nest/ /opt/nest/lib/nest/
+#COPY --from=0 /opt/nest/lib/nest/insitemodule.so /opt/nest/lib/nest/insitemodule.so
+# COPY --from=0 /opt/nest/bin/libinsitemodule.so /opt/nest/bin/libinsitemodule.so
+# COPY --from=0 /opt/nest/bin/insitemodule.so /opt/nest/bin/insitemodule.so

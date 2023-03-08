@@ -1,0 +1,18 @@
+FROM docker-registry.ebrains.eu/nest/nest-simulator:3.4_rc1 
+
+RUN apt-get update && apt-get install -y git ninja-build libssl-dev
+COPY ./ ./nest-module
+
+WORKDIR build_nest_module
+
+RUN cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ../nest-module/src
+RUN ninja install
+
+ 
+
+FROM docker-registry.ebrains.eu/nest/nest-simulator:3.4_rc1
+
+COPY --from=0 /opt/nest/lib/nest/libinsitemodule.so /opt/nest/lib/nest/libinsitemodule.so
+COPY --from=0 /opt/nest/lib/nest/insitemodule.so /opt/nest/lib/nest/insitemodule.so
+# COPY --from=0 /opt/nest/bin/libinsitemodule.so /opt/nest/bin/libinsitemodule.so
+# COPY --from=0 /opt/nest/bin/insitemodule.so /opt/nest/bin/insitemodule.so

@@ -38,6 +38,7 @@ set( SHORT_NAME insite )
 #    the complete module name is here:
 set( MODULE_NAME ${SHORT_NAME}module )
 
+ include_directories(.)
 # 2) Add all your sources here and specify dependencies, e.g., link libraries
 set( MODULE_SOURCES
      insitemodule.h insitemodule.cpp
@@ -50,6 +51,7 @@ set( MODULE_SOURCES
      storage/spikedetector_storage.hpp storage/spikedetector_storage.cpp
      storage/multimeter_storage.hpp storage/multimeter_storage.cpp
      schema_generated.h
+     stopwatch_helper.h stopwatch_helper.cpp
    )
 
 # 3) We require a header name like this:
@@ -69,6 +71,8 @@ set( MODULE_VERSION "${MODULE_VERSION_MAJOR}.${MODULE_VERSION_MINOR}" )
 # Set the `nest-config` executable to use during configuration.
 set( with-nest OFF CACHE STRING "Specify the `nest-config` executable." )
 set(ASIO_INCLUDE_DIR extern/asio/asio/include)
+set( CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 # If it is not set, look for a `nest-config` in the PATH.
 if ( NOT with-nest )
@@ -112,6 +116,7 @@ project( ${MODULE_NAME} CXX )
 
 # Add cpprestsdk
 # find_package(cpprestsdk REQUIRED)
+# find_package(spdlog REQUIRED)
 
 # Get the Python executable (for help generation).
 execute_process(
@@ -279,7 +284,9 @@ find_package(Threads REQUIRED)
 add_compile_definitions(ASIO_STANDALONE _WEBSOCKETPP_CPP11_STRICT_)
 add_subdirectory(extern/flatbuffers)
 add_subdirectory(extern/crow)
+set (BUILD_SHARED_LIBS OFF)
 add_subdirectory(extern/spdlog)
+set (BUILD_SHARED_LIBS ON)
 include_directories(extern/asio/asio/include/)
 include_directories(extern/websocketpp/)
 # include_directories(/home/mk821590/Code/Work/HBP/nest/cpprestsdk/Release/libs/websocketpp/)
@@ -298,7 +305,7 @@ if ( BUILD_SHARED_LIBS )
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
     # target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog_header_only cpprestsdk::cpprest FlatBuffers::FlatBuffers Crow::Crow)
-    target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog_header_only FlatBuffers::FlatBuffers Crow::Crow)
+    target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog FlatBuffers::FlatBuffers Crow::Crow)
     target_include_directories(${MODULE_NAME}_module PRIVATE extern/rapidjson/include)
 endif ()
 
@@ -315,7 +322,7 @@ set_target_properties( ${MODULE_NAME}_lib
     LINK_FLAGS "${NEST_LIBS}"
     OUTPUT_NAME ${MODULE_NAME} )
   # target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog_header_only cpprestsdk::cpprest FlatBuffers::FlatBuffers Crow::Crow )
-  target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog_header_only  FlatBuffers::FlatBuffers Crow::Crow )
+  target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog  FlatBuffers::FlatBuffers Crow::Crow )
   target_include_directories(${MODULE_NAME}_lib PRIVATE extern/rapidjson/include)
 # Install library, header and sli init files.
 install( TARGETS ${MODULE_NAME}_lib DESTINATION ${CMAKE_INSTALL_LIBDIR} )

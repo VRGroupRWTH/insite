@@ -18,13 +18,8 @@ namespace Foo {
 
 struct Spikes;
 
-struct Spikes32;
-
 struct SpikyTable;
 struct SpikyTableBuilder;
-
-struct SpikyTable32;
-struct SpikyTable32Builder;
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Spikes FLATBUFFERS_FINAL_CLASS {
  private:
@@ -48,29 +43,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Spikes FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Spikes, 16);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Spikes32 FLATBUFFERS_FINAL_CLASS {
- private:
-  float spike_time_;
-  uint32_t node_id_;
-
- public:
-  Spikes32()
-      : spike_time_(0),
-        node_id_(0) {
-  }
-  Spikes32(float _spike_time, uint32_t _node_id)
-      : spike_time_(flatbuffers::EndianScalar(_spike_time)),
-        node_id_(flatbuffers::EndianScalar(_node_id)) {
-  }
-  float spike_time() const {
-    return flatbuffers::EndianScalar(spike_time_);
-  }
-  uint32_t node_id() const {
-    return flatbuffers::EndianScalar(node_id_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Spikes32, 8);
 
 struct SpikyTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SpikyTableBuilder Builder;
@@ -130,69 +102,6 @@ inline flatbuffers::Offset<SpikyTable> CreateSpikyTableDirect(
     bool last_frame = false) {
   auto spikes__ = spikes ? _fbb.CreateVectorOfStructs<Test::Foo::Spikes>(*spikes) : 0;
   return Test::Foo::CreateSpikyTable(
-      _fbb,
-      spikes__,
-      last_frame);
-}
-
-struct SpikyTable32 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef SpikyTable32Builder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SPIKES = 4,
-    VT_LAST_FRAME = 6
-  };
-  const flatbuffers::Vector<const Test::Foo::Spikes32 *> *spikes() const {
-    return GetPointer<const flatbuffers::Vector<const Test::Foo::Spikes32 *> *>(VT_SPIKES);
-  }
-  bool last_frame() const {
-    return GetField<uint8_t>(VT_LAST_FRAME, 0) != 0;
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_SPIKES) &&
-           verifier.VerifyVector(spikes()) &&
-           VerifyField<uint8_t>(verifier, VT_LAST_FRAME, 1) &&
-           verifier.EndTable();
-  }
-};
-
-struct SpikyTable32Builder {
-  typedef SpikyTable32 Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_spikes(flatbuffers::Offset<flatbuffers::Vector<const Test::Foo::Spikes32 *>> spikes) {
-    fbb_.AddOffset(SpikyTable32::VT_SPIKES, spikes);
-  }
-  void add_last_frame(bool last_frame) {
-    fbb_.AddElement<uint8_t>(SpikyTable32::VT_LAST_FRAME, static_cast<uint8_t>(last_frame), 0);
-  }
-  explicit SpikyTable32Builder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<SpikyTable32> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SpikyTable32>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<SpikyTable32> CreateSpikyTable32(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const Test::Foo::Spikes32 *>> spikes = 0,
-    bool last_frame = false) {
-  SpikyTable32Builder builder_(_fbb);
-  builder_.add_spikes(spikes);
-  builder_.add_last_frame(last_frame);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<SpikyTable32> CreateSpikyTable32Direct(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<Test::Foo::Spikes32> *spikes = nullptr,
-    bool last_frame = false) {
-  auto spikes__ = spikes ? _fbb.CreateVectorOfStructs<Test::Foo::Spikes32>(*spikes) : 0;
-  return Test::Foo::CreateSpikyTable32(
       _fbb,
       spikes__,
       last_frame);

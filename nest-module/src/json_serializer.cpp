@@ -24,6 +24,24 @@ void Spikes(rapidjson::Writer<rapidjson::StringBuffer>& writer, const std::vecto
   writer.EndObject();
 }
 
+void SpikesAlt(rapidjson::Writer<rapidjson::StringBuffer>& writer, const std::vector<Spike>& spikes, bool last_frame) {
+  writer.StartObject();
+  writer.Key("spikes");
+  writer.StartArray();
+  for (const auto& spike : spikes) {
+    writer.StartArray();
+    writer.Double(spike.simulation_time);
+    writer.Int(spike.node_id);
+    writer.EndArray();
+  }
+  writer.EndArray();
+
+  writer.EndArray();
+  writer.Key("lastFrame");
+  writer.Bool(last_frame);
+  writer.EndObject();
+}
+
 void Version(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
   rapidjson::Document document;
   document.SetObject();

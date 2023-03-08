@@ -5,11 +5,21 @@
 #include <crow/app.h>
 #include <crow/http_request.h>
 #include <crow/http_response.h>
+#include <spdlog/spdlog.h>
 #include <future>
 #include <memory>
 #include <regex>
 #include <string>
-#include "spdlog/spdlog.h"
+
+#undef UNKNOWN
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#include "websocketpp/connection.hpp"
+
+using websocketpp::lib::bind;
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
+typedef websocketpp::client<websocketpp::config::asio_client> client;
 
 namespace insite {
 
@@ -24,6 +34,8 @@ class HttpServer {
   };
   void SimulationHasEnded(double end_time);
   void ClearSimulationHasEnded();
+
+  client::connection_ptr con;
 
  private:
   // web::http::experimental::listener::http_listener http_listener_;
@@ -50,7 +62,12 @@ class HttpServer {
   crow::response GetCurrentSimulationTime(const crow::request& request);
   // web::http::http_response GetSpikes(const web::http::http_request& request);
   crow::response GetSpikes(const crow::request& request);
+  crow::response GetSpikes2(const crow::request& request);
+  crow::response GetSpikes3(const crow::request& request);
+  crow::response GetSpikesSendWS(const crow::request& request);
+  crow::response GetSpikesAlt(const crow::request& request);
   crow::response GetSpikesFB(const crow::request& request);
+  crow::response GetSpikesFB32(const crow::request& request);
   crow::response GetMultimeterMeasurement(const crow::request& request);
   // web::http::http_response GetMultimeterMeasurement(const web::http::http_request& request);
 
