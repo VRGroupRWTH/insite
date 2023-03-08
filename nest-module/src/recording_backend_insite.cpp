@@ -7,7 +7,15 @@
 // Includes from libnestutil:
 #include "compose.hpp"
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 // Includes from nestkernel:
+#include <spdlog/fmt/chrono.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
+#include <chrono>
+#include <utility>
+#include <vector>
 #include "connection_id.h"
 #include "connection_label.h"
 #include "dict.h"
@@ -25,7 +33,7 @@
 #include "schema_generated.h"
 #include "simulation_manager.h"
 #include "spatial.h"
-#include "spdlog/spdlog.h"
+#include "stopwatch_helper.h"
 // #include "topology.h"
 
 // Includes from sli:
@@ -52,8 +60,10 @@ typedef websocketpp::client<websocketpp::config::asio_client> client;
 RecordingBackendInsite::RecordingBackendInsite()
     : http_server_("http://0.0.0.0:" + get_port_string(), &data_storage_) {
   std::string uri = "ws://localhost:9011/nest";
+  spdlog::set_level(spdlog::level::trace);
   c.set_access_channels(websocketpp::log::alevel::all);
   c.clear_access_channels(websocketpp::log::alevel::frame_payload);
+  c.clear_access_channels(websocketpp::log::alevel::frame_header);
   c.set_error_channels(websocketpp::log::elevel::all);
 
   // Initialize ASIO
@@ -67,7 +77,7 @@ RecordingBackendInsite::RecordingBackendInsite()
   if (ec) {
     std::cout << "could not create connection because: " << ec.message() << std::endl;
   }
-
+  http_server_.con = con;
   // Note that connect here only requests a connection. No network messages are
   // exchanged until the event loop starts running in the next line.
   c.connect(con);
@@ -251,14 +261,21 @@ void RecordingBackendInsite::post_run_hook() {
 }
 
 void RecordingBackendInsite::post_step_hook() {
+  // StopwatchHelper swh;
+  // swh.print();
+  // SPDLOG_TRACE("Sending spikes to access node");
   auto current_time = nest::kernel().simulation_manager.get_clock().get_ms();
   data_storage_.SetCurrentSimulationTime(current_time);
 
   flatbuffers::FlatBufferBuilder fbb;
   auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes>(spikes, flatbuffers::Pack);
+  // swh.checkpoint("Create Vector of Native Structs");
   auto fb_spike_table = Test::Foo::CreateSpikyTable(fbb, fb_spikes);
   fbb.Finish(fb_spike_table);
+  // swh.checkpoint("CreateSpikeTable and Finish");
   con->send(fbb.GetBufferPointer(), fbb.GetSize(), websocketpp::frame::opcode::BINARY);
+  // swh.checkpoint("Sending spikes via websocket");
+  // swh.print();
   spikes.clear();
 }
 

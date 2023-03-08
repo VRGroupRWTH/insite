@@ -5,9 +5,20 @@ struct Spikes {
    node_id:uint64;
 }
 
+struct Spikes32 {
+   spike_time:float;
+   node_id:uint32;
+}
+
 table SpikyTable {
    spikes: [Spikes];
    last_frame: bool;
 }
 
+table SpikyTable32 {
+   spikes: [Spikes32];
+   last_frame: bool;
+}
+
+root_type SpikyTable32;
 root_type SpikyTable;
