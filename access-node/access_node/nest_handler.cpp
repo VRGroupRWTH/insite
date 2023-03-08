@@ -33,6 +33,7 @@ void NestHandler::Consumer() {
 
     while (!message_queue_.empty()) {
       if (message_queue_.back().first == websocketpp::frame::opcode::BINARY) {
+        // storage.AddSpikesFromFlatbuffer(message_queue_.back().second.c_str());
         const Insite::Nest::SpikeTable* spike_table =
             Insite::Nest::GetSpikeTable(message_queue_.back().second.c_str());
         double lastTimestamp = 0;
