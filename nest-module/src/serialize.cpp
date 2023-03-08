@@ -6,6 +6,7 @@
 #include <cmath>
 #include <string>
 
+#include <spdlog/spdlog.h>
 #include "arraydatum.h"
 #include "booldatum.h"
 #include "dictdatum.h"
@@ -14,7 +15,6 @@
 #include "integerdatum.h"
 #include "namedatum.h"
 #include "rapidjson/document.h"
-#include "spdlog/spdlog.h"
 #include "stringdatum.h"
 
 namespace insite {
