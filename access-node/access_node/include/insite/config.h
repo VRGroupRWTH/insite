@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 namespace insite {
 
 inline constexpr int kDefaultPortNumberAccessNode = 52056;
