@@ -22,6 +22,7 @@ class ServerConfig {
   void ParseTomlConfigFromFile(const std::string& filename);
   void ParseYamlConfigFromFile(const std::string& filename);
   void ParseYamlConfigFromString(const std::string& content);
+  void ParseConfigFromEnv();
 
   void ParseConfigIfExists();
 

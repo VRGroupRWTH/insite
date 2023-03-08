@@ -2,14 +2,43 @@
 #include <spdlog/spdlog.h>
 #include <toml++/toml.h>
 #include <yaml-cpp/yaml.h>
+#include <cstdlib>
+#include <iostream>
 #include <iterator>
 #include <string_view>
 #include <type_traits>
 #include <vector>
 #include "filesystem"
+#include "tl/optional.hpp"
 #include "yaml-cpp/node/parse.h"
 
 namespace insite {
+
+template <typename T>
+T ConvertStringToType(const char* input_string);
+
+template <>
+inline bool ConvertStringToType<bool>(const char* input_string) {
+  return std::stoi(input_string) != 0;
+}
+template <>
+inline int ConvertStringToType<int>(const char* input_string) {
+  return std::stoi(input_string);
+}
+
+template <>
+inline uint64_t ConvertStringToType(const char* input_string) {
+  return std::stoull(input_string);
+}
+
+template <>
+inline double ConvertStringToType(const char* input_string) {
+  return std::stod(input_string);
+}
+template <>
+inline std::string ConvertStringToType(const char* input_string) {
+  return input_string;
+}
 
 using VecInt = int;
 
@@ -38,6 +67,32 @@ auto ParseIfFieldExists(const YAML::Node& config,
   } else {
     return default_value;
   }
+}
+
+template <typename T>
+auto ParseEnvVarIfExist(const std::string& field_name) -> tl::optional<T> {
+  auto* env_var = std::getenv(field_name.c_str());
+  if (env_var) {
+    try {
+      return ConvertStringToType<T>(env_var);
+    } catch (std::invalid_argument e) {
+      SPDLOG_ERROR("Could not convert env var: {} to type: {}", field_name,
+                   typeid(T).name());
+      return tl::nullopt;
+    }
+  }
+  return tl::nullopt;
+}
+
+template <typename T>
+auto UpdateVarIfEnvVarExists(T& var_to_update, const std::string& field_name)
+    -> bool {
+  auto var = ParseEnvVarIfExist<T>(field_name);
+  if (var) {
+    var_to_update = var.value();
+    return true;
+  }
+  return false;
 }
 
 void ServerConfig::ParseYamlConfigFromString(const std::string& content) {
@@ -82,6 +137,16 @@ void ServerConfig::ParseTomlConfigFromFile(const std::string& filename) {
   ParseYamlConfigFromString(yaml.str());
 }
 
+void ServerConfig::ParseConfigFromEnv() {
+  UpdateVarIfEnvVarExists(ports_consecutive, "INSITE_PORTS_CONSECUTIVE");
+  UpdateVarIfEnvVarExists(same_base_url, "INSITE_SAME_BASE_URL");
+  UpdateVarIfEnvVarExists(number_of_nodes, "INSITE_NEST_NUM_NODES");
+  UpdateVarIfEnvVarExists(base_url, "INSITE_NEST_BASE_URL");
+  UpdateVarIfEnvVarExists(port_number_nodes, "INSITE_NEST_PORT");
+  UpdateVarIfEnvVarExists(port_number_access, "INSITE_ACCESS_NODE_PORT");
+  UpdateVarIfEnvVarExists(port_number_access_ws, "INSITE_ACCESS_NODE_WSPORT");
+}
+
 void ServerConfig::GenerateRequestUrls() {
   if (ports_consecutive && same_base_url) {
     for (int i = 0; i < number_of_nodes; ++i) {
@@ -116,6 +181,8 @@ void ServerConfig::ParseConfigIfExists() {
     ParseYamlConfigFromFile("config.yaml");
   } else if (std::filesystem::exists("config.toml")) {
     ParseTomlConfigFromFile("config.toml");
+  } else {
+    ParseConfigFromEnv();
   }
 
   SPDLOG_DEBUG("{}", ToString());
