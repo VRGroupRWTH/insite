@@ -40,8 +40,8 @@ int main() {
   srv.SetNestHandler(&nest_handler);
   srv.StartServer();
   tvb_handler.StartThread();
-  nest_handler.StartThread();
-  nest_handler.ws_server = &srv;
+  // nest_handler.StartThread();
+  // nest_handler.ws_server = &srv;
 
   // TVBHttpEndpoint::RegisterRoutes(app);
   NestHttpEndpoint::RegisterRoutes(app);
@@ -54,5 +54,5 @@ int main() {
   srv.StopServer();
   SPDLOG_DEBUG("Stopped WebsocketServer");
   tvb_handler.StopThread();
-  nest_handler.StopThread();
+  // nest_handler.StopThread();
 }
