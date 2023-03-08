@@ -26,12 +26,6 @@ SpikeVector ConvertFromJsonToSpikes(
     const rapidjson::GenericObject<false, rapidjson::Value>& data);
 // Get all spikes from the nest-server by using the optional parameters
 // fromTime, toTime, nodeIds, skip, top and sort
-SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
-                             const std::optional<double>& to_time,
-                             const std::unordered_set<uint64_t>& node_ids,
-                             const std::optional<uint64_t>& skip,
-                             const std::optional<uint64_t>& top,
-                             const std::optional<std::string>& sort);
 
 SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
                                const std::optional<double>& to_time,
@@ -39,14 +33,6 @@ SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
                                const std::optional<uint64_t>& skip,
                                const std::optional<uint64_t>& top,
                                const std::optional<std::string>& sort);
-SpikeContainer NestGetSpikes(
-    const std::optional<double>& from_time,
-    const std::optional<double>& to_time,
-    const std::vector<uint64_t>& node_ids,
-    const std::optional<uint64_t>& skip,
-    const std::optional<uint64_t>& top,
-    const std::optional<std::string>&
-        sort);  // Get all spikes from the nest-server;;
 
 SpikeContainer NestGetSpikes(const SpikeParameter& parameter);
 crow::response Spikes(const crow::request& req);

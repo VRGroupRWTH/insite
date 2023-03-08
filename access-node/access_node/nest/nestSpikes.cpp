@@ -147,39 +147,6 @@ SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
 
   return spikes;
 }
-
-SpikeContainer NestGetSpikes(const std::optional<double>& from_time,
-                             const std::optional<double>& to_time,
-                             const std::vector<uint64_t>& node_ids,
-                             const std::optional<uint64_t>& skip,
-                             const std::optional<uint64_t>& top,
-                             const std::optional<std::string>& sort) {
-  const std::unordered_set<uint64_t> node_ids_set(node_ids.begin(),
-                                                  node_ids.end());
-  return NestGetSpikes(from_time, to_time, node_ids_set, skip, top, sort);
-}
-
-SpikeContainer NestGetSpikes(const SpikeParameter& parameter) {
-  std::optional<uint64_t> skip;
-  std::optional<uint64_t> top;
-  std::optional<std::string> sort;
-  if (parameter.skip) {
-    skip = parameter.skip.value();
-  }
-
-  if (parameter.top) {
-    top = parameter.top.value();
-  }
-
-  if (parameter.sort) {
-    top = parameter.sort.value();
-  }
-
-  return NestGetSpikes(
-      parameter.from_time.value_or(0),
-      parameter.to_time.value_or(std::numeric_limits<std::uint64_t>::max()),
-      parameter.node_gids.value_or(std::vector<uint64_t>{}), skip, top, sort);
-}
 // Get all spikes from the nest-server by using the optional parameters
 // fromTime, toTime, nodeIds, skip, top and sort
 
