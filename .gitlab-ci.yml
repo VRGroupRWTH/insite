@@ -42,6 +42,8 @@ test:
         paths:
         - build_access_node
         - build_nest_module
+        - insite.log
+        - access_node.log
         expire_in: 1 day
         when: always
     before_script:
@@ -51,6 +53,6 @@ test:
         - cd ..
         - cp build_access_node/insite-access-node .
     script:
-        - pytest --count=2 --repeat-scope=session -x --showlocals ./test
+        - pytest --count=2 --repeat-scope=session -x --showlocals ./test -s
         # - pytest --count=2 --repeat-scope=session -x --showlocals --ignore-glob=**/_deps/* --ignore-glob=**/extern/* -s
 
