@@ -86,6 +86,11 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
     params.node_gids = spikerecorder->nodes;
     SpikeContainer spikes = std::move(NestGetSpikes(params));
     spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
+    if (!params.sort || params.sort != false) {
+      spikes.SortByTime();
+    }
+    spikes.SerializeToJson(writer, params.skip, params.top,
+                           params.reverse_order, true);
 
     return {buffer.GetString()};
   }
@@ -107,7 +112,8 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
   }
 
   SpikeContainer spikes = std::move(NestGetSpikes(params));
-  spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
+  spikes.SerializeToJson(writer, params.skip, params.top, params.reverse_order,
+                         true);
   return {buffer.GetString()};
 }
 }  // namespace insite

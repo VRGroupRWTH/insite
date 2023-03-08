@@ -4,6 +4,7 @@
 #include <regex>
 #include <string>
 #include <tl/optional.hpp>
+#include "spdlog/spdlog.h"
 
 template <typename T>
 T ConvertStringToType(const char* input_string);
@@ -108,6 +109,12 @@ struct SpikeParameter {
         parameter_gids.map([](tl::optional<std::string> parameter_gids) {
           return CommaListToUintVector(parameter_gids.value());
         });
+    auto order = GetParameter<std::string>(query_string, "order");
+    if (order == "desc") {
+      reverse_order = true;
+    } else {
+      reverse_order = false;
+    }
   }
 
  public:
@@ -116,6 +123,7 @@ struct SpikeParameter {
   tl::optional<int> skip;
   tl::optional<int> top;
   tl::optional<bool> sort;
+  tl::optional<bool> reverse_order;
   tl::optional<std::uint64_t> node_collection_id;
   tl::optional<std::uint64_t> spike_detector_id;
   tl::optional<std::vector<std::uint64_t>> node_gids;

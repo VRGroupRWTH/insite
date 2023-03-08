@@ -185,7 +185,8 @@ crow::response Spikes(const crow::request& req) {
 
   SpikeContainer spikes = std::move(NestGetSpikes(params));
   spdlog::stopwatch sw_serialize;
-  spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
+  spikes.SerializeToJson(writer, params.skip, params.top, params.reverse_order,
+                         true);
   SPDLOG_DEBUG("Serialized in {}", sw_serialize.elapsed());
 
   return {buffer.GetString()};
