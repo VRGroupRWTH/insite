@@ -81,9 +81,8 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req,
 
   std::vector<uint64_t> query_node_ids;
   if (!params.node_gids) {
-    params.node_gids = spikerecorder->nodes;
+    params.spike_detector_id = requested_spikerecorder_id;
     SpikeContainer spikes = std::move(NestGetSpikes(params));
-    spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
     if (!params.sort || params.sort != false) {
       spikes.SortByTime();
     }
