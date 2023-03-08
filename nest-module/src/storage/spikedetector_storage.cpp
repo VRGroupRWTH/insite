@@ -10,8 +10,7 @@ SpikedetectorStorage::SpikedetectorStorage(std::uint64_t spikedetector_id,
   spikes_.reserve(ring_buffer_size);
 }
 
-SpikedetectorStorage::~SpikedetectorStorage()
-{
+SpikedetectorStorage::~SpikedetectorStorage() {
 }
 
 void SpikedetectorStorage::Prepare(const nest::NodeCollectionPTR& all_nodes) {
@@ -58,10 +57,11 @@ void SpikedetectorStorage::AddSpike(double simulation_time,
 }
 
 void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
-                                         double from_time, double to_time,
+                                         double from_time,
+                                         double to_time,
                                          std::uint64_t from_neuron_id,
                                          std::uint64_t to_neuron_id,
-                                         std::vector<std::uint64_t> *node_ids) {
+                                         std::vector<std::uint64_t>* node_ids) {
   if (spikes_.size() == 0) {
     return;
   }
@@ -78,7 +78,7 @@ void SpikedetectorStorage::ExtractSpikes(std::vector<Spike>* spikes_vector,
         current_spike.simulation_time < to_time &&
         current_spike.node_id >= from_neuron_id &&
         current_spike.node_id <= to_neuron_id) {
-      if(node_ids->empty() || std::find(node_ids->begin(),node_ids->end(),current_spike.node_id) != node_ids->end())
+      if (node_ids->empty() || std::find(node_ids->begin(), node_ids->end(), current_spike.node_id) != node_ids->end())
         spikes_vector->push_back(current_spike);
     }
 

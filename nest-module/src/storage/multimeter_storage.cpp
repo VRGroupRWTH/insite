@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <cassert>
 
+#include <spdlog/spdlog.h>
 #include "../serialize.hpp"
 #include "kernel_manager.h"
-#include "spdlog/spdlog.h"
 
 namespace insite {
 
