@@ -37,7 +37,7 @@ def get_nest_spikedetector_ids():
 
 #Combines the request-base-URL, a spike-detector ID and the JSON-key for spikes to a String and returns it
 def build_url_nest_get_spikes_by_spikedetector(id):
-    return (URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID + "/" + str(id) + "/" + JSON_VALUE_TO_FIELD_NAME.spikes.value)
+    return (URL_NEST_GET_SPIKES_BY_SPIKEDETECTOR_ID + "/" + str(id) + "/" + JSON_VALUE_TO_FIELD_NAME.spikes.value + "/")
 
 #Sends a nest_get_spikes_by_spikedetector request by using a spike-detector ID and values for all the possible parameters and returns the result in JSON-format
 def request_nest_get_spikes_by_spikedetector(id, parameter_values = None, parameter_set_combination = [False, False, False, False, False]):
