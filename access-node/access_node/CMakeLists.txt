@@ -33,6 +33,13 @@ CPMAddPackage(
     OPTIONS "CROW_INSTALL OFF"
 )
 
+option(INSITE_PRETTY_JSON OFF "Pretty JSON")
+
+if (INSITE_PRETTY_JSON) 
+message("Insite Pretty Json On")
+add_compile_definitions(INSITE_PRETTY_JSON)
+endif()
+
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/schema_generated.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include
@@ -45,12 +52,11 @@ include_directories("extern/pdqsort")
 add_executable(
   insite-access-node
   main.cpp
-  include/insite/better_params.h
   include/insite/query_params.h
   include/insite/spike_util.h
   include/insite/circular_timeseries.h
   include/insite/config.h config.cpp
-  include/insite/jsonParameters.h jsonParameters.cpp
+  # include/insite/jsonParameters.h jsonParameters.cpp
   include/insite/jsonStrings.h
   include/insite/nest/nestKernelStatus.h nest/kernelStatus.cpp
   include/insite/nest/nestMultimeter.h  nest/nestMultimeter.cpp
@@ -60,8 +66,13 @@ add_executable(
   include/insite/nest/nestSpikeRecorders.h
   include/insite/nest/nestSpikes.h nest/nestSpikes.cpp
   include/insite/nest/nestVersion.h nest/nestVersion.cpp
+  include/insite/arbor/cell_endpoints.h arbor/cell_endpoints.cpp
+  include/insite/arbor/probe_endpoints.h arbor/probe_endpoints.cpp
+  include/insite/arbor/spike_endpoints.h arbor/spike_endpoints.cpp
+  include/insite/arbor/parameters.h arbor/parameters.cpp
+  include/insite/arbor/arbor_strings.h arbor/arbor_strings.cpp
   include/insite/opcodes.h
-  include/insite/params.h params.cpp
+  # include/insite/params.h params.cpp
   include/insite/queryStringBuilder.h
   include/insite/resource_flags.h
   include/insite/spike.h nest/spike.cpp

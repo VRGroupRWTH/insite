@@ -1,7 +1,6 @@
 #pragma once
 #include <crow/http_request.h>
 #include <crow/query_string.h>
-#include <jsonParameters.h>
 #include <jsonStrings.h>
 #include <spdlog/spdlog.h>
 #include <array>
@@ -13,6 +12,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include "string_util.h"
 
 // template <std::size_t N, typename... Types>
 // using NthParameterT = std::tuple_element_t<N, std::tuple<Types...>>;
@@ -150,58 +150,4 @@ struct MultimeterParameters : public OptionalParameters {
   }
 };
 
-// class Parameters {
-//  public:
-//   Parameters(const crow::request& request) : req(request){};
-//   using Variant = std::variant<bool, int, double,
-
-//   std::unordered_set<uint64_t>>; template <typename... Types> void
-//   ReadParams(std::array<std::string, sizeof...(Types)> names) {
-//     ReadParams<Types...>(names,
-//     std::make_index_sequence<sizeof...(Types)>());
-//   }
-//
-//   template <typename T>
-//   std::optional<T> GetParam(std::string key) {
-//     if (m_[key])
-//       return std::optional<T>(std::get<T>(m_[key]));
-//     else
-//       return std::optional<T>();
-//   }
-//
-//  private:
-//   template <typename... Types, size_t... I>
-//   void ReadParams(std::array<std::string, sizeof...(Types)> names,
-//                   std::index_sequence<I...>) {
-//     (m_.insert(
-//          {names[I], GetParamFromReq<NthParameterT<I,
-//          Types...>>(names[I])}),
-//      ...);
-//     // (m.insert({names[I], convertToType<nth_parameter_t<I,
-//     Types...>>("0")}),
-//     // ...);
-//   }
-//
-//   template <typename T>
-//   T GetParamFromReq(std::string param_name) {
-//     T value;
-//     const char* string_val = req_.url_params.get(param_name);
-//     if (string_val == nullptr)
-//       return std::optional<T>();
-//     std::stringstream ss(string_val);
-//     ss >> value;
-//     return value;
-//   }
-//   template <>
-//   std::unordered_set<uint64_t> GetParamFromReq(std::string param_name) {
-//     std::unordered_set<uint64_t> value;
-//     auto string_val = req_.url_params.get_list(param_name);
-//     for (const auto& val : string_val) {
-//       value.insert(std::stoull(val));
-//     }
-//     return value;
-//   }
-//   const crow::request& req_;
-//   std::unordered_map<std::string, Variant> m_;
-// };
 }  // namespace insite
