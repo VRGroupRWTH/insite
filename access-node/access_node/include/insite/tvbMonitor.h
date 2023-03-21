@@ -61,8 +61,8 @@ class TvbMonitor {
   }
 
   void SerializeDataToJson(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                           betterinsite::OptionalParameter from_time,
-                           betterinsite::OptionalParameter to_time) {
+                           tl::optional<double> from_time,
+                           tl::optional<double> to_time) {
     writer.StartObject();
     writer.Key("uid");
     writer.String(uid.c_str());
@@ -70,8 +70,8 @@ class TvbMonitor {
     writer.StartArray();
     for (int timestep = 0; timestep < data.Size(); ++timestep) {
       auto time = data.GetTimeByIndex(timestep);
-      if (!(time >= from_time.ValueAsTOrDefault<double>() &&
-            time <= to_time.ValueAsTOrDefault<double>())) {
+      if (!(time >= from_time.value_or(0) &&
+            time <= to_time.value_or(std::numeric_limits<double>::max()))) {
         continue;
       }
       writer.StartObject();
