@@ -1,15 +1,14 @@
 #pragma once
+#include "resource_flags.h"
+#include "spdlog/spdlog.h"
+#include "websocket_sender.h"
+#include "websocketpp/close.hpp"
+#include "websocketpp/common/connection_hdl.hpp"
 #include <chrono>
 #include <cstdint>
 #include <thread>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
-#include "resource_flags.h"
-#include "spdlog/spdlog.h"
-#include "tvb_handler.h"
-#include "websocket_sender.h"
-#include "websocketpp/close.hpp"
-#include "websocketpp/common/connection_hdl.hpp"
 using namespace std::chrono_literals;
 
 namespace insite {

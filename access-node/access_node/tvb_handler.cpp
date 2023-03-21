@@ -1,10 +1,10 @@
 #include "tvb_handler.h"
-#include <spdlog/fmt/bin_to_hex.h>
-#include <spdlog/fmt/ranges.h>
-#include <chrono>
-#include <cstdint>
 #include "opcodes.h"
 #include "spdlog/spdlog.h"
+#include <chrono>
+#include <cstdint>
+#include <spdlog/fmt/bin_to_hex.h>
+#include <spdlog/fmt/ranges.h>
 using namespace std::chrono_literals;
 
 namespace insite {
