@@ -1,14 +1,15 @@
 #pragma once
-#include <spdlog/spdlog.h>
-#include <unistd.h>
-#include <condition_variable>
-#include <cstdint>
-#include <mutex>
-#include <thread>
 #include "opcodes.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "tvbMonitor.h"
+#include "websocket_server.h"
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <spdlog/spdlog.h>
+#include <thread>
+#include <unistd.h>
 
 namespace insite {
 class TvbHandler {

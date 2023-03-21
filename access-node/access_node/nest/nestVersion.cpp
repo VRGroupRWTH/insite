@@ -1,14 +1,14 @@
-#include <config.h>
-#include <nest/nestVersion.h>
-#include <spdlog/spdlog.h>
-#include <utilityFunctions.h>
-#include <fstream>
-#include <iterator>
-#include <optional>
-#include <unordered_set>
-#include <vector>
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
+#include <config.h>
+#include <fstream>
+#include <iterator>
+#include <nest/nestVersion.h>
+#include <optional>
+#include <spdlog/spdlog.h>
+#include <unordered_set>
+#include <utilityFunctions.h>
+#include <vector>
 
 namespace insite {
 rapidjson::Value NestGetSimulationTimeInfo(
