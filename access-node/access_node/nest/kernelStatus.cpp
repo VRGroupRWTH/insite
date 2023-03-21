@@ -1,37 +1,39 @@
+#include <cpr/cpr.h>
+#include <spdlog/spdlog.h>
+#include <iterator>
+#include <unordered_set>
+#include <vector>
 #include "config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
-#include <cpr/cpr.h>
-#include <iterator>
-#include <spdlog/spdlog.h>
-#include <unordered_set>
-#include <vector>
 
 #include "utilityFunctions.h"
 namespace insite {
 // Get all kernelStatuses from the nest-server
-rapidjson::Value
-NestGetKernelStatuses(int api_version,
-                      rapidjson::MemoryPoolAllocator<> &json_alloc) {
+rapidjson::Value NestGetKernelStatuses(
+    int api_version,
+    rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
 
   std::string endpoint;
   switch (api_version) {
-  case 1:
-    endpoint = "/kernelStatus";
-    break;
-  case 2:
-    endpoint = "/v2/kernelStatus";
-    break;
+    case 1:
+      endpoint = "/kernelStatus";
+      break;
+    case 2:
+      endpoint = "/v2/kernelStatus";
+      break;
   }
   CprResponseVec kernel_statuses = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, endpoint);
+
+  rapidjson::Value sim_id;
 
   // create array to store the different kernel-data sets
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (cpr::Response &kernel_status : kernel_statuses) {
+  for (cpr::Response& kernel_status : kernel_statuses) {
     // create rapidjson-document for current kernelStatus-data-set and parse
     // data into it
     rapidjson::Document kernel_data_old;
@@ -42,8 +44,12 @@ NestGetKernelStatuses(int api_version,
     rapidjson::Document kernel_data_new;
     kernel_data_new.SetObject();
 
+    if (api_version == 2) {
+      sim_id = kernel_data_old["simId"];
+    }
+
     // copy all members from the old data-set to the new one
-    for (auto &member : kernel_data_old.GetObject()) {
+    for (auto& member : kernel_data_old.GetObject()) {
       rapidjson::Value key(member.name.GetString(), json_alloc);
       // rapidjson::Value key(member.name.GetString(), member.name.Size());
       kernel_data_new.AddMember(key, member.value, json_alloc);
@@ -52,6 +58,9 @@ NestGetKernelStatuses(int api_version,
     // insert created document into result array
     rapidjson::Value insert(kernel_data_new, json_alloc);
     kernel_status_result_array.PushBack(insert, json_alloc);
+  }
+  if (api_version == 2) {
+    kernel_status_result_array.AddMember("simId", sim_id, json_alloc);
   }
 
   return kernel_status_result_array;
@@ -72,4 +81,4 @@ crow::response KernelStatus(int api_version) {
 
   return {DocumentToString(result_doc)};
 }
-} // namespace insite
+}  // namespace insite

@@ -35,7 +35,7 @@ def test_nest_get_spikes_parameter_fromTime_v2():
     spikes_is_valid_format(filtered_spikes)
 
     spikes_simulation_times_are_greater_or_equal_than(filtered_spikes, parameter_values[0])
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 
 #Tests a nest_get_spikes request with the "toTime" parameter by checking if all returned times are smaller or equal than requested
 def test_nest_get_spikes_parameter_toTime(): 
@@ -55,7 +55,7 @@ def test_nest_get_spikes_parameter_toTime_v2():
     spikes_is_valid_format(filtered_spikes)
 
     spikes_simulation_times_are_smaller_or_equal_than(filtered_spikes, parameter_values[1])
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 
 
 #Tests a nest_get_spikes request with the "fromTime" and the "toTime" parameter by checking if all returned times are in thr requested timespan
@@ -78,7 +78,7 @@ def test_nest_get_spikes_parameter_fromTime_toTime_v2():
 
     spikes_simulation_times_are_greater_or_equal_than(filtered_spikes, parameter_values[0])
     spikes_simulation_times_are_smaller_or_equal_than(filtered_spikes, parameter_values[1]) 
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 
 #Tests a nest_get_spikes request with the "nodeIds" parameter by checking if only the requested nodeIDs are returned
 def test_nest_get_spikes_parameter_nodeIds():
@@ -100,7 +100,7 @@ def test_nest_get_spikes_parameter_nodeIds_v2():
     spikes_is_valid_format(filtered_spikes)
 
     spikes_nodeIds_are_subset(filtered_spikes, parameter_values[2])
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 #Test a nest_get_spikes request with the "skip" parameter by checking if a request without the "skip" parameter returns the same result but offset
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_skip():
@@ -122,7 +122,7 @@ def test_nest_get_spikes_parameter_skip_v2():
     spikes_is_valid_format(filtered_spikes)
 
     spikes_has_offset_in_comparison_to(URL_NEST_GET_SPIKES_V2, filtered_spikes, NEST_GET_SPIKES_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination)
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 
 #Test a nest_get_spikes request with the "top" parameter by checking if the number of entries is smaller or equal than the desired amount
 def test_nest_get_spikes_parameter_top():
@@ -142,7 +142,7 @@ def test_nest_get_spikes_parameter_top_v2():
     spikes_is_valid_format(filtered_spikes)
 
     spikes_length_less_or_equal_to(filtered_spikes, parameter_values[4])
-    assert(filtered_spikes["simId"] == "0:1")
+    assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
 
 #Tests a nest_get_spikes request with the paramaters: "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data
 @pytest.mark.order(after="test_order.py::test_sim_finished")
