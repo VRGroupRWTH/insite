@@ -1,29 +1,32 @@
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
 #include <config.h>
+#include <nest/nestVersion.h>
+#include <spdlog/spdlog.h>
+#include <utilityFunctions.h>
 #include <fstream>
 #include <iterator>
-#include <nest/nestVersion.h>
 #include <optional>
-#include <spdlog/spdlog.h>
 #include <unordered_set>
-#include <utilityFunctions.h>
 #include <vector>
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
 
 namespace insite {
-rapidjson::Value
-NestGetSimulationTimeInfo(rapidjson::MemoryPoolAllocator<> json_alloc) {
+rapidjson::Value NestGetSimulationTimeInfo(
+    rapidjson::MemoryPoolAllocator<> json_alloc,
+    int api_version) {
   // get request results back and store in array
-  auto sim_time_infos = GetAccessNodeRequests(
-      ServerConfig::GetInstance().request_nest_urls, "/simulationTimeInfo");
+  auto sim_time_infos =
+      GetAccessNodeRequests(ServerConfig::GetInstance().request_nest_urls,
+                            "/simulationTimeInfo", api_version);
 
   double begin_time = 0;
   double current_time = std::numeric_limits<double>::max();
   double end_time = 0;
   double step_size = 0;
+  rapidjson::Value sim_id;
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (const auto &sim_time_info : sim_time_infos) {
+  for (const auto& sim_time_info : sim_time_infos) {
     std::string json_string = sim_time_info.text;
 
     // create rapidjson-document for current kernelStatus-data-set and parse
@@ -32,6 +35,9 @@ NestGetSimulationTimeInfo(rapidjson::MemoryPoolAllocator<> json_alloc) {
     current_sim_time_info.Parse(json_string.c_str());
 
     assert(current_sim_time_info.IsObject());
+    if (api_version == 2) {
+      sim_id = current_sim_time_info.GetObject()[json_strings::kSimId];
+    }
 
     begin_time = std::max(
         current_sim_time_info.GetObject()[json_strings::kBegin].GetDouble(),
@@ -48,6 +54,9 @@ NestGetSimulationTimeInfo(rapidjson::MemoryPoolAllocator<> json_alloc) {
 
   rapidjson::Value result(rapidjson::kObjectType);
 
+  if (api_version == 2) {
+    result.AddMember(json_strings::kSimId, sim_id, json_alloc);
+  }
   result.AddMember(json_strings::kBegin, begin_time, json_alloc);
   result.AddMember(json_strings::kCurrent, current_time, json_alloc);
   result.AddMember(json_strings::kEnd, end_time, json_alloc);
@@ -56,7 +65,7 @@ NestGetSimulationTimeInfo(rapidjson::MemoryPoolAllocator<> json_alloc) {
   return result;
 }
 
-rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<> &json_alloc) {
+rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   // get request results back and store in array
   auto nest_version_infos = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/version");
@@ -65,7 +74,7 @@ rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<> &json_alloc) {
   rapidjson::Value insite_version;
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (auto &nest_version_info : nest_version_infos) {
+  for (auto& nest_version_info : nest_version_infos) {
     std::string json_string = nest_version_info.text;
 
     rapidjson::Document current_version_info;
@@ -105,7 +114,8 @@ rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<> &json_alloc) {
 
 crow::response SimulationTimeInfo(int api_version) {
   rapidjson::MemoryPoolAllocator<> json_alloc;
-  rapidjson::Value sim_time_info = NestGetSimulationTimeInfo(json_alloc);
+  rapidjson::Value sim_time_info =
+      NestGetSimulationTimeInfo(json_alloc, api_version);
 
   // create empty rapidjson-document to store later results
   rapidjson::Document result_doc;
@@ -130,4 +140,4 @@ crow::response Version() {
 
   return {DocumentToString(result_doc)};
 }
-} // namespace insite
+}  // namespace insite
