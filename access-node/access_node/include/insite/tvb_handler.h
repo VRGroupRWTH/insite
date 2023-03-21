@@ -13,13 +13,13 @@
 
 namespace insite {
 class TvbHandler {
- public:
-  TvbHandler()= default;
-  void ParseDataPacket(const std::string& payload);
-  void ParseNewMonitorPacket(const std::string& payload);
-  void SerializeMonitorsJson(
-      rapidjson::Writer<rapidjson::StringBuffer>& writer);
-  void AddMessageIntoQueue(std::string&& msg);
+public:
+  TvbHandler() = default;
+  void ParseDataPacket(const std::string &payload);
+  void ParseNewMonitorPacket(const std::string &payload);
+  void
+  SerializeMonitorsJson(rapidjson::Writer<rapidjson::StringBuffer> &writer);
+  void AddMessageIntoQueue(std::string &&msg);
 
   void StartThread() {
     consumer_thread_ = std::thread(&TvbHandler::Consumer, this);
@@ -31,7 +31,9 @@ class TvbHandler {
   }
 
   void Consumer();
-  
+
+  WebsocketServer *srv;
+  // WebsocketServer *srv;
   uint64_t bytes = 0;
   // private:
   bool runConsumerLoop_ = true;
@@ -42,4 +44,4 @@ class TvbHandler {
   std::condition_variable var_;
   std::mutex mut_;
 };
-}  // namespace insite
+} // namespace insite

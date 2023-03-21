@@ -17,16 +17,27 @@ public:
   static void RegisterRoutes(crow::App<crow::CORSHandler> &app) {
     CROW_ROUTE(app, "/tvb/data")(&TVBHttpEndpoint::GetData);
     CROW_ROUTE(app, "/tvb/monitors")(&TVBHttpEndpoint::GetMonitors);
+    CROW_ROUTE(app, "/tvb/exec/")(&TVBHttpEndpoint::LOL);
   }
 
-  static crow::response GetMonitors(const crow::request& request) {
+  static crow::response LOL(const crow::request &request) {
+    if (tvb_handler->srv) {
+      auto query_string = GetQueryString(request.raw_url).substr(1);
+      tvb_handler->srv->BroadcastAll(query_string, ResourceFlag::kTVB);
+    } else {
+      spdlog::error("Websocket Server in TVB Handler not set!");
+    }
+    return {""};
+  }
+
+  static crow::response GetMonitors(const crow::request &request) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     tvb_handler->SerializeMonitorsJson(writer);
     return {buffer.GetString()};
   }
 
-  static crow::response GetData(const crow::request& request) {
+  static crow::response GetData(const crow::request &request) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
@@ -40,20 +51,18 @@ public:
         query_params.to_time.value_or(std::numeric_limits<double>::max()));
 
     writer.StartArray();
-    for (auto& monitor : tvb_handler->double_monitors_) {
-      if (query_params["uid"] &&
-              monitor.uid != query_params.GetValueAsT<std::string>("uid") ||
-          query_params.HasValue("internalId") &&
-              monitor.internal_id !=
-                  query_params.GetValueAsT<int>("interalId")) {
+    for (auto &monitor : tvb_handler->double_monitors_) {
+      if ((query_params.uid && monitor.uid != query_params.uid) ||
+          (query_params.internal_id &&
+           monitor.internal_id != query_params.internal_id)) {
         continue;
       }
 
-      monitor.SerializeDataToJson(writer, query_params["fromTime"],
-                                  query_params["toTime"]);
+      monitor.SerializeDataToJson(writer, query_params.from_time,
+                                  query_params.to_time);
     }
     writer.EndArray();
     return {buffer.GetString()};
   }
 };
-}  // namespace insite
+} // namespace insite

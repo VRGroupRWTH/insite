@@ -7,17 +7,17 @@
 
 namespace insite {
 
-void WebsocketServer::SetTvbHandler(TvbHandler* tvb_handler) {
+void WebsocketServer::SetTvbHandler(TvbHandler *tvb_handler) {
   tvb_handler_ = tvb_handler;
 }
 
-void WebsocketServer::SetNestHandler(NestHandler* nest_handler) {
+void WebsocketServer::SetNestHandler(NestHandler *nest_handler) {
   nest_handler_ = nest_handler;
 }
 
-void WebsocketServer::BroadcastAll(const std::string& msg,
+void WebsocketServer::BroadcastAll(const std::string &msg,
                                    ResourceFlag resource_flags) {
-  for (const auto& connection : client_hdl_map_) {
+  for (const auto &connection : client_hdl_map_) {
     if (connection.second.resource_flags & resource_flags) {
       SPDLOG_DEBUG("Sending broadcast message to client {}: {}",
                    connection.second.id, msg);
@@ -39,14 +39,14 @@ void WebsocketServer::StartServer() {
   server_.listen(port_);
 
   server_.set_open_handler(
-      [this](const websocketpp::connection_hdl& hdl) { return OnOpen(hdl); });
+      [this](const websocketpp::connection_hdl &hdl) { return OnOpen(hdl); });
 
   server_.set_close_handler(
-      [this](const websocketpp::connection_hdl& hdl) { return OnClose(hdl); });
+      [this](const websocketpp::connection_hdl &hdl) { return OnClose(hdl); });
 
   server_.set_message_handler(
-      [this](const websocketpp::connection_hdl& hdl,
-             const Server::message_ptr& msg) { return OnMessage(hdl, msg); });
+      [this](const websocketpp::connection_hdl &hdl,
+             const Server::message_ptr &msg) { return OnMessage(hdl, msg); });
 
   server_.start_accept();
   server_thread_ = std::move(std::thread([this]() {
@@ -57,12 +57,15 @@ void WebsocketServer::StartServer() {
   sender_thread_ = std::move(std::thread([this]() { SendLoop(); }));
 }
 
-ResourceFlag WebsocketServer::GetResourceFlag(const std::string& resource) {
+ResourceFlag WebsocketServer::GetResourceFlag(const std::string &resource) {
   if (resource == "/debug") {
     return ResourceFlag::kDebug;
   }
   if (resource == "/nest") {
     return ResourceFlag::kNest;
+  }
+  if (resource == "/tvb") {
+    return ResourceFlag::kTVB;
   }
   return ResourceFlag::kNone;
 }
@@ -70,7 +73,7 @@ ResourceFlag WebsocketServer::GetResourceFlag(const std::string& resource) {
 void WebsocketServer::StopServer() {
   runSendLoop_ = false;
   SPDLOG_DEBUG("Shutting down connections.");
-  for (const auto& con : client_hdl_map_) {
+  for (const auto &con : client_hdl_map_) {
     server_.close(con.first, websocketpp::close::status::going_away,
                   "Server shutdown");
   }
@@ -85,7 +88,7 @@ void WebsocketServer::SendLoop() {
     var_send.wait_for(mutex, 500ms, [&]() { return !(send_queue_.empty()); });
 
     while (!send_queue_.empty()) {
-      const auto& message = send_queue_.front();
+      const auto &message = send_queue_.front();
       if (message.receiver != 0) {
       } else {
         BroadcastAll(message.message, message.flags);
@@ -97,7 +100,7 @@ void WebsocketServer::SendLoop() {
   SPDLOG_DEBUG("Finished WebsocketServer SendLoop");
 }
 
-void WebsocketServer::Send(WebsocketMessage&& message) {
+void WebsocketServer::Send(WebsocketMessage &&message) {
   {
     std::lock_guard mutex(mut_send);
     send_queue_.push_back(std::move(message));
@@ -107,7 +110,7 @@ void WebsocketServer::Send(WebsocketMessage&& message) {
 
 WebsocketServer ::WebsocketServer(std::uint64_t port) : port_(port) {}
 
-void WebsocketServer::OnOpen(const websocketpp::connection_hdl& hdl) {
+void WebsocketServer::OnOpen(const websocketpp::connection_hdl &hdl) {
   auto con = server_.get_con_from_hdl(hdl);
 
   ClientParams params{};
@@ -115,8 +118,8 @@ void WebsocketServer::OnOpen(const websocketpp::connection_hdl& hdl) {
   params.type = PeerType::kClient;
   params.resource_flags = GetResourceFlag(con->get_resource());
   if (params.resource_flags == ResourceFlag::kNest) {
-    con->set_message_handler([this](const websocketpp::connection_hdl& hdl,
-                                    const Server::message_ptr& msg) {
+    con->set_message_handler([this](const websocketpp::connection_hdl &hdl,
+                                    const Server::message_ptr &msg) {
       return OnMessageFromNESTServer(hdl, msg);
     });
   }
@@ -129,7 +132,7 @@ void WebsocketServer::OnOpen(const websocketpp::connection_hdl& hdl) {
   client_hdl_map_[hdl] = params;
 }
 
-void WebsocketServer::OnClose(const websocketpp::connection_hdl& hdl) {
+void WebsocketServer::OnClose(const websocketpp::connection_hdl &hdl) {
   if (auto conn = client_hdl_map_.find(hdl); conn != client_hdl_map_.end()) {
     SPDLOG_DEBUG("[WebsocketServer::OnClose] Removing connection with id: {}",
                  conn->second.id);
@@ -139,8 +142,8 @@ void WebsocketServer::OnClose(const websocketpp::connection_hdl& hdl) {
   }
 }
 
-void WebsocketServer::OnMessage(const websocketpp::connection_hdl& hdl,
-                                const Server::message_ptr& message) {
+void WebsocketServer::OnMessage(const websocketpp::connection_hdl &hdl,
+                                const Server::message_ptr &message) {
   if (tvb_handler_ != nullptr) {
     auto conn = client_hdl_map_.find(hdl);
 
@@ -150,8 +153,8 @@ void WebsocketServer::OnMessage(const websocketpp::connection_hdl& hdl,
 }
 
 void WebsocketServer::OnMessageFromNESTServer(
-    const websocketpp::connection_hdl& hdl,
-    const Server::message_ptr& message) {
+    const websocketpp::connection_hdl &hdl,
+    const Server::message_ptr &message) {
   if (tvb_handler_ != nullptr) {
     nest_handler_->AddMessageIntoQueue(message->get_opcode(),
                                        std::move(message->get_raw_payload()));
@@ -160,4 +163,4 @@ void WebsocketServer::OnMessageFromNESTServer(
 
 WebsocketServer ::~WebsocketServer() {}
 
-}  // namespace insite
+} // namespace insite
