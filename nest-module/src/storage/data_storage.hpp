@@ -16,6 +16,7 @@
 #include <vector>
 #include "../serialize.hpp"
 #include "dictdatum.h"
+#include "http_server.hpp"
 #include "model.h"
 #include "multimeter_storage.hpp"
 #include "node_collection.h"
@@ -122,6 +123,17 @@ class DataStorage {
   inline void GetKernelStatus(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
     std::unique_lock<std::mutex> lock(kernel_status_mutex_);
     SerializeDatum(&dict_kernel_status_, writer);
+  }
+
+  inline void GetKernelStatusV2(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+    std::unique_lock<std::mutex> lock(kernel_status_mutex_);
+    auto sim_id = std::to_string(HttpServer::user_id) + ":" + std::to_string(HttpServer::run_no[HttpServer::user_id]);
+    writer.StartObject();
+    writer.Key("simId");
+    writer.String(sim_id.c_str());
+    writer.Key("kernelStatus");
+    SerializeDatum(&dict_kernel_status_, writer);
+    writer.EndObject();
   }
   void Reset();
 

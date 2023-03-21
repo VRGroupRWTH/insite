@@ -84,6 +84,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   double latest_simulation_time_ = 0.0;
   std::vector<Spike> spikes;
   bool send_positions = false;
+  // bool prepare_finished = false;
 };
 
 }  // namespace insite

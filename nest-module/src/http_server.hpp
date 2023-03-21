@@ -16,9 +16,6 @@
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include "websocketpp/connection.hpp"
 
-using websocketpp::lib::bind;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
 namespace insite {
@@ -36,48 +33,47 @@ class HttpServer {
   void ClearSimulationHasEnded();
 
   client::connection_ptr con;
+  static bool prepare_finished;
+  static int user_id;
+  static std::map<int, int> run_no;
 
  private:
-  // web::http::experimental::listener::http_listener http_listener_;
   crow::SimpleApp app;
   std::future<void> crow_server;
   DataStorage* storage_;
   double simulation_end_time_ = -1;
 
-  // web::http::http_response GetVersion(const web::http::http_request& request);
   crow::response GetVersion(const crow::request& request);
-  // web::http::http_response GetKernelStatus(const web::http::http_request& request);
-  crow::response GetKernelStatus(const crow::request& request);
-  // web::http::http_response GetCollections(const web::http::http_request& request);
-  crow::response GetCollections(const crow::request& request);
-  // web::http::http_response GetNodes(const web::http::http_request& request);
-  crow::response GetNodes(const crow::request& request);
-  // web::http::http_response GetSpikeDetectors(const web::http::http_request& request);
-  // web::http::http_response GetSpikeRecorders(const web::http::http_request& request);
-  crow::response GetSpikeRecorders(const crow::request& request);
-  // web::http::http_response GetMultimeters(const web::http::http_request& request);
-  crow::response GetMultimeters(const crow::request& request);
 
-  // web::http::http_response GetCurrentSimulationTime(const web::http::http_request& request);
+  crow::response GetKernelStatus(const crow::request& request);
+  crow::response GetKernelStatusV2(const crow::request& request);
+
+  crow::response GetCollections(const crow::request& request);
+  crow::response GetCollectionsV2(const crow::request& request);
+
+  crow::response GetNodes(const crow::request& request);
+  crow::response GetNodesV2(const crow::request& request);
+
+  crow::response GetSpikeRecorders(const crow::request& request);
+  crow::response GetSpikeRecordersV2(const crow::request& request);
+
+  crow::response GetMultimeters(const crow::request& request);
+  crow::response GetMultimetersV2(const crow::request& request);
+
   crow::response GetCurrentSimulationTime(const crow::request& request);
-  // web::http::http_response GetSpikes(const web::http::http_request& request);
+  crow::response GetCurrentSimulationTimeV2(const crow::request& request);
+
   crow::response GetSpikes(const crow::request& request);
-  crow::response GetSpikes2(const crow::request& request);
-  crow::response GetSpikes3(const crow::request& request);
+  crow::response GetSpikesV2(const crow::request& request);
   crow::response GetSpikesSendWS(const crow::request& request);
-  crow::response GetSpikesAlt(const crow::request& request);
   crow::response GetSpikesFB(const crow::request& request);
-  crow::response GetSpikesFB32(const crow::request& request);
   crow::response GetMultimeterMeasurement(const crow::request& request);
-  // web::http::http_response GetMultimeterMeasurement(const web::http::http_request& request);
+  crow::response GetMultimeterMeasurementV2(const crow::request& request);
 
   struct Error {
     std::string code;
     std::string message;
-
-    // web::json::value Serialize() const;
   };
-  // static web::http::http_response CreateErrorResponse(web::http::status_code status_code, const Error& error);
   std::vector<std::uint64_t> CommaListToUintVector(std::string input, std::regex regex = std::regex("((\\%2C|,)+)"));
 };
 
