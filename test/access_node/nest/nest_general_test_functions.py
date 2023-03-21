@@ -44,7 +44,7 @@ def spikes_is_data_length_valid(spikes, canBeEmpty = False):
     assert(JSON_VALUE_TO_FIELD_NAME.simulationTimes.value in spikes)
     assert(JSON_VALUE_TO_FIELD_NAME.nodeIds.value in spikes)
     assert(JSON_VALUE_TO_FIELD_NAME.lastFrame.value in spikes)
-    assert(len(spikes.keys()) == 3)
+    assert(len(spikes.keys()) == 3 or (len(spikes.keys()) == 4 and "simId" in spikes))
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
     if not canBeEmpty:
