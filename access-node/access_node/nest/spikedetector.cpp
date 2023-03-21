@@ -1,21 +1,38 @@
 #include "spikedetector.h"
 
+#include "jsonStrings.h"
+#include <utility>
+
 namespace insite {
 
 Spikerecorder::Spikerecorder() {}
 
-Spikerecorder::Spikerecorder(const rapidjson::Value& document) {
-  spikerecorder_id = document[json_strings::kSpikerecorderId].GetUint64();
+Spikerecorder::Spikerecorder(const rapidjson::Value &document)
+    : spikerecorder_id(document[json_strings::kSpikerecorderId].GetUint64()) {
+
   auto json_nodes = document[json_strings::kNodeIds].GetArray();
   nodes.resize(json_nodes.Size());
   for (std::uint64_t i = 0; i < json_nodes.Size(); i++) {
     nodes[i] = json_nodes[i].GetUint64();
   }
 }
+
+Spikerecorder::Spikerecorder(const rapidjson::Value &document,
+                             std::string sim_id)
+    : sim_id(std::move(sim_id)),
+      spikerecorder_id(document[json_strings::kSpikerecorderId].GetUint64()) {
+
+  auto json_nodes = document[json_strings::kNodeIds].GetArray();
+  nodes.resize(json_nodes.Size());
+  for (std::uint64_t i = 0; i < json_nodes.Size(); i++) {
+    nodes[i] = json_nodes[i].GetUint64();
+  }
+}
+
 Spikerecorder::~Spikerecorder() {}
 
 void Spikerecorder::WriteToJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer) const {
+    rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
   writer.StartObject();
 
   writer.Key("spikerecorderId");
@@ -33,8 +50,8 @@ void Spikerecorder::WriteToJson(
 
 void Spikerecorder::ParseFromJson(rapidjson::Document input) {}
 
-std::ostream& operator<<(std::ostream& ostream,
-                         const Spikerecorder& spikerecorder) {
+std::ostream &operator<<(std::ostream &ostream,
+                         const Spikerecorder &spikerecorder) {
   ostream << "Spikerecorder: {" << std::endl;
   ostream << "spikerecorderId: " << spikerecorder.spikerecorder_id << std::endl;
   ostream << ", nodes: [";
@@ -46,4 +63,4 @@ std::ostream& operator<<(std::ostream& ostream,
   return ostream;
 }
 
-}  // namespace insite
+} // namespace insite

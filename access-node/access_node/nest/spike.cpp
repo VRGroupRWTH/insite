@@ -1,18 +1,18 @@
 #include "spike.h"
-#include <rapidjson/document.h>
-#include <rapidjson/encodings.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-#include <algorithm>
-#include <exception>
-#include <iterator>
-#include <tl/optional.hpp>
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/vector.h"
 #include "jsonStrings.h"
 #include "pdqsort.h"
 #include "spdlog/spdlog.h"
+#include <algorithm>
+#include <exception>
+#include <iterator>
+#include <rapidjson/document.h>
+#include <rapidjson/encodings.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <tl/optional.hpp>
 
 namespace insite {
 
@@ -20,24 +20,23 @@ SpikeContainer::SpikeContainer() {}
 
 SpikeContainer::~SpikeContainer() {}
 
-void SpikeContainer::AddSpikesFromJson(const char* input) {
+void SpikeContainer::AddSpikesFromJson(const char *input) {
   rapidjson::Document document;
   document.Parse(input);
 
-  const rapidjson::Value& times = document[json_strings::kSimTimes];
-  const rapidjson::Value& node_ids = document[json_strings::kNodeIds];
+  const rapidjson::Value &times = document[json_strings::kSimTimes];
+  const rapidjson::Value &node_ids = document[json_strings::kNodeIds];
   last_frame_ = document[json_strings::kLastFrame].GetBool();
 
   for (std::uint64_t i = 0; i < times.Size(); ++i) {
     spikes_.emplace_back(times[i].GetDouble(), node_ids[i].GetUint64());
   }
-  SPDLOG_DEBUG(
-      "[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
-      "SpikeContainer for a total size of {}",
-      times.Size(), spikes_.size());
+  SPDLOG_DEBUG("[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
+               "SpikeContainer for a total size of {}",
+               times.Size(), spikes_.size());
 }
 
-void SpikeContainer::AddSpikesFromJson(const rapidjson::Document& json_doc) {
+void SpikeContainer::AddSpikesFromJson(const rapidjson::Value &json_doc) {
   last_frame_ = json_doc[json_strings::kLastFrame].GetBool();
   for (int i = 0; i < json_doc[json_strings::kSimTimes].GetArray().Size();
        ++i) {
@@ -47,14 +46,14 @@ void SpikeContainer::AddSpikesFromJson(const rapidjson::Document& json_doc) {
         json_doc[json_strings::kNodeIds].GetArray()[i].GetUint64();
     spikes_.emplace_back(sim_time, node_id);
   }
-  SPDLOG_DEBUG(
-      "[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
-      "SpikeContainer for a total size of {}",
-      json_doc[json_strings::kSimTimes].GetArray().Size(), spikes_.size());
+  SPDLOG_DEBUG("[SpikeContainer::addSpikesFromJSON] Added {} spikes to "
+               "SpikeContainer for a total size of {}",
+               json_doc[json_strings::kSimTimes].GetArray().Size(),
+               spikes_.size());
 }
 
-void SpikeContainer::AddSpikesFromFlatbuffer(const char* buffer_pointer) {
-  const auto* spikes = Insite::Nest::GetSpikeTable(buffer_pointer)->spikes();
+void SpikeContainer::AddSpikesFromFlatbuffer(const char *buffer_pointer) {
+  const auto *spikes = Insite::Nest::GetSpikeTable(buffer_pointer)->spikes();
   // spikes_.resize(spikes->size());
   for (flatbuffers::uoffset_t i = 0; i < spikes->size(); i++) {
     // spikes_[i] = UnPack(*spikes->Get(i));
@@ -67,27 +66,36 @@ void SpikeContainer::AddSpikesFromFlatbuffer(const char* buffer_pointer) {
 }
 
 void SpikeContainer::SerializeToJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer,
-    bool last_frame) {
+    rapidjson::Writer<rapidjson::StringBuffer> &writer, bool last_frame) {
+  writer.StartObject();
   SerializeToJson(writer, Begin(), End(), last_frame);
+  writer.EndObject();
 }
 
 void SpikeContainer::SerializeToJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer,
-    SpikeVector::const_iterator begin,
-    bool last_frame) {
+    rapidjson::Writer<rapidjson::StringBuffer> &writer,
+    SpikeVector::const_iterator begin, bool last_frame) {
+  writer.StartObject();
   SerializeToJson(writer, begin, End(), last_frame);
+  writer.EndObject();
 }
 
+void SpikeContainer::SerializeToJsonV2(
+    rapidjson::Writer<rapidjson::StringBuffer> &writer, tl::optional<int> skip,
+    tl::optional<int> top, tl::optional<bool> reverse_order, bool last_frame,
+    const std::string &sim_id) {
+
+  writer.StartObject();
+  writer.Key("simId");
+  writer.String(sim_id.c_str());
+  SerializeToJson(writer, skip, top, reverse_order, last_frame_);
+  writer.EndObject();
+}
 void SpikeContainer::SerializeToJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer,
-    tl::optional<int> skip,
-    tl::optional<int> top,
-    tl::optional<bool> reverse_order,
-    bool last_frame) {
+    rapidjson::Writer<rapidjson::StringBuffer> &writer, tl::optional<int> skip,
+    tl::optional<int> top, tl::optional<bool> reverse_order, bool last_frame) {
   SPDLOG_DEBUG("[SpikeContainer::serializeToJSON] serializing {} spikes",
                spikes_.size());
-  writer.StartObject();
   writer.SetMaxDecimalPlaces(14);
   SpikeVector::iterator end;
   SpikeVector::iterator begin;
@@ -157,18 +165,14 @@ void SpikeContainer::SerializeToJson(
   } else {
     writer.Bool(last_frame_);
   }
-
-  writer.EndObject();
 }
 
 void SpikeContainer::SerializeToJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer,
-    SpikeVector::const_iterator begin,
-    SpikeVector::const_iterator end,
+    rapidjson::Writer<rapidjson::StringBuffer> &writer,
+    SpikeVector::const_iterator begin, SpikeVector::const_iterator end,
     bool last_frame) {
   SPDLOG_DEBUG("[SpikeContainer::serializeToJSON] serializing {} spikes",
                spikes_.size());
-  writer.StartObject();
   writer.SetMaxDecimalPlaces(14);
 
   writer.Key("simulationTimes");
@@ -186,12 +190,10 @@ void SpikeContainer::SerializeToJson(
   writer.EndArray();
   writer.Key("lastFrame");
   writer.Bool(last_frame_);
-
-  writer.EndObject();
 }
 
 void SpikeContainer::SerializeToFlatbuffer(
-    flatbuffers::FlatBufferBuilder& builder) {
+    flatbuffers::FlatBufferBuilder &builder) {
   SPDLOG_DEBUG("[SpikeContainer::serializeToFlatbuffer] serializing {} spikes",
                spikes_.size());
   auto fb_spikes = builder.CreateVectorOfNativeStructs<Insite::Nest::Spikes>(
@@ -202,23 +204,23 @@ void SpikeContainer::SerializeToFlatbuffer(
 
 void SpikeContainer::SortByTime() {
   SPDLOG_DEBUG("[SpikeContainer::sortByTime] called");
-  std::sort(
-      spikes_.begin(), spikes_.end(),
-      static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareByTime));
+  std::sort(spikes_.begin(), spikes_.end(),
+            static_cast<bool (*)(const Spike &, const Spike &)>(
+                Spike::CompareByTime));
 }
 
 void SpikeContainer::SortByTimePdq() {
   SPDLOG_DEBUG("[SpikeContainer::sortByTimePdq] called");
-  pdqsort_branchless(
-      spikes_.begin(), spikes_.end(),
-      static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareByTime));
+  pdqsort_branchless(spikes_.begin(), spikes_.end(),
+                     static_cast<bool (*)(const Spike &, const Spike &)>(
+                         Spike::CompareByTime));
 }
 
 void SpikeContainer::SortByNodeId() {
   SPDLOG_DEBUG("[SpikeContainer::sortByNodeId] called");
   std::sort(
       spikes_.begin(), spikes_.end(),
-      static_cast<bool (*)(const Spike&, const Spike&)>(Spike::CompareById));
+      static_cast<bool (*)(const Spike &, const Spike &)>(Spike::CompareById));
 }
 
 SpikeVector::iterator SpikeContainer::Begin(tl::optional<uint64_t> skip,
@@ -263,7 +265,5 @@ SpikeVector::iterator SpikeContainer::Begin(std::optional<uint64_t> skip,
   return begin;
 }
 
-SpikeVector::iterator SpikeContainer::Begin() {
-  return spikes_.begin();
-}
-}  // namespace insite
+SpikeVector::iterator SpikeContainer::Begin() { return spikes_.begin(); }
+} // namespace insite

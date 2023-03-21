@@ -3,13 +3,12 @@
 #include <rapidjson/document.h>
 
 namespace insite {
-rapidjson::Value NestGetSimulationTimeInfo();
 
 rapidjson::Value NestGetVersion();
 //
 // #################### ENDPOINT DEFINITIONS ####################
 //
 
-crow::response SimulationTimeInfo();
+crow::response SimulationTimeInfo(int api_version);
 crow::response Version();
-}  // namespace insite
+} // namespace insite

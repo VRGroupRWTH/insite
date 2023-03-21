@@ -1,16 +1,14 @@
-#include <config.h>
-#include <nest/nestSpikes.h>
-#include <cstdint>
-#include <limits>
-#include <unordered_set>
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
+#include <config.h>
+#include <cstdint>
+#include <limits>
+#include <nest/nestSpikes.h>
+#include <unordered_set>
 
 namespace insite {
-// Receives a rapidjson-Object and checks if it has all the necessary properties
-// for spikeData
 void CheckSpikeDataValid(
-    const rapidjson::GenericObject<false, rapidjson::Value>& spike_object) {
+    const rapidjson::GenericObject<false, rapidjson::Value> &spike_object) {
   assert(spike_object.HasMember(json_strings::kSimTimes) &&
          spike_object[json_strings::kSimTimes].IsArray());
   assert(spike_object.HasMember(json_strings::kNodeIds) &&
@@ -19,9 +17,8 @@ void CheckSpikeDataValid(
          spike_object[json_strings::kLastFrame].IsBool());
 }
 
-// Convert the given rapidjson-Object to a spikeVector
 SpikeVector ConvertFromJsonToSpikes(
-    const rapidjson::GenericObject<false, rapidjson::Value>& data) {
+    const rapidjson::GenericObject<false, rapidjson::Value> &data) {
   CheckSpikeDataValid(data);
 
   SpikeVector res;
@@ -35,131 +32,95 @@ SpikeVector ConvertFromJsonToSpikes(
   return res;
 }
 
-SpikeContainer NestGetSpikesFB(const std::optional<double>& from_time,
-                               const std::optional<double>& to_time,
-                               const std::unordered_set<uint64_t>& node_ids,
-                               const std::optional<uint64_t>& skip,
-                               const std::optional<uint64_t>& top,
-                               const std::optional<std::string>& sort) {
-  std::vector<Parameter> params;
-
-  if (from_time) {
-    params.emplace_back(json_strings::kFromTime,
-                        std::to_string(from_time.value()));
-  }
-
-  if (to_time) {
-    params.emplace_back(json_strings::kToTime, std::to_string(to_time.value()));
-  }
-
-  if (!node_ids.empty()) {
-    params.emplace_back(json_strings::kNodeIds, UnorderedSetToCsv(node_ids));
-  }
+SpikeContainer NestGetSpikesFB(const SpikeParameter &parameter) {
   spdlog::stopwatch stopwatch;
   SPDLOG_DEBUG("Getting spikes from nodes...");
-  std::string query_string = BuildQueryString("/spikesfb", params);
+  std::string query_string =
+      BuildQueryString("/spikesfb", parameter.GetParameterVector());
 
   auto spike_data_sets = GetAccessNodeRequests(
-      ServerConfig::GetInstance().request_urls, query_string);
+      ServerConfig::GetInstance().request_nest_urls, query_string);
   SPDLOG_DEBUG("Got spikes in {}", stopwatch.elapsed());
 
   bool last_frame;
   SpikeContainer spikes;
-  SpikeContainer spikes2;
 
   stopwatch.reset();
-  for (const cpr::Response& spike_data_set : spike_data_sets) {
+  for (const cpr::Response &spike_data_set : spike_data_sets) {
     spikes.AddSpikesFromFlatbuffer(spike_data_set.text.c_str());
-  }
-  SPDLOG_DEBUG("Added spikes in {}", stopwatch.elapsed());
-
-  if (sort && sort.value() == json_strings::kSimTimes) {
-    spdlog::stopwatch stopwatch_sort;
-    spikes.SortByTime();
-    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch_sort.elapsed());
-  } else if (sort && sort.value() == json_strings::kNodeIds) {
-    spdlog::stopwatch stopwatch_sort;
-    spikes.SortByTimePdq();
-    SPDLOG_DEBUG("Sorted spikes in {}", stopwatch_sort.elapsed());
-    // spikes.sortByNodeId();
   }
 
   return spikes;
 }
 
-SpikeContainer NestGetSpikes(const SpikeParameter& parameter) {
+crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
   spdlog::stopwatch stopwatch;
-  SPDLOG_DEBUG("Getting spikes from nodes...");
   std::string query_string =
       BuildQueryString("/spikes", parameter.GetParameterVector());
 
   auto spike_data_sets = GetAccessNodeRequests(
-      ServerConfig::GetInstance().request_urls, query_string);
-  SPDLOG_DEBUG("Got spikes in {}", stopwatch.elapsed());
+      ServerConfig::GetInstance().request_nest_urls, query_string, api_version);
 
   bool last_frame;
   SpikeContainer spikes;
+  std::string sim_id;
 
   stopwatch.reset();
-  for (const cpr::Response& spike_data_set : spike_data_sets) {
-    spikes.AddSpikesFromJson(spike_data_set.text.c_str());
+
+  for (const cpr::Response &spike_data_set : spike_data_sets) {
+
+    rapidjson::Document document;
+    document.Parse(spike_data_set.text.c_str());
+    spdlog::error(spike_data_set.text.c_str());
+
+    if (api_version == 1) {
+      spikes.AddSpikesFromJson(document);
+    } else if (api_version == 2) {
+      sim_id = document["simId"].GetString();
+      spikes.AddSpikesFromJson(document);
+    }
   }
 
-  // if (parasort && sort.value() == json_strings::kSimTimes) {
-  //   spdlog::stopwatch sw_sorting;
-  //   spikes.SortByTime();
-  //   SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
-  // } else if (sort && sort.value() == json_strings::kNodeIds) {
-  //   spdlog::stopwatch sw_sorting;
-  //   spikes.SortByTimePdq();
-  //   SPDLOG_DEBUG("Sorted spikes in {}", stopwatch.elapsed());
-  //   // spikes.sortByNodeId();
-  // }
+  spdlog::stopwatch sw_serialize;
+  if (!parameter.sort || parameter.sort != false) {
+    spikes.SortByTime();
+  }
 
-  return spikes;
+  if (api_version == 1) {
+    writer.StartObject();
+    spikes.SerializeToJson(writer, parameter.skip, parameter.top,
+                           parameter.reverse_order, true);
+    writer.EndObject();
+  }
+
+  if (api_version == 2) {
+    spikes.SerializeToJsonV2(writer, parameter.skip, parameter.top,
+                             parameter.reverse_order, true, sim_id);
+  }
+  SPDLOG_INFO("Serialized in {}", sw_serialize.elapsed());
+  return {buffer.GetString()};
 }
-// Get all spikes from the nest-server by using the optional parameters
-// fromTime, toTime, nodeIds, skip, top and sort
 
 //
 // #################### ENDPOINT DEFINITIONS ####################
 //
-crow::response Spikesfb(const crow::request& req) {
-  std::optional<double> from_time =
-      GetParam<double>(req, json_strings::kFromTime);
-  std::optional<double> to_time = GetParam<double>(req, json_strings::kToTime);
-  std::unordered_set<uint64_t> node_ids =
-      GetParamUSet<uint64_t>(req, json_strings::kNodeIds);
-  std::optional<uint64_t> skip = GetParam<uint64_t>(req, json_strings::kSkip);
-  std::optional<uint64_t> top = GetParam<uint64_t>(req, json_strings::kTop);
-  std::optional<std::string> sort =
-      GetParam<std::string>(req, json_strings::kSort);
+crow::response Spikesfb(const crow::request &req) {
+  SpikeParameter params(req.url_params);
 
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   flatbuffers::FlatBufferBuilder builder;
 
-  SpikeContainer spikes =
-      std::move(NestGetSpikesFB(from_time, to_time, node_ids, skip, top, sort));
+  SpikeContainer spikes = std::move(NestGetSpikesFB(params));
   spdlog::stopwatch sw_serialize;
-  spikes.SerializeToJson(writer, spikes.Begin(skip, top), true);
-  SPDLOG_DEBUG("Serialized in {}", sw_serialize.elapsed());
+  spikes.SerializeToJson(writer, spikes.Begin(params.skip, params.top), true);
+  SPDLOG_INFO("Serialized in {}", sw_serialize.elapsed());
 
   return {buffer.GetString()};
 }
 
-crow::response Spikes(const crow::request& req) {
-  SpikeParameter params(req.url_params);
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-
-  SpikeContainer spikes = std::move(NestGetSpikes(params));
-  spdlog::stopwatch sw_serialize;
-  spikes.SerializeToJson(writer, params.skip, params.top, params.reverse_order,
-                         true);
-  SPDLOG_DEBUG("Serialized in {}", sw_serialize.elapsed());
-
-  return {buffer.GetString()};
-}
-}  // namespace insite
+} // namespace insite
