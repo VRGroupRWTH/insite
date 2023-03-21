@@ -29,6 +29,7 @@ class AttributeStorageBase {
 
   virtual std::string GetName() const = 0;
   virtual void ExtractValues(rapidjson::Writer<rapidjson::StringBuffer>& writer, const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const = 0;
+  // virtual void ExtractValuesV2(rapidjson::Writer<rapidjson::StringBuffer>& writer, const std::vector<uint64_t>& time_indices, const std::vector<uint64_t>& node_indices) const = 0;
 };
 
 template <typename T>
@@ -111,6 +112,13 @@ class MultimeterStorage {
                            const std::vector<uint64_t>& node_ids = {},
                            double from_time = 0.0,
                            double to_time = std::numeric_limits<double>::infinity());
+
+  void ExtractMeasurementsV2(rapidjson::Writer<rapidjson::StringBuffer>& writer,
+                             const std::string& attribute_name,
+                             const std::vector<uint64_t>& node_ids = {},
+                             double from_time = 0.0,
+                             double to_time = std::numeric_limits<double>::infinity());
+
   std::uint64_t id_;
 
  private:

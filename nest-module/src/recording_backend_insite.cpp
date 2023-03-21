@@ -101,6 +101,8 @@ void RecordingBackendInsite::initialize() {
   std::cout << "[insite] initialize" << std::endl;
   data_storage_.Reset();
   http_server_.ClearSimulationHasEnded();
+  http_server_.prepare_finished = false;
+  HttpServer::run_no[HttpServer::user_id]++;
 }
 
 void RecordingBackendInsite::finalize() {
@@ -109,7 +111,8 @@ void RecordingBackendInsite::finalize() {
 void RecordingBackendInsite::enroll(const nest::RecordingDevice& device,
                                     const DictionaryDatum& params) {
   updateValue<bool>(params, "send_positions", send_positions);
-  spdlog::info("ENROLL: {}", send_positions);
+  updateValue<long>(params, "user_id", HttpServer::user_id);
+  spdlog::info("ENROLL: send_positions: {}, user_id: {}", send_positions, HttpServer::user_id);
   if (device.get_type() == nest::RecordingDevice::SPIKE_RECORDER) {
     std::cout << "[insite] enroll spike recorder (" << device.get_label() << ") with id " << device.get_node_id() << "\n";
     data_storage_.CreateSpikeDetectorStorage(device.get_node_id());
@@ -147,88 +150,89 @@ void RecordingBackendInsite::prepare() {
   }
 
   UpdateKernelStatus();
-  rapidjson::StringBuffer Buf;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
-  rapidjson::StringBuffer PrepareEventJSON = InsiteSimulatorEvent(SimulationEvents::Cleanup).SerializeToJSON();
-  con->send(PrepareEventJSON.GetString());
-  Buf.Clear();
-  Writer.StartObject();
-  Writer.Key("type");
-  Writer.Int(2);
-  Writer.Key("nodes");
-  Writer.StartArray();
-  for (const nest::NodeIDTriple& node_id_triple : *local_nodes.get()) {
-    auto node_id = node_id_triple.node_id;
-    nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
-    int nc_first_node = -1;
-    if (nest_node) {
-      nest::NodeCollectionPTR node_collection = nest_node->get_nc();
-      auto nc_first_node_ptr = node_collection->get_metadata();
-      if (nc_first_node_ptr) {
-        nc_first_node = nc_first_node_ptr->get_first_node_id();
-      }
-    }
-    Writer.StartObject();
-    Writer.Key("node_id");
-    Writer.Uint64(node_id);
-    Writer.Key("position");
-    std::vector<double> position = nest::get_position(node_id_triple.node_id);
-    if (!std::isnan(position[0])) {
-      Writer.StartArray();
-      for (const auto& pos : position) {
-        Writer.Double(pos);
-      }
-      Writer.EndArray();
-    } else {
-      Writer.Null();
-    }
-    Writer.Key("Population");
-    int nc_id = -1;
-    if (nc_maps.count(nc_first_node)) {
-      nc_id = nc_maps[nc_first_node];
-    } else {
-      nc_maps[nc_first_node] = nc_counter++;
-      nc_id = nc_counter;
-    }
-    Writer.Int(nc_id);
-
-    Writer.Key("Model");
-    nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
-    Writer.String(model->get_name().c_str());
-    Writer.EndObject();
-  }
-  Writer.EndArray();
-  Writer.EndObject();
-  con->send(Buf.GetString());
-  std::deque<nest::ConnectionID> conn_deq;
-  if (send_positions) {
-    Buf.Clear();
-    Writer.StartObject();
-    Writer.Key("type");
-    Writer.Int(3);
-    Writer.Key("connections");
-    Writer.StartArray();
-    spdlog::info("Num connections: {}", nest::kernel().connection_manager.get_num_connections());
-    for (int i = 0; i < nest::kernel().model_manager.get_num_connection_models(); i++) {
-      nest::kernel().connection_manager.get_connections(conn_deq, nest::NodeCollectionPTR(0), nest::NodeCollectionPTR(0), i, -1);
-    }
-    for (auto& conn : conn_deq) {
-      spdlog::info("conn: {}, {}", conn.get_source_node_id(), conn.get_target_node_id());
-    }
-
-    for (auto& res : conn_deq) {
-      auto source = res.get_source_node_id();
-      auto target = res.get_target_node_id();
-
-      Writer.StartArray();
-      Writer.Int(source);
-      Writer.Int(target);
-      Writer.EndArray();
-    }
-    Writer.EndArray();
-    Writer.EndObject();
-    con->send(Buf.GetString());
-  }
+  http_server_.prepare_finished = true;
+  // rapidjson::StringBuffer Buf;
+  // rapidjson::Writer<rapidjson::StringBuffer> Writer(Buf);
+  // rapidjson::StringBuffer PrepareEventJSON = InsiteSimulatorEvent(SimulationEvents::Cleanup).SerializeToJSON();
+  // con->send(PrepareEventJSON.GetString());
+  // Buf.Clear();
+  // Writer.StartObject();
+  // Writer.Key("type");
+  // Writer.Int(2);
+  // Writer.Key("nodes");
+  // Writer.StartArray();
+  // for (const nest::NodeIDTriple& node_id_triple : *local_nodes.get()) {
+  //   auto node_id = node_id_triple.node_id;
+  //   nest::Node* nest_node = nest::kernel().node_manager.get_node_or_proxy(node_id_triple.node_id);
+  //   int nc_first_node = -1;
+  //   if (nest_node) {
+  //     nest::NodeCollectionPTR node_collection = nest_node->get_nc();
+  //     auto nc_first_node_ptr = node_collection->get_metadata();
+  //     if (nc_first_node_ptr) {
+  //       nc_first_node = nc_first_node_ptr->get_first_node_id();
+  //     }
+  //   }
+  //   Writer.StartObject();
+  //   Writer.Key("node_id");
+  //   Writer.Uint64(node_id);
+  //   Writer.Key("position");
+  //   std::vector<double> position = nest::get_position(node_id_triple.node_id);
+  //   if (!std::isnan(position[0])) {
+  //     Writer.StartArray();
+  //     for (const auto& pos : position) {
+  //       Writer.Double(pos);
+  //     }
+  //     Writer.EndArray();
+  //   } else {
+  //     Writer.Null();
+  //   }
+  //   Writer.Key("Population");
+  //   int nc_id = -1;
+  //   if (nc_maps.count(nc_first_node)) {
+  //     nc_id = nc_maps[nc_first_node];
+  //   } else {
+  //     nc_maps[nc_first_node] = nc_counter++;
+  //     nc_id = nc_counter;
+  //   }
+  //   Writer.Int(nc_id);
+  //
+  //   Writer.Key("Model");
+  //   nest::Model* model = nest::kernel().model_manager.get_node_model(node_id_triple.model_id);
+  //   Writer.String(model->get_name().c_str());
+  //   Writer.EndObject();
+  // }
+  // Writer.EndArray();
+  // Writer.EndObject();
+  // con->send(Buf.GetString());
+  // std::deque<nest::ConnectionID> conn_deq;
+  // if (send_positions) {
+  //   Buf.Clear();
+  //   Writer.StartObject();
+  //   Writer.Key("type");
+  //   Writer.Int(3);
+  //   Writer.Key("connections");
+  //   Writer.StartArray();
+  //   spdlog::info("Num connections: {}", nest::kernel().connection_manager.get_num_connections());
+  //   for (int i = 0; i < nest::kernel().model_manager.get_num_connection_models(); i++) {
+  //     nest::kernel().connection_manager.get_connections(conn_deq, nest::NodeCollectionPTR(0), nest::NodeCollectionPTR(0), i, -1);
+  //   }
+  //   for (auto& conn : conn_deq) {
+  //     spdlog::info("conn: {}, {}", conn.get_source_node_id(), conn.get_target_node_id());
+  //   }
+  //
+  //   for (auto& res : conn_deq) {
+  //     auto source = res.get_source_node_id();
+  //     auto target = res.get_target_node_id();
+  //
+  //     Writer.StartArray();
+  //     Writer.Int(source);
+  //     Writer.Int(target);
+  //     Writer.EndArray();
+  //   }
+  //   Writer.EndArray();
+  //   Writer.EndObject();
+  //   con->send(Buf.GetString());
+  // }
 }
 
 void RecordingBackendInsite::cleanup() {

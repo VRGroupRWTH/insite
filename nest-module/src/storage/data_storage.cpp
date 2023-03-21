@@ -172,8 +172,10 @@ void DataStorage::SetNodesFromCollection(const nest::NodeCollectionPTR& local_no
   for (const nest::NodeIDTriple& node_id_triple : *local_node_collection.get()) {
     rapidjson::StringBuffer node_json_buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(node_json_buffer);
+    if (!nest::kernel().node_manager.is_local_node_id(node_id_triple.node_id)) {
+      continue;
+    }
     writer.StartObject();
-
     SerializeNode(writer, node_id_triple);
     writer.EndObject();
     nodes_.insert(std::make_pair(node_id_triple.node_id, node_json_buffer.GetString()));
@@ -192,10 +194,6 @@ uint64_t DataStorage::find_node_collection_index_for_node_id(const uint64_t node
 void DataStorage::SerializeNode(rapidjson::Writer<rapidjson::StringBuffer>& writer, const nest::NodeIDTriple& node_id_triple) const {
   const size_t node_collection_index = find_node_collection_index_for_node_id(node_id_triple.node_id);
   const NodeCollection& node_collection = node_collections_[node_collection_index];
-
-  if (!nest::kernel().node_manager.is_local_node_id(node_id_triple.node_id)) {
-    return;
-  }
 
   writer.Key("nodeId");
   writer.Uint(node_id_triple.node_id);

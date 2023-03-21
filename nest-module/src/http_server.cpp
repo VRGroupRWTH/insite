@@ -62,24 +62,40 @@ static Test::Foo::Spikes Pack(const insite::Spike& spike) {
 
 namespace insite {
 
+std::map<int, int> HttpServer::run_no;
+int HttpServer::user_id = 0;
+bool HttpServer::prepare_finished = false;
+
 HttpServer::HttpServer(std::string address, DataStorage* storage)
     : storage_(storage) {
   // websocketpp::server
   CROW_ROUTE_LAMBA(app, "/spikesfb", GetSpikesFB)
-  CROW_ROUTE_LAMBA(app, "/spikesfb32", GetSpikesFB32)
-  CROW_ROUTE_LAMBA(app, "/spikes", GetSpikes)
-  CROW_ROUTE_LAMBA(app, "/spikes2", GetSpikes2)
-  CROW_ROUTE_LAMBA(app, "/spikes3", GetSpikes3)
-  CROW_ROUTE_LAMBA(app, "/spikesalt", GetSpikesAlt)
   CROW_ROUTE_LAMBA(app, "/spikesws", GetSpikesSendWS)
   CROW_ROUTE_LAMBA(app, "/version", GetVersion)
+
+  CROW_ROUTE_LAMBA(app, "/spikes", GetSpikes)
+  CROW_ROUTE_LAMBA(app, "/v2/spikes", GetSpikesV2)
+
   CROW_ROUTE_LAMBA(app, "/simulationTimeInfo", GetCurrentSimulationTime)
+  CROW_ROUTE_LAMBA(app, "/v2/simulationTimeInfo", GetCurrentSimulationTimeV2)
+
   CROW_ROUTE_LAMBA(app, "/kernelStatus", GetKernelStatus)
+  CROW_ROUTE_LAMBA(app, "/v2/kernelStatus", GetKernelStatusV2)
+
   CROW_ROUTE_LAMBA(app, "/multimeters", GetMultimeters)
+  CROW_ROUTE_LAMBA(app, "/v2/multimeters", GetMultimetersV2)
+
   CROW_ROUTE_LAMBA(app, "/multimeter_measurement", GetMultimeterMeasurement)
+  CROW_ROUTE_LAMBA(app, "/v2/multimeter_measurement", GetMultimeterMeasurementV2)
+
   CROW_ROUTE_LAMBA(app, "/nodeCollections", GetCollections)
+  CROW_ROUTE_LAMBA(app, "/v2/nodeCollections", GetCollectionsV2)
+
   CROW_ROUTE_LAMBA(app, "/nodes", GetNodes)
+  CROW_ROUTE_LAMBA(app, "/v2/nodes", GetNodesV2)
+
   CROW_ROUTE_LAMBA(app, "/spikerecorders", GetSpikeRecorders)
+  CROW_ROUTE_LAMBA(app, "/v2/spikerecorders", GetSpikeRecordersV2)
 
   app.stream_threshold(std::numeric_limits<unsigned int>::max());
   crow_server = app.port(18080 + nest::kernel().mpi_manager.get_rank()).multithreaded().run_async();
@@ -107,7 +123,21 @@ crow::response HttpServer::GetCurrentSimulationTime(
     const crow::request& request) {
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
   json_serializer::SimulationTimeInfo(writer, storage_->GetSimulationTimeInfo());
+  return crow::response(buffer.GetString());
+}
+
+crow::response HttpServer::GetCurrentSimulationTimeV2(
+    const crow::request& request) {
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  if (prepare_finished == false) {
+    return crow::response(crow::status::ACCEPTED);
+  }
+
+  json_serializer::SimulationTimeInfoV2(writer, storage_->GetSimulationTimeInfo());
   return crow::response(buffer.GetString());
 }
 
@@ -117,6 +147,24 @@ crow::response HttpServer::GetKernelStatus(
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   storage_->GetKernelStatus(writer);
 
+  return crow::response(buffer.GetString());
+}
+
+crow::response HttpServer::GetKernelStatusV2(
+    const crow::request& request) {
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  storage_->GetKernelStatus(writer);
+
+  return crow::response(buffer.GetString());
+}
+
+crow::response HttpServer::GetCollectionsV2(
+    const crow::request& request) {
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  const auto node_collections = storage_->GetNodeCollections();
+  json_serializer::NodeCollectionsV2(writer, node_collections);
   return crow::response(buffer.GetString());
 }
 
@@ -144,6 +192,27 @@ crow::response HttpServer::GetNodes(
   return crow::response(buffer.GetString());
 }
 
+crow::response HttpServer::GetNodesV2(
+    const crow::request& request) {
+  std::unordered_map<uint64_t, std::string> nodes = storage_->GetNodes();
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  auto sim_id = std::to_string(HttpServer::user_id) + ":" + std::to_string(HttpServer::run_no[user_id]);
+
+  writer.StartObject();
+  writer.Key("simId");
+  writer.String(sim_id.c_str());
+  writer.Key("nodes");
+  writer.StartArray();
+  for (const auto& node : nodes) {
+    writer.RawValue(node.second.c_str(), node.second.length(), rapidjson::kObjectType);
+  }
+  writer.EndArray();
+  writer.EndObject();
+  return crow::response(buffer.GetString());
+}
+
 crow::response HttpServer::GetSpikeRecorders(
     const crow::request& request) {
   rapidjson::StringBuffer buffer;
@@ -154,83 +223,20 @@ crow::response HttpServer::GetSpikeRecorders(
   return crow::response(buffer.GetString());
 }
 
-crow::response HttpServer::GetSpikesFB32(const crow::request& request) {
-  spdlog::stopwatch spikes_fb;
-  std::unordered_map<std::string, std::string> parameters;
-
-  const auto from_time_parameter = parameters.find("fromTime");
-  const double from_time = from_time_parameter == parameters.end()
-                               ? 0.0
-                               : std::stod(from_time_parameter->second);
-
-  const auto to_time_parameter = parameters.find("toTime");
-  const double to_time = to_time_parameter == parameters.end()
-                             ? std::numeric_limits<double>::infinity()
-                             : std::stod(to_time_parameter->second);
-
-  const auto node_collection_parameter = parameters.find("nodeCollectionId");
-
-  const auto parameter_gids = parameters.find("nodeIds");
-  auto parseString = (parameter_gids == parameters.end()) ? std::string("") : parameter_gids->second;
-  auto filter_node_ids = CommaListToUintVector(parseString);
-
-  std::uint64_t from_node_id = 0;
-  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
-  if (!filter_node_ids.empty()) {
-    from_node_id = *std::min_element(filter_node_ids.begin(), filter_node_ids.end());
-    to_node_id = *std::max_element(filter_node_ids.begin(), filter_node_ids.end());
-  }
-  if (node_collection_parameter != parameters.end()) {
-    const std::uint64_t node_collection_id =
-        std::stoull(node_collection_parameter->second);
-    if (node_collection_id < storage_->GetNodeCollectionCount()) {
-      const NodeCollection node_collection =
-          storage_->GetNodeCollection(node_collection_id);
-      from_node_id = node_collection.first_node_id;
-      to_node_id = node_collection.first_node_id + node_collection.node_count - 1;
-    } else {
-      return crow::response("InvalidNodeCollectionID");
-    }
+crow::response HttpServer::GetSpikeRecordersV2(
+    const crow::request& request) {
+  if (!prepare_finished) {
+    auto response = crow::response();
+    response.code = crow::status::ACCEPTED;
+    return response;
   }
 
-  const auto spike_detector_id_parameter = parameters.find("spikedetectorId");
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  const auto spike_detectors = storage_->GetSpikeDetectors();
+  json_serializer::SpikeDetectorsV2(writer, spike_detectors);
 
-  std::vector<Spike32> spikes;
-  spikes.reserve(40000000);
-
-  if (spike_detector_id_parameter == parameters.end()) {
-    std::cout << "[insite] Querying spikes: [time: (" << from_time << " - " << to_time << ")] [nodes: (" << from_node_id << " - " << to_node_id << ")]" << std::endl;
-    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
-    for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikesInt32(&spikes, from_time, to_time, from_node_id, to_node_id, &filter_node_ids);
-    }
-
-  } else {
-    const auto spike_detector_id =
-        std::stoll(spike_detector_id_parameter->second);
-    const auto spike_detector =
-        storage_->GetSpikeDetectorStorage(spike_detector_id);
-
-    std::cout << "[insite] Querying spikes: [time: (" << from_time << " - " << to_time << ")] [nodes: (" << from_node_id << " - " << to_node_id
-              << ")], spikedetector=" << spike_detector_id << std::endl;
-
-    if (spike_detector == nullptr) {
-      return crow::response("InvalidSpikeDetectorId");
-    } else {
-      spike_detector->ExtractSpikesInt32(&spikes, from_time, to_time, from_node_id,
-                                         to_node_id, &filter_node_ids);
-    }
-  }
-
-  bool last_frame = simulation_end_time_ != -1 && (to_time >= simulation_end_time_);
-  spdlog::stopwatch fb_building;
-  flatbuffers::FlatBufferBuilder fbb;
-  auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes32>(spikes, flatbuffers::Pack32);
-  auto fb_spike_table = Test::Foo::CreateSpikyTable32(fbb, fb_spikes);
-  spdlog::info("Fb building: {}", fb_building.elapsed());
-  spdlog::info("Get Spikes: {}", spikes_fb.elapsed());
-  fbb.Finish(fb_spike_table);
-  return crow::response(std::string((const char*)fbb.GetBufferPointer(), fbb.GetSize()));
+  return crow::response(buffer.GetString());
 }
 
 crow::response HttpServer::GetSpikesFB(const crow::request& request) {
@@ -312,186 +318,6 @@ crow::response HttpServer::GetSpikesFB(const crow::request& request) {
   return crow::response(std::string((const char*)fbb.GetBufferPointer(), fbb.GetSize()));
 }
 
-crow::response HttpServer::GetSpikes3(const crow::request& request) {
-  StopwatchHelper swh;
-
-  SpikeParameter params(request.url_params);
-
-  swh.checkpoint("Parameter parsing");
-  std::uint64_t from_node_id = 0;
-  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
-  if (not params.node_gids.empty()) {
-    from_node_id = *std::min_element(params.node_gids.begin(), params.node_gids.end());
-    to_node_id = *std::max_element(params.node_gids.begin(), params.node_gids.end());
-  }
-
-  swh.reset();
-  if (params.node_collection_id) {
-    if (params.node_collection_id >= storage_->GetNodeCollectionCount()) {
-      return crow::response("InvalidNodeCollectionID");
-    }
-
-    const NodeCollection node_collection =
-        storage_->GetNodeCollection(params.node_collection_id.value());
-    from_node_id = node_collection.first_node_id;
-    to_node_id = node_collection.first_node_id + node_collection.node_count - 1;
-  }
-
-  std::vector<Spike> spikes;
-  spikes.reserve(40000000);
-
-  rapidjson::StringBuffer s;
-  s.Reserve(8000000);
-  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-  if (params.spike_detector_id) {
-    const auto spike_detector =
-        storage_->GetSpikeDetectorStorage(params.spike_detector_id.value());
-    if (spike_detector == nullptr) {
-      return crow::response("InvalidSpikeDetectorId");
-    }
-
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
-
-    spike_detector->ExtractSpikes2(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
-                                   to_node_id, &params.node_gids);
-  } else {
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
-    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
-    for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikes2(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
-    }
-  }
-
-  swh.checkpoint("Extracting Spikes");
-
-  bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
-  json_serializer::Spikes(writer, spikes, last_frame);
-  std::string res(s.GetString(), s.GetLength());
-  swh.checkpoint("Serializing Spikes");
-  swh.print();
-  return crow::response(res);
-}
-crow::response HttpServer::GetSpikes2(const crow::request& request) {
-  StopwatchHelper swh;
-
-  SpikeParameter params(request.url_params);
-
-  swh.checkpoint("Parameter parsing");
-  std::uint64_t from_node_id = 0;
-  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
-  if (not params.node_gids.empty()) {
-    from_node_id = *std::min_element(params.node_gids.begin(), params.node_gids.end());
-    to_node_id = *std::max_element(params.node_gids.begin(), params.node_gids.end());
-  }
-
-  swh.reset();
-  if (params.node_collection_id) {
-    if (params.node_collection_id >= storage_->GetNodeCollectionCount()) {
-      return crow::response("InvalidNodeCollectionID");
-    }
-
-    const NodeCollection node_collection =
-        storage_->GetNodeCollection(params.node_collection_id.value());
-    from_node_id = node_collection.first_node_id;
-    to_node_id = node_collection.first_node_id + node_collection.node_count - 1;
-  }
-
-  std::vector<Spike> spikes;
-  spikes.reserve(20000000);
-
-  rapidjson::StringBuffer s;
-  s.Reserve(8000000);
-  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-  if (params.spike_detector_id) {
-    const auto spike_detector =
-        storage_->GetSpikeDetectorStorage(params.spike_detector_id.value());
-    if (spike_detector == nullptr) {
-      return crow::response("InvalidSpikeDetectorId");
-    }
-
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
-
-    spike_detector->ExtractSpikes2(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
-                                   to_node_id, &params.node_gids);
-  } else {
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
-    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
-    for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
-    }
-  }
-
-  swh.checkpoint("Extracting Spikes");
-
-  bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
-  std::string res(s.GetString(), s.GetLength());
-  // json_serializer::SpikesAlt(writer, spikes, last_frame);
-  swh.checkpoint("Serializing Spikes");
-  swh.print();
-  return crow::response(res);
-}
-
-crow::response HttpServer::GetSpikesAlt(const crow::request& request) {
-  StopwatchHelper swh;
-
-  SpikeParameter params(request.url_params);
-
-  swh.checkpoint("Parameter parsing");
-  std::uint64_t from_node_id = 0;
-  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
-  if (not params.node_gids.empty()) {
-    from_node_id = *std::min_element(params.node_gids.begin(), params.node_gids.end());
-    to_node_id = *std::max_element(params.node_gids.begin(), params.node_gids.end());
-  }
-
-  swh.reset();
-  if (params.node_collection_id) {
-    if (params.node_collection_id >= storage_->GetNodeCollectionCount()) {
-      return crow::response("InvalidNodeCollectionID");
-    }
-
-    const NodeCollection node_collection =
-        storage_->GetNodeCollection(params.node_collection_id.value());
-    from_node_id = node_collection.first_node_id;
-    to_node_id = node_collection.first_node_id + node_collection.node_count - 1;
-  }
-
-  // std::vector<Spike> spikes;
-  // spikes.reserve(2000000);
-
-  rapidjson::StringBuffer s;
-  s.Reserve(8000000);
-  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-  if (params.spike_detector_id) {
-    const auto spike_detector =
-        storage_->GetSpikeDetectorStorage(params.spike_detector_id.value());
-    if (spike_detector == nullptr) {
-      return crow::response("InvalidSpikeDetectorId");
-    }
-
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
-
-    spike_detector->ExtractSpikes(writer, params.from_time.value(), params.to_time.value(), from_node_id,
-                                  to_node_id, &params.node_gids);
-  } else {
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
-    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
-    for (const auto& spike_detector_id_storage : spike_detectors) {
-      spike_detector_id_storage.second->ExtractSpikes(writer, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
-      // spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
-    }
-  }
-
-  swh.checkpoint("Extracting Spikes");
-
-  bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
-  std::string res(s.GetString(), s.GetLength());
-  // json_serializer::SpikesAlt(writer, spikes, last_frame);
-  swh.checkpoint("Serializing Spikes");
-  swh.print();
-  return crow::response(res);
-}
-
 crow::response HttpServer::GetSpikesSendWS(const crow::request& request) {
   StopwatchHelper swh;
 
@@ -551,7 +377,7 @@ crow::response HttpServer::GetSpikesSendWS(const crow::request& request) {
   return crow::response("ok");
 }
 
-crow::response HttpServer::GetSpikes(const crow::request& request) {
+crow::response HttpServer::GetSpikesV2(const crow::request& request) {
   StopwatchHelper swh;
 
   SpikeParameter params(request.url_params);
@@ -602,10 +428,78 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
   bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+  json_serializer::SpikesV2(writer, spikes, last_frame);
+  swh.checkpoint("Serializing Spikes");
+  swh.print();
+  return crow::response(s.GetString());
+}
+
+crow::response HttpServer::GetSpikes(const crow::request& request) {
+  StopwatchHelper swh;
+
+  SpikeParameter params(request.url_params);
+
+  swh.checkpoint("Parameter parsing");
+  std::uint64_t from_node_id = 0;
+  std::uint64_t to_node_id = std::numeric_limits<std::uint64_t>::max();
+  if (not params.node_gids.empty()) {
+    from_node_id = *std::min_element(params.node_gids.begin(), params.node_gids.end());
+    to_node_id = *std::max_element(params.node_gids.begin(), params.node_gids.end());
+  }
+
+  swh.reset();
+  if (params.node_collection_id) {
+    if (params.node_collection_id >= storage_->GetNodeCollectionCount()) {
+      return crow::response("InvalidNodeCollectionID");
+    }
+
+    const NodeCollection node_collection =
+        storage_->GetNodeCollection(params.node_collection_id.value());
+    from_node_id = node_collection.first_node_id;
+    to_node_id = node_collection.first_node_id + node_collection.node_count - 1;
+  }
+
+  std::vector<Spike> spikes;
+
+  if (params.spike_detector_id) {
+    const auto spike_detector =
+        storage_->GetSpikeDetectorStorage(params.spike_detector_id.value());
+    if (spike_detector == nullptr) {
+      return crow::response("InvalidSpikeDetectorId");
+    }
+
+    spdlog::info("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
+
+    spike_detector->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
+                                  to_node_id, &params.node_gids);
+  } else {
+    spdlog::info("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
+    std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
+    for (const auto& spike_detector_id_storage : spike_detectors) {
+      spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
+    }
+  }
+
+  swh.checkpoint("Extracting Spikes");
+
+  bool last_frame = simulation_end_time_ != -1 && (params.to_time >= simulation_end_time_);
+  rapidjson::StringBuffer s;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   json_serializer::Spikes(writer, spikes, last_frame);
   swh.checkpoint("Serializing Spikes");
   swh.print();
   return crow::response(s.GetString());
+}
+
+crow::response HttpServer::GetMultimetersV2(
+    const crow::request& request) {
+  const auto multimeters = storage_->GetMultimeters();
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  json_serializer::MultimetersV2(writer, multimeters);
+
+  return crow::response(buffer.GetString());
 }
 
 crow::response HttpServer::GetMultimeters(
@@ -643,6 +537,34 @@ crow::response HttpServer::GetMultimeterMeasurement(
 
   spdlog::info("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
   multimeter->second->ExtractMeasurements(writer, params.attribute.value(), params.node_gids, params.from_time.value(), params.to_time.value());
+  return crow::response(s.GetString());
+}
+
+crow::response HttpServer::GetMultimeterMeasurementV2(
+    const crow::request& request) {
+  MultimeterParameter params(request.url_params);
+
+  spdlog::debug("filter nodes: {}", params.node_gids);
+
+  if (not params.attribute.has_value()) {
+    return crow::response("The 'attributeName' parameter is missing from the request.");
+  }
+
+  if (not params.multimeter_id) {
+    return crow::response("The 'multimeterId' parameter is missing from the request.");
+  }
+
+  const auto multimeters = storage_->GetMultimeters();
+  const auto multimeter = multimeters.find(params.multimeter_id.value());
+  if (multimeter == multimeters.end()) {
+    return crow::response("InvalidMultimeterId");
+  }
+
+  rapidjson::StringBuffer s;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
+
+  spdlog::info("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
+  multimeter->second->ExtractMeasurementsV2(writer, params.attribute.value(), params.node_gids, params.from_time.value(), params.to_time.value());
   return crow::response(s.GetString());
 }
 
