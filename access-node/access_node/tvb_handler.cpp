@@ -1,3 +1,5 @@
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #include "tvb_handler.h"
 #include "opcodes.h"
 #include "spdlog/spdlog.h"
@@ -10,15 +12,15 @@ using namespace std::chrono_literals;
 namespace insite {
 
 void TvbHandler::SerializeMonitorsJson(
-    rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+    rapidjson::Writer<rapidjson::StringBuffer> &writer) {
   writer.StartArray();
-  for (auto& monitor : double_monitors_) {
+  for (auto &monitor : double_monitors_) {
     monitor.SerializeMetadataToJson(writer);
   }
   writer.EndArray();
 }
 
-void TvbHandler::AddMessageIntoQueue(std::string&& msg) {
+void TvbHandler::AddMessageIntoQueue(std::string &&msg) {
   {
     std::lock_guard mutex(mut_);
     message_queue_.push_back(std::move(msg));
@@ -36,30 +38,31 @@ void TvbHandler::Consumer() {
     // SPDLOG_DEBUG("Consuming message from tvb handler");
     while (!message_queue_.empty()) {
       Opcode opcode = Opcode::kUndefined;
-      std::string& data = message_queue_.back();
+      std::string &data = message_queue_.back();
       std::memcpy(&opcode, data.data(), sizeof(Opcode));
-      SPDLOG_DEBUG(opcode);
+      // SPDLOG_DEBUG(opcode);
 
       rapidjson::Document doc;
       switch (opcode) {
-        case Opcode::kEndSim:
-          SPDLOG_DEBUG("TVB Simulation has ended. Bytes: {}",
-                       bytes / (1000 * 1000));
-          break;
-        case Opcode::kStartSim:
-          SPDLOG_DEBUG("New TVB Simulation started");
-          double_monitors_.clear();
-          break;
-        case Opcode::kRegisterNewMonitor:
-          ParseNewMonitorPacket(data);
-          break;
-        case Opcode::kData:
-          ParseDataPacket(data);
-          break;
-        default:
-          SPDLOG_DEBUG("[TVB Handler] Unknown opcode: " +
-                           std::to_string(opcode) + " Message: {}",
-                       std::string(data));
+      case Opcode::kEndSim:
+        SPDLOG_TRACE("TVB Simulation has ended. Bytes: {}",
+                     bytes / (1000 * 1000));
+        break;
+      case Opcode::kStartSim:
+        SPDLOG_TRACE("New TVB Simulation started");
+        double_monitors_.clear();
+        break;
+      case Opcode::kRegisterNewMonitor:
+        ParseNewMonitorPacket(data);
+        break;
+      case Opcode::kData:
+        SPDLOG_TRACE("New TVB Data");
+        ParseDataPacket(data);
+        break;
+      default:
+        SPDLOG_ERROR("[TVB Handler] Unknown opcode: " + std::to_string(opcode) +
+                         " Message: {}",
+                     std::string(data));
       }
 
       message_queue_.pop_back();
@@ -68,15 +71,15 @@ void TvbHandler::Consumer() {
   SPDLOG_DEBUG("Finished TvbHandler Consumer Thread");
 }
 
-void TvbHandler::ParseNewMonitorPacket(const std::string& payload) {
+void TvbHandler::ParseNewMonitorPacket(const std::string &payload) {
   rapidjson::Document doc;
   doc.Parse((payload.c_str() + 1));
-  const auto* monitor_name = doc["name"].GetString();
-  const auto* monitor_gid = doc["gid"].GetString();
+  const auto *monitor_name = doc["name"].GetString();
+  const auto *monitor_gid = doc["gid"].GetString();
   const auto observed_vars_array = doc["observedVariables"].GetArray();
   const auto internal_id = doc["internalId"].GetInt();
   std::vector<std::string> observed_vars;
-  for (const auto& var : observed_vars_array) {
+  for (const auto &var : observed_vars_array) {
     observed_vars.emplace_back(var.GetString());
   }
 
@@ -86,12 +89,12 @@ void TvbHandler::ParseNewMonitorPacket(const std::string& payload) {
 
   SPDLOG_DEBUG("Register New Monitor {}", payload);
   SPDLOG_DEBUG("Registered Monitors");
-  for (const auto& monitor : double_monitors_) {
+  for (const auto &monitor : double_monitors_) {
     SPDLOG_DEBUG("   {}", monitor);
   }
 }
 
-void TvbHandler::ParseDataPacket(const std::string& payload) {
+void TvbHandler::ParseDataPacket(const std::string &payload) {
   bytes += payload.length();
   std::uint64_t cursor = sizeof(Opcode);
   DataHeader header{};
@@ -104,10 +107,10 @@ void TvbHandler::ParseDataPacket(const std::string& payload) {
   //     header.internal_id, header.time, header.type, header.dim1, header.dim2,
   //     header.dim3);
   if (header.type == DataType::kDouble) {
-    const auto* dat = reinterpret_cast<const double*>(payload.data() + cursor);
+    const auto *dat = reinterpret_cast<const double *>(payload.data() + cursor);
     double_monitors_[header.internal_id].data.PushBack(
-        header.time, dat, (const double*)(&(payload.back()) + 1));
+        header.time, dat, (const double *)(&(payload.back()) + 1));
   }
 }
 
-}  // namespace insite
+} // namespace insite
