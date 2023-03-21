@@ -10,11 +10,11 @@
 
 namespace insite {
 class TVBHttpEndpoint {
- private:
- public:
-  inline static TvbHandler* tvb_handler = nullptr;
+private:
+public:
+  inline static TvbHandler *tvb_handler = nullptr;
 
-  static void RegisterRoutes(crow::SimpleApp& app) {
+  static void RegisterRoutes(crow::App<crow::CORSHandler> &app) {
     CROW_ROUTE(app, "/tvb/data")(&TVBHttpEndpoint::GetData);
     CROW_ROUTE(app, "/tvb/monitors")(&TVBHttpEndpoint::GetMonitors);
   }
@@ -30,12 +30,15 @@ class TVBHttpEndpoint {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
-    auto query_params =
-        betterinsite::TVBDataQueryParameters(request.url_params);
+    auto query_params = TvbParameters(request.url_params);
 
-    SPDLOG_DEBUG("fromTime: {}, toTime: {}",
-                 query_params["fromTime"].ValueAsTOrDefault<double>(),
-                 query_params["toTime"].ValueAsTOrDefault<double>());
+    SPDLOG_DEBUG(
+        "Quering TVB Monitor with internal id {}, uid: {}, fromTime: {}, "
+        "toTime: {}",
+        query_params.internal_id.value_or(9999),
+        query_params.uid.value_or("no val"), query_params.from_time.value_or(0),
+        query_params.to_time.value_or(std::numeric_limits<double>::max()));
+
     writer.StartArray();
     for (auto& monitor : tvb_handler->double_monitors_) {
       if (query_params["uid"] &&
