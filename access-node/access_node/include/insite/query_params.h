@@ -1,41 +1,16 @@
 #pragma once
 
+#include "spdlog/spdlog.h"
+#include "string_util.h"
 #include <crow/http_request.h>
 #include <regex>
 #include <string>
 #include <tl/optional.hpp>
-#include "spdlog/spdlog.h"
 using Parameter = std::pair<std::string, std::string>;
 
 template <typename T>
-T ConvertStringToType(const char* input_string);
-
-template <>
-inline bool ConvertStringToType<bool>(const char* input_string) {
-  return std::stoi(input_string) != 0;
-}
-template <>
-inline int ConvertStringToType<int>(const char* input_string) {
-  return std::stoi(input_string);
-}
-
-template <>
-inline uint64_t ConvertStringToType(const char* input_string) {
-  return std::stoull(input_string);
-}
-
-template <>
-inline double ConvertStringToType(const char* input_string) {
-  return std::stod(input_string);
-}
-template <>
-inline std::string ConvertStringToType(const char* input_string) {
-  return input_string;
-}
-
-template <typename T>
-tl::optional<T> GetParameter(const crow::query_string& query_string,
-                             const std::string& fieldname) {
+tl::optional<T> GetParameter(const crow::query_string &query_string,
+                             const std::string &fieldname) {
   const auto parameter_value = query_string.get(fieldname);
   if (parameter_value == nullptr) {
     return tl::nullopt;
@@ -44,7 +19,7 @@ tl::optional<T> GetParameter(const crow::query_string& query_string,
 }
 
 template <typename T>
-inline std::string VectorToCsv(const std::vector<T>& values) {
+inline std::string VectorToCsv(const std::vector<T> &values) {
   std::string ret;
 
   for (auto it = values.begin(); it != values.end(); ++it) {
@@ -66,7 +41,7 @@ inline std::vector<std::uint64_t> CommaListToUintVector(std::string input) {
   std::vector<std::string> filter_gid_strings{it, {}};
   std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
                  std::back_inserter(filter_node_ids),
-                 [](const std::string& str) { return std::stoll(str); });
+                 [](const std::string &str) { return std::stoll(str); });
   return filter_node_ids;
 }
 
@@ -79,12 +54,27 @@ inline std::vector<std::uint64_t> CommaListToUintVector(std::string input,
   std::vector<std::string> filter_gid_strings{it, {}};
   std::transform(filter_gid_strings.begin(), filter_gid_strings.end(),
                  std::back_inserter(filter_node_ids),
-                 [](const std::string& str) { return std::stoll(str); });
+                 [](const std::string &str) { return std::stoll(str); });
   return filter_node_ids;
 }
 
+struct TvbParameters {
+  TvbParameters(const crow::query_string &query_string) {
+    from_time = GetParameter<double>(query_string, "fromTime");
+    to_time = GetParameter<double>(query_string, "toTime");
+    internal_id = GetParameter<double>(query_string, "internalId");
+    uid = GetParameter<std::string>(query_string, "uid");
+  }
+
+public:
+  tl::optional<double> from_time;
+  tl::optional<double> to_time;
+  tl::optional<int> internal_id;
+  tl::optional<std::string> uid;
+};
+
 struct MultimeterParameter {
-  MultimeterParameter(const crow::query_string& query_string) {
+  MultimeterParameter(const crow::query_string &query_string) {
     from_time = GetParameter<double>(query_string, "fromTime").value_or(0.0);
     to_time = GetParameter<double>(query_string, "toTime")
                   .value_or(std::numeric_limits<double>::max());
@@ -99,7 +89,32 @@ struct MultimeterParameter {
         std::vector<std::uint64_t>());
   }
 
- public:
+  [[nodiscard]] std::vector<Parameter> GetParameterVector() const {
+    std::vector<Parameter> params;
+
+    from_time.map([&params](auto val) {
+      params.emplace_back("fromTime", std::to_string(val));
+    });
+
+    to_time.map([&params](auto val) {
+      params.emplace_back("toTime", std::to_string(val));
+    });
+
+    attribute.map(
+        [&params](auto val) { params.emplace_back("attribute", val); });
+
+    if (!node_gids.empty()) {
+      params.emplace_back("nodeIds", VectorToCsv(node_gids));
+    }
+
+    multimeter_id.map([&params](auto val) {
+      params.emplace_back("multimeterId", std::to_string(val));
+    });
+
+    return params;
+  }
+
+public:
   tl::optional<double> from_time;
   tl::optional<double> to_time;
   tl::optional<std::string> attribute;
@@ -108,7 +123,7 @@ struct MultimeterParameter {
 };
 
 struct SpikeParameter {
-  SpikeParameter(const crow::query_string& query_string) {
+  SpikeParameter(const crow::query_string &query_string) {
     from_time = GetParameter<double>(query_string, "fromTime");
     to_time = GetParameter<double>(query_string, "toTime");
 
@@ -168,7 +183,7 @@ struct SpikeParameter {
     return params;
   }
 
- public:
+public:
   tl::optional<double> from_time;
   tl::optional<double> to_time;
   tl::optional<int> skip;
