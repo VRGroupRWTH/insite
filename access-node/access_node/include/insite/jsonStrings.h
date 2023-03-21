@@ -4,6 +4,7 @@
 // results
 namespace insite::json_strings {
 inline static const char kSimTimes[] = "simulationTimes";
+inline static const char kSimId[] = "simId";
 inline static const char kLastFrame[] = "lastFrame";
 inline static const char kMultimeterId[] = "multimeterId";
 inline static const char kAttributes[] = "attributes";
@@ -30,7 +31,6 @@ inline static const char kEnd[] = "end";
 inline static const char kStepSize[] = "stepSize";
 inline static const char kApi[] = "api";
 inline static const char kInsite[] = "insite";
-}  // namespace insite
 inline static const char kInsiteNest[] = "insite-nest";
 inline static const char kInsiteArbor[] = "insite-arbor";
 } // namespace insite::json_strings
