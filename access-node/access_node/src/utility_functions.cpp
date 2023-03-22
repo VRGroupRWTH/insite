@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "cpr/session.h"
 #include <cpr/async.h>
 #include <cpr/cpr.h>
@@ -15,12 +17,11 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "config.h"
 // #include "jsonParameters.h"
-#include "jsonStrings.h"
-#include "queryStringBuilder.h"
-#include "spike.h"
-#include "utilityFunctions.h"
+#include <nest/json_strings.h>
+#include <nest/spike_container.h>
+#include <query_string_builder.h>
+#include <utility_functions.h>
 
 namespace insite {
 
@@ -112,7 +113,7 @@ CprResponseVec GetAccessNodeRequests(const std::vector<std::string> &urls,
     multiperform.AddSession(sessions.back());
     SPDLOG_DEBUG(
         "[GetAccessNodeRequests] Added {} to the multiperform request.",
-        url + version + postfix);
+        url + versioned_postfix);
   }
   // Add sessions to the MultiPerform
   return multiperform.Get();

@@ -2,6 +2,7 @@
 #include "query_params.h"
 #include <iostream>
 #include <iterator>
+#include <nest/spike_container.h>
 #include <optional>
 #include <pdqsort.h>
 #include <rapidjson/document.h>
@@ -9,11 +10,10 @@
 #include <schema_generated.h>
 #include <spdlog/fmt/chrono.h>
 #include <spdlog/spdlog.h>
-#include <spike.h>
 #include <unordered_set>
 #include <vector>
 // #include "pdqsort.h"
-#include <utilityFunctions.h>
+#include <utility_functions.h>
 
 namespace insite {
 // Receives a rapidjson-Object and checks if it has all the necessary properties

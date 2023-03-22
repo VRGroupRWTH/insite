@@ -1,13 +1,13 @@
-#include "spike.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/vector.h"
-#include "jsonStrings.h"
 #include "pdqsort.h"
 #include "spdlog/spdlog.h"
 #include <algorithm>
 #include <exception>
 #include <iterator>
+#include <nest/json_strings.h>
+#include <nest/spike_container.h>
 #include <rapidjson/document.h>
 #include <rapidjson/encodings.h>
 #include <rapidjson/stringbuffer.h>

@@ -1,9 +1,9 @@
 #include "websocket_server.h"
-#include "nest_handler.h"
 #include "spdlog/spdlog.h"
-#include "tvb_handler.h"
 #include "websocketpp/frame.hpp"
 #include <cstdint>
+#include <nest/handler.h>
+#include <tvb/handler.h>
 
 namespace insite {
 

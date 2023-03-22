@@ -1,6 +1,5 @@
 #pragma once
-
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <insite_defines.h>
 
 #include <spdlog/fmt/fmt.h>
 #include <string>

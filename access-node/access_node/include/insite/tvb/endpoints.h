@@ -5,8 +5,9 @@
 #include "query_params.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "tvb_handler.h"
-#include "utilityFunctions.h"
+#include <chrono>
+#include <tvb/handler.h>
+#include <utility_functions.h>
 
 namespace insite {
 class TVBHttpEndpoint {
@@ -18,16 +19,52 @@ public:
     CROW_ROUTE(app, "/tvb/data")(&TVBHttpEndpoint::GetData);
     CROW_ROUTE(app, "/tvb/monitors")(&TVBHttpEndpoint::GetMonitors);
     CROW_ROUTE(app, "/tvb/exec/")(&TVBHttpEndpoint::LOL);
+    CROW_ROUTE(app, "/tvb/simulation_info/")(&TVBHttpEndpoint::GetSimInfo);
+    CROW_ROUTE(app, "/tvb/simulation_info/<path>")
+    (&TVBHttpEndpoint::GetSimInfoDetails);
   }
 
   static crow::response LOL(const crow::request &request) {
-    if (tvb_handler->srv) {
+    if (tvb_handler->srv != nullptr) {
       auto query_string = GetQueryString(request.raw_url).substr(1);
       tvb_handler->srv->BroadcastAll(query_string, ResourceFlag::kTVB);
     } else {
       spdlog::error("Websocket Server in TVB Handler not set!");
     }
     return {""};
+  }
+
+  static crow::response GetSimInfoDetails(const crow::request &request,
+                                          const std::string &value) {
+    if (tvb_handler->srv != nullptr) {
+      tvb_handler->srv->BroadcastAll(value, ResourceFlag::kTVB);
+      tvb_handler->sim_info_promise = std::promise<std::string>();
+      auto future = tvb_handler->sim_info_promise.get_future();
+      auto result = future.wait_for(std::chrono::milliseconds(500));
+
+      if (result == std::future_status::timeout) {
+        return {"timeout..."};
+      }
+
+      auto value = future.get();
+      if (value == "null") {
+        return {crow::status::BAD_REQUEST,
+                R"({"error":"attribute not found"})"};
+      }
+      return {value};
+    } else {
+      spdlog::error("Websocket Server in TVB Handler not set!");
+      return {"error"};
+    }
+  }
+
+  static crow::response GetSimInfo(const crow::request &request) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+    tvb_handler->sim_info.Accept(writer);
+
+    return {buffer.GetString()};
   }
 
   static crow::response GetMonitors(const crow::request &request) {

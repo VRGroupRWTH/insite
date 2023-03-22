@@ -14,9 +14,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include <jsonStrings.h>
-#include <queryStringBuilder.h>
-#include <spike.h>
+#include <nest/json_strings.h>
+#include <nest/spike_container.h>
+#include <query_string_builder.h>
 namespace insite {
 
 #ifdef INSITE_PRETTY_JSON

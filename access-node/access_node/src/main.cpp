@@ -1,8 +1,6 @@
 #define CROW_MAIN
 #include "arbor/arbor_endpoints.h"
 #include "crow/middlewares/cors.h"
-#include "nest/nest_endpoints.h"
-#include "nest_handler.h"
 #include "spdlog/cfg/env.h"
 #include "spdlog/spdlog.h"
 #include <config.h>
@@ -10,14 +8,12 @@
 #include <crow/routing.h>
 #include <exception>
 #include <limits>
-#include <nest/nestKernelStatus.h>
-#include <nest/nestMultimeter.h>
-#include <nest/nestNode.h>
-#include <nest/nestSpikeRecorders.h>
-#include <nest/nestSpikes.h>
-#include <nest/nestVersion.h>
-#include <tvb_handler.h>
-#include <tvb_http_endpoints.h>
+#include <nest/endpoints.h>
+#include <nest/handler.h>
+#include <nest/spikerecorders.h>
+#include <nest/spikes.h>
+#include <tvb/endpoints.h>
+#include <tvb/handler.h>
 #include <websocket_server.h>
 #include <websocketpp/config/asio_no_tls.hpp>
 
@@ -29,7 +25,6 @@ int main() {
   using namespace insite;
   spdlog::set_level(spdlog::level::trace);
   SPDLOG_INFO("Starting Insite access node");
-
   ServerConfig::GetInstance().ParseConfigIfExists();
   ServerConfig::GetInstance().GenerateRequestUrls();
 

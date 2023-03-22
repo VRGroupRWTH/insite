@@ -3,10 +3,10 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "spdlog/spdlog.h"
-#include "utilityFunctions.h"
 #include <arbor/arbor_strings.h>
 #include <arbor/probe_endpoints.h>
 #include <config.h>
+#include <utility_functions.h>
 
 namespace insite::arbor {
 

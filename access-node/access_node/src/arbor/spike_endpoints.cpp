@@ -5,11 +5,11 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/stringbuffer.h"
 #include "spdlog/spdlog.h"
-#include "utilityFunctions.h"
 #include <arbor/arbor_strings.h>
 #include <arbor/cell_endpoints.h>
 #include <arbor/spike_endpoints.h>
 #include <config.h>
+#include <utility_functions.h>
 
 namespace insite::arbor {
 

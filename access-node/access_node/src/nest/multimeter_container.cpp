@@ -1,6 +1,6 @@
-#include "jsonStrings.h"
 #include <algorithm>
-#include <nest/nestMultimeterContainer.h>
+#include <nest/json_strings.h>
+#include <nest/multimeter_container.h>
 
 namespace insite {
 void MultimeterContainer::SerializeToJson(

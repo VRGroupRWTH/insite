@@ -1,35 +1,34 @@
-#include <nest/nestNode.h>
-#include <toml++/impl/json_formatter.h>
-#include <cstdint>
-#include <optional>
-#include <unordered_set>
-#include <vector>
 #include "config.h"
-#include "jsonStrings.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/stringbuffer.h"
+#include <cstdint>
+#include <nest/json_strings.h>
+#include <nest/nodecollections.h>
+#include <optional>
+#include <toml++/impl/json_formatter.h>
+#include <unordered_set>
+#include <vector>
 
-#include <nest/nestSpikes.h>
-#include <spdlog/fmt/ostr.h>
-#include <spdlog/fmt/ranges.h>
 #include "rapidjson/writer.h"
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
-#include "utilityFunctions.h"
+#include <nest/spikes.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/fmt/ranges.h>
+#include <utility_functions.h>
 namespace insite {
 
 using OptionalDouble = std::optional<double>;
 using OptionalUInt = std::optional<uint64_t>;
 
-template <class T>
-using OptionalUSet = std::optional<std::unordered_set<T>>;
+template <class T> using OptionalUSet = std::optional<std::unordered_set<T>>;
 
 using OptionalString = std::optional<std::string>;
 
 // Receives a rapidjson-Object and checks if it has all the necessary properties
 // for nodeCollectionData
 void CheckNodeCollectionDataValid(
-    const rapidjson::GenericObject<false, rapidjson::Value>& n) {
+    const rapidjson::GenericObject<false, rapidjson::Value> &n) {
   assert(n.HasMember(json_strings::kModel));
   assert(n[json_strings::kModel].IsObject());
   assert(n.HasMember(json_strings::kNodeCollectionId));
@@ -38,19 +37,19 @@ void CheckNodeCollectionDataValid(
   assert(n[json_strings::kNodes].IsObject());
 }
 
-rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc) {
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<> &json_alloc) {
   auto node_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodes");
 
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
-    for (auto& node : current_node_data.GetArray()) {
+    for (auto &node : current_node_data.GetArray()) {
       rapidjson::Value insert(node, json_alloc);
       kernel_status_result_array.PushBack(insert, json_alloc);
     }
@@ -59,20 +58,20 @@ rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   return kernel_status_result_array;
 }
 
-rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc,
-                              std::unordered_set<int>& param_node_ids) {
+rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<> &json_alloc,
+                              std::unordered_set<int> &param_node_ids) {
   auto node_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodes", 1);
 
   rapidjson::Value node_results(rapidjson::kArrayType);
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
-    for (auto& node : current_node_data.GetArray()) {
+    for (auto &node : current_node_data.GetArray()) {
       if (param_node_ids.find(node[json_strings::kNodeId].GetInt()) ==
           param_node_ids.end()) {
         continue;
@@ -86,23 +85,23 @@ rapidjson::Value NestGetNodes(rapidjson::MemoryPoolAllocator<>& json_alloc,
   return node_results;
 }
 
-rapidjson::Value NestGetNodesV2(rapidjson::MemoryPoolAllocator<>& json_alloc,
-                                std::unordered_set<int>& param_node_ids) {
+rapidjson::Value NestGetNodesV2(rapidjson::MemoryPoolAllocator<> &json_alloc,
+                                std::unordered_set<int> &param_node_ids) {
   auto node_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodes", 2);
 
   rapidjson::Value node_results(rapidjson::kArrayType);
   rapidjson::Value sim_id;
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    spdlog::error(node_data_set.text.c_str());
+    // spdlog::error(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
     sim_id = current_node_data["simId"];
-    for (auto& node : current_node_data["nodes"].GetArray()) {
+    for (auto &node : current_node_data["nodes"].GetArray()) {
       if (param_node_ids.find(node[json_strings::kNodeId].GetInt()) ==
           param_node_ids.end()) {
         continue;
@@ -120,9 +119,9 @@ rapidjson::Value NestGetNodesV2(rapidjson::MemoryPoolAllocator<>& json_alloc,
   return result;
 }
 
-rapidjson::Value NestGetNodeCollections(
-    rapidjson::MemoryPoolAllocator<>& json_alloc,
-    tl::optional<int> requested_node_collection_id) {
+rapidjson::Value
+NestGetNodeCollections(rapidjson::MemoryPoolAllocator<> &json_alloc,
+                       tl::optional<int> requested_node_collection_id) {
   auto node_collection_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodeCollections");
 
@@ -130,14 +129,14 @@ rapidjson::Value NestGetNodeCollections(
 
   std::unordered_set<int> added_node_collections;
 
-  for (auto& node_collection_set : node_collection_data_sets) {
+  for (auto &node_collection_set : node_collection_data_sets) {
     auto str = node_collection_set.text;
     rapidjson::Document node_collection_data_old;
     node_collection_data_old.Parse(str.c_str());
 
     assert(node_collection_data_old.IsArray());
 
-    for (auto& node_collection : node_collection_data_old.GetArray()) {
+    for (auto &node_collection : node_collection_data_old.GetArray()) {
       int node_collection_id =
           node_collection.GetObject()[json_strings::kNodeCollectionId].GetInt();
 
@@ -159,9 +158,9 @@ rapidjson::Value NestGetNodeCollections(
   return node_collection_result_array;
 }
 
-rapidjson::Value NestGetNodeCollectionsV2(
-    rapidjson::MemoryPoolAllocator<>& json_alloc,
-    tl::optional<int> requested_node_collection_id) {
+rapidjson::Value
+NestGetNodeCollectionsV2(rapidjson::MemoryPoolAllocator<> &json_alloc,
+                         tl::optional<int> requested_node_collection_id) {
   auto node_collection_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodeCollections", 2);
 
@@ -170,7 +169,7 @@ rapidjson::Value NestGetNodeCollectionsV2(
 
   std::unordered_set<int> added_node_collections;
 
-  for (auto& node_collection_set : node_collection_data_sets) {
+  for (auto &node_collection_set : node_collection_data_sets) {
     auto str = node_collection_set.text;
     rapidjson::Document node_collection_data_old;
     node_collection_data_old.Parse(str.c_str());
@@ -179,7 +178,7 @@ rapidjson::Value NestGetNodeCollectionsV2(
 
     sim_id = node_collection_data_old["simId"];
 
-    for (auto& node_collection :
+    for (auto &node_collection :
          node_collection_data_old.GetObject()["nodeCollections"].GetArray()) {
       int node_collection_id =
           node_collection.GetObject()[json_strings::kNodeCollectionId].GetInt();
@@ -216,20 +215,25 @@ crow::response NodeCollections(int api_version,
   rapidjson::Document result_doc;
   rapidjson::MemoryPoolAllocator<> json_alloc;
   rapidjson::Value node_collection_result_array;
+
   if (api_version == 1) {
     node_collection_result_array =
         NestGetNodeCollections(json_alloc, requested_node_collection_id);
     result_doc.SetArray() = node_collection_result_array.GetArray();
     return {DocumentToString(result_doc)};
-  } else if (api_version == 2) {
+  }
+
+  if (api_version == 2) {
     node_collection_result_array =
         NestGetNodeCollectionsV2(json_alloc, requested_node_collection_id);
     result_doc.SetObject() = node_collection_result_array.GetObject();
     return {DocumentToString(result_doc)};
   }
+
+  return crow::response{crow::status::BAD_REQUEST, "Unknown version number."};
 }
 
-crow::response SpikesByNodeCollectionId(const crow::request& req,
+crow::response SpikesByNodeCollectionId(const crow::request &req,
                                         int api_version,
                                         int requested_node_collection_id) {
   SpikeParameter params(req.url_params);
@@ -249,21 +253,21 @@ crow::response Nodes(int api_version) {
   rapidjson::Value kernel_status_result_array(rapidjson::kArrayType);
   rapidjson::Value sim_id;
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
     if (api_version == 1) {
-      for (auto& node : current_node_data.GetArray()) {
+      for (auto &node : current_node_data.GetArray()) {
         rapidjson::Value insert(node, json_alloc);
         kernel_status_result_array.PushBack(insert, json_alloc);
       }
     } else if (api_version == 2) {
       sim_id = current_node_data["simId"];
 
-      for (auto& node : current_node_data["nodes"].GetArray()) {
+      for (auto &node : current_node_data["nodes"].GetArray()) {
         rapidjson::Value insert(node, json_alloc);
         kernel_status_result_array.PushBack(insert, json_alloc);
       }
@@ -305,20 +309,20 @@ crow::response NodesById(int api_version, int node_id) {
   return {DocumentToString(result_doc)};
 }
 
-rapidjson::Value GetNodeIds(rapidjson::MemoryPoolAllocator<>& json_alloc) {
+rapidjson::Value GetNodeIds(rapidjson::MemoryPoolAllocator<> &json_alloc) {
   auto node_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodes");
 
   rapidjson::Value node_array(rapidjson::kArrayType);
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    spdlog::error(node_data_set.text.c_str());
+    // spdlog::error(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
-    for (auto& node : current_node_data.GetArray()) {
+    for (auto &node : current_node_data.GetArray()) {
       rapidjson::Value insert(node.GetObject()[json_strings::kNodeId],
                               json_alloc);
       node_array.PushBack(node.GetObject()[json_strings::kNodeId], json_alloc);
@@ -327,23 +331,23 @@ rapidjson::Value GetNodeIds(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   return node_array;
 }
 
-rapidjson::Value GetNodeIdsV2(rapidjson::MemoryPoolAllocator<>& json_alloc) {
+rapidjson::Value GetNodeIdsV2(rapidjson::MemoryPoolAllocator<> &json_alloc) {
   auto node_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/nodes");
 
   rapidjson::Value node_array(rapidjson::kArrayType);
   rapidjson::Value sim_id;
 
-  for (auto& node_data_set : node_data_sets) {
+  for (auto &node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    spdlog::error(node_data_set.text.c_str());
+    // spdlog::error(node_data_set.text.c_str());
 
     sim_id = current_node_data["simId"];
 
     assert(current_node_data.IsArray());
 
-    for (auto& node : current_node_data["nodes"].GetArray()) {
+    for (auto &node : current_node_data["nodes"].GetArray()) {
       rapidjson::Value insert(node.GetObject()[json_strings::kNodeId],
                               json_alloc);
       node_array.PushBack(node.GetObject()[json_strings::kNodeIds], json_alloc);
@@ -369,4 +373,4 @@ crow::response NodeIdEndpoint(int api_version) {
   return {DocumentToString(node_result)};
 }
 
-}  // namespace insite
+} // namespace insite
