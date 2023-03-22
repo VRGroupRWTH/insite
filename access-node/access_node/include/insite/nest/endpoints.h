@@ -4,12 +4,12 @@
 #include "crow/http_request.h"
 #include "crow/middlewares/cors.h"
 #include "tl/optional.hpp"
-#include <nest/nestKernelStatus.h>
-#include <nest/nestMultimeter.h>
-#include <nest/nestNode.h>
-#include <nest/nestSpikeRecorders.h>
-#include <nest/nestSpikes.h>
-#include <nest/nestVersion.h>
+#include <nest/kernel_status.h>
+#include <nest/multimeter.h>
+#include <nest/nodecollections.h>
+#include <nest/spikerecorders.h>
+#include <nest/spikes.h>
+#include <nest/version.h>
 
 #define CROW_ROUTE_LAMBA(APP, ENDPOINT, FUNCTION)                              \
   CROW_ROUTE(APP, ENDPOINT)                                                    \

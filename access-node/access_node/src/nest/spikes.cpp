@@ -1,9 +1,12 @@
+#include <config.h>
+
+#include "query_params.h"
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
-#include <config.h>
+#include "tl/optional.hpp"
 #include <cstdint>
 #include <limits>
-#include <nest/nestSpikes.h>
+#include <nest/spikes.h>
 #include <unordered_set>
 
 namespace insite {
@@ -59,8 +62,10 @@ crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
   spdlog::stopwatch stopwatch;
+  SpikeParameter params_without_skip = parameter;
+  params_without_skip.skip = tl::nullopt;
   std::string query_string =
-      BuildQueryString("/spikes", parameter.GetParameterVector());
+      BuildQueryString("/spikes", params_without_skip.GetParameterVector());
 
   auto spike_data_sets = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, query_string, api_version);
@@ -75,7 +80,7 @@ crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
 
     rapidjson::Document document;
     document.Parse(spike_data_set.text.c_str());
-    spdlog::error(spike_data_set.text.c_str());
+    // spdlog::error(spike_data_set.text.c_str());
 
     if (api_version == 1) {
       spikes.AddSpikesFromJson(document);

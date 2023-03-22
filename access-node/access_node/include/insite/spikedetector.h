@@ -9,8 +9,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include <nest/nestSpikes.h>
-#include <utilityFunctions.h>
+#include <nest/spikes.h>
+#include <utility_functions.h>
 namespace insite {
 
 using NodeList = std::vector<uint64_t>;

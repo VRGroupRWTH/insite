@@ -1,12 +1,12 @@
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <insite_defines.h>
 
-#include "tvb_handler.h"
 #include "opcodes.h"
 #include "spdlog/spdlog.h"
 #include <chrono>
 #include <cstdint>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/fmt/ranges.h>
+#include <tvb/handler.h>
 using namespace std::chrono_literals;
 
 namespace insite {
@@ -59,6 +59,15 @@ void TvbHandler::Consumer() {
         SPDLOG_TRACE("New TVB Data");
         ParseDataPacket(data);
         break;
+      case Opcode::kSimInfo:
+        SPDLOG_TRACE("Parse Sim Info");
+        ParseSimInfo(data);
+        break;
+
+      case Opcode::kSimInfoReturn:
+        SPDLOG_TRACE("Parse Sim Info Return");
+        ParseSimInfoReturn(data);
+        break;
       default:
         SPDLOG_ERROR("[TVB Handler] Unknown opcode: " + std::to_string(opcode) +
                          " Message: {}",
@@ -69,6 +78,17 @@ void TvbHandler::Consumer() {
     }
   }
   SPDLOG_DEBUG("Finished TvbHandler Consumer Thread");
+}
+void TvbHandler::ParseSimInfo(const std::string &payload) {
+  sim_info.Parse(payload.c_str() + 1);
+  // spdlog::error(payload);
+}
+
+void TvbHandler::ParseSimInfoReturn(const std::string &payload) {
+  // spdlog::error("ParseSimInfoReturn: {}", payload);
+  // sim_info.Parse(payload.c_str() + 1);
+  sim_info_promise.set_value(payload.substr(1));
+  // spdlog::error(payload);
 }
 
 void TvbHandler::ParseNewMonitorPacket(const std::string &payload) {
@@ -101,11 +121,12 @@ void TvbHandler::ParseDataPacket(const std::string &payload) {
   std::memcpy(&header, payload.data() + sizeof(Opcode), sizeof(header));
   cursor += sizeof(DataHeader);
   // SPDLOG_DEBUG(
-  //     "Header: internalId: {}, time: {}, type: {}, dim1: {}, dim2: {}, dim3:
+  //     "Header: internalId: {}, time: {}, type: {}, dim1: {}, dim2: {},
+  //     dim3:
   //     "
   //     "{}",
-  //     header.internal_id, header.time, header.type, header.dim1, header.dim2,
-  //     header.dim3);
+  //     header.internal_id, header.time, header.type, header.dim1,
+  //     header.dim2, header.dim3);
   if (header.type == DataType::kDouble) {
     const auto *dat = reinterpret_cast<const double *>(payload.data() + cursor);
     double_monitors_[header.internal_id].data.PushBack(

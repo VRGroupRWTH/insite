@@ -1,19 +1,19 @@
-#include <config.h>
-#include <nest/nestVersion.h>
-#include <spdlog/spdlog.h>
-#include <utilityFunctions.h>
-#include <fstream>
-#include <iterator>
-#include <optional>
-#include <unordered_set>
-#include <vector>
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
+#include <config.h>
+#include <fstream>
+#include <iterator>
+#include <nest/version.h>
+#include <optional>
+#include <spdlog/spdlog.h>
+#include <unordered_set>
+#include <utility_functions.h>
+#include <vector>
 
 namespace insite {
-rapidjson::Value NestGetSimulationTimeInfo(
-    rapidjson::MemoryPoolAllocator<> json_alloc,
-    int api_version) {
+rapidjson::Value
+NestGetSimulationTimeInfo(rapidjson::MemoryPoolAllocator<> json_alloc,
+                          int api_version) {
   // get request results back and store in array
   auto sim_time_infos =
       GetAccessNodeRequests(ServerConfig::GetInstance().request_nest_urls,
@@ -26,7 +26,7 @@ rapidjson::Value NestGetSimulationTimeInfo(
   rapidjson::Value sim_id;
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (const auto& sim_time_info : sim_time_infos) {
+  for (const auto &sim_time_info : sim_time_infos) {
     std::string json_string = sim_time_info.text;
 
     // create rapidjson-document for current kernelStatus-data-set and parse
@@ -65,7 +65,7 @@ rapidjson::Value NestGetSimulationTimeInfo(
   return result;
 }
 
-rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<>& json_alloc) {
+rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<> &json_alloc) {
   // get request results back and store in array
   auto nest_version_infos = GetAccessNodeRequests(
       ServerConfig::GetInstance().request_nest_urls, "/version");
@@ -74,7 +74,7 @@ rapidjson::Value NestGetVersion(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   rapidjson::Value insite_version;
 
   // loop through all kernelStatus-data-sets and create a new object for each
-  for (auto& nest_version_info : nest_version_infos) {
+  for (auto &nest_version_info : nest_version_infos) {
     std::string json_string = nest_version_info.text;
 
     rapidjson::Document current_version_info;
@@ -140,4 +140,4 @@ crow::response Version() {
 
   return {DocumentToString(result_doc)};
 }
-}  // namespace insite
+} // namespace insite

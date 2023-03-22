@@ -6,7 +6,7 @@
 #include "config.h"
 #include "crow/app.h"
 #include "crow/middlewares/cors.h"
-#include "utilityFunctions.h"
+#include <utility_functions.h>
 
 namespace insite {
 class ArborHttpEndpoint {

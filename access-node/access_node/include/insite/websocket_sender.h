@@ -1,19 +1,19 @@
 #pragma once
-#include <spdlog/spdlog.h>
-#include <unistd.h>
+#include "opcodes.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include "resource_flags.h"
+#include "websocketpp/common/connection_hdl.hpp"
+#include "websocketpp/config/asio_no_tls.hpp"
+#include "websocketpp/roles/server_endpoint.hpp"
 #include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <spdlog/spdlog.h>
 #include <thread>
-#include "opcodes.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-#include "tvbMonitor.h"
-#include "websocketpp/common/connection_hdl.hpp"
-#include "websocketpp/config/asio_no_tls.hpp"
-#include "websocketpp/roles/server_endpoint.hpp"
-#include "resource_flags.h"
+#include <tvb/monitor.h>
+#include <unistd.h>
 
 namespace insite {
 using Server = websocketpp::server<websocketpp::config::asio>;
@@ -27,24 +27,30 @@ struct ClientParams {
 };
 
 class WebsocketSender {
- public:
-  WebsocketSender(std::map<websocketpp::connection_hdl, ClientParams, std::owner_less<websocketpp::connection_hdl>>& connection_map, Server& websocket_server, std::mutex& mutex, std::condition_variable& cond)
-      : connection_map(connection_map),var_(cond), mut_(mutex), websocket_server(websocket_server) {}
+public:
+  WebsocketSender(
+      std::map<websocketpp::connection_hdl, ClientParams,
+               std::owner_less<websocketpp::connection_hdl>> &connection_map,
+      Server &websocket_server, std::mutex &mutex,
+      std::condition_variable &cond)
+      : connection_map(connection_map), var_(cond), mut_(mutex),
+        websocket_server(websocket_server) {}
 
-  void StartThread(std::vector<WebsocketMessage>* queue) {
+  void StartThread(std::vector<WebsocketMessage> *queue) {
     consumer_thread_ = std::thread(&WebsocketSender::Consumer, this, queue);
   }
 
-  void Consumer(std::vector<WebsocketMessage>* queue);
+  void Consumer(std::vector<WebsocketMessage> *queue);
 
   // void BroadcastAll(const std::string& msg);
-  void BroadcastAll(const std::string& msg, ResourceFlag resource);
-  
+  void BroadcastAll(const std::string &msg, ResourceFlag resource);
+
   // private:
-  std::map<websocketpp::connection_hdl, ClientParams, std::owner_less<websocketpp::connection_hdl>>& connection_map; 
+  std::map<websocketpp::connection_hdl, ClientParams,
+           std::owner_less<websocketpp::connection_hdl>> &connection_map;
   std::thread consumer_thread_;
-  std::condition_variable& var_;
-  std::mutex& mut_;
-  Server& websocket_server;
+  std::condition_variable &var_;
+  std::mutex &mut_;
+  Server &websocket_server;
 };
-}  // namespace insite
+} // namespace insite

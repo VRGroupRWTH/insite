@@ -7,7 +7,10 @@ enum Opcode : OpcodeType {
   kData,
   kRegisterNewMonitor,
   kStartSim,
-  kEndSim
+  kEndSim,
+  kDeregisterMonitor,
+  kSimInfo,
+  kSimInfoReturn
 };
 
 enum DataType : char {

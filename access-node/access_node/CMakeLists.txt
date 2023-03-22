@@ -51,47 +51,56 @@ include_directories("extern/pdqsort")
 
 add_executable(
   insite-access-node
-  main.cpp
-  include/insite/query_params.h
-  include/insite/spike_util.h
-  include/insite/circular_timeseries.h
-  include/insite/config.h config.cpp
-  # include/insite/jsonParameters.h jsonParameters.cpp
-  include/insite/jsonStrings.h
-  include/insite/nest/nestKernelStatus.h nest/kernelStatus.cpp
-  include/insite/nest/nestMultimeter.h  nest/nestMultimeter.cpp
-  include/insite/nest/nestMultimeterContainer.h nest/nestMultimeterContainer.cpp
-  include/insite/nest/nestNode.h nest/nestNode.cpp
-  include/insite/nest/nestSpikeDetectors.h
-  include/insite/nest/nestSpikeRecorders.h
-  include/insite/nest/nestSpikes.h nest/nestSpikes.cpp
-  include/insite/nest/nestVersion.h nest/nestVersion.cpp
-  include/insite/arbor/cell_endpoints.h arbor/cell_endpoints.cpp
-  include/insite/arbor/probe_endpoints.h arbor/probe_endpoints.cpp
-  include/insite/arbor/spike_endpoints.h arbor/spike_endpoints.cpp
-  include/insite/arbor/parameters.h arbor/parameters.cpp
-  include/insite/arbor/arbor_strings.h arbor/arbor_strings.cpp
-  include/insite/opcodes.h
-  # include/insite/params.h params.cpp
-  include/insite/queryStringBuilder.h
-  include/insite/resource_flags.h
-  include/insite/spike.h nest/spike.cpp
-  include/insite/spikedetector.h nest/spikedetector.cpp
-  include/insite/tvb_http_endpoints.h
-  include/insite/tvbMonitor.h tvbMonitor.cpp
-  include/insite/tvb_handler.h tvb_handler.cpp
-  include/insite/nest_handler.h nest_handler.cpp
-  include/insite/utilityFunctions.h utilityFunctions.cpp
-  include/insite/websocket_sender.h websocket_sender.cpp
-  include/insite/websocket_server.h websocket_server.cpp
+  src/main.cpp
+
   ${CMAKE_CURRENT_BINARY_DIR}/include/schema_generated.h
+  include/insite/circular_timeseries.h
+  include/insite/config.h src/config.cpp
+  include/insite/opcodes.h
+  include/insite/query_params.h
+  include/insite/query_string_builder.h
+  include/insite/resource_flags.h
+  include/insite/spike_util.h
+  include/insite/utility_functions.h src/utility_functions.cpp
+  include/insite/websocket_sender.h src/websocket_sender.cpp
+  include/insite/websocket_server.h src/websocket_server.cpp
+
+  include/insite/nest/endpoints.h
+  include/insite/nest/handler.h src/nest/handler.cpp
+  include/insite/nest/json_strings.h
+  include/insite/nest/kernel_status.h src/nest/kernel_status.cpp
+  include/insite/nest/multimeter.h  src/nest/multimeter.cpp
+  include/insite/nest/multimeter_container.h src/nest/multimeter_container.cpp
+  include/insite/nest/nodecollections.h src/nest/nodecollections.cpp
+  include/insite/nest/spike_container.h src/nest/spike_container.cpp
+  include/insite/nest/spikerecorders.h  src/nest/spikerecorders.cpp
+  include/insite/nest/spikes.h src/nest/spikes.cpp
+  include/insite/nest/version.h src/nest/version.cpp
+
+  include/insite/arbor/arbor_strings.h src/arbor/arbor_strings.cpp
+  include/insite/arbor/cell_endpoints.h src/arbor/cell_endpoints.cpp
+  include/insite/arbor/parameters.h src/arbor/parameters.cpp
+  include/insite/arbor/probe_endpoints.h src/arbor/probe_endpoints.cpp
+  include/insite/arbor/spike_endpoints.h src/arbor/spike_endpoints.cpp
+
+  include/insite/tvb/endpoints.h
+  include/insite/tvb/handler.h tvb/handler.cpp
+  include/insite/tvb/monitor.h tvb/monitor.cpp
+
 )
 
-target_include_directories(insite-access-node PRIVATE include/insite)
-target_include_directories(insite-access-node PRIVATE ${CMAKE_BINARY_DIR}/include)
 set_property(
   TARGET insite-access-node 
   PROPERTY CXX_STANDARD 17
+)
+
+target_include_directories(
+  insite-access-node
+  PRIVATE
+  include/insite
+  ${CMAKE_BINARY_DIR}/include
+  ${CMAKE_BINARY_DIR}/_deps/rapidjson-src/include
+  ${CMAKE_BINARY_DIR}/_deps/websocketpp-src
 )
 
 target_link_libraries(
@@ -108,13 +117,3 @@ target_link_libraries(
   optional
   asio::asio
 )
-
-target_include_directories(
-  insite-access-node
-  PRIVATE
-    ${CMAKE_BINARY_DIR}/_deps/rapidjson-src/include
-    ${CMAKE_BINARY_DIR}/_deps/websocketpp-src
-    # ${asio_INCLUDE_DIR}/include
-)
-
-message("${ASIO_INCLUDE_DIR}")

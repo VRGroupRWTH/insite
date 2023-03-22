@@ -1,10 +1,3 @@
-#include "nest_handler.h"
-#include <rapidjson/document.h>
-#include <schema_generated.h>
-#include <spdlog/fmt/bin_to_hex.h>
-#include <spdlog/fmt/ranges.h>
-#include <chrono>
-#include <cstdint>
 #include "opcodes.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -12,12 +5,19 @@
 #include "spike_util.h"
 #include "websocket_server.h"
 #include "websocketpp/frame.hpp"
+#include <chrono>
+#include <cstdint>
+#include <nest/handler.h>
+#include <rapidjson/document.h>
+#include <schema_generated.h>
+#include <spdlog/fmt/bin_to_hex.h>
+#include <spdlog/fmt/ranges.h>
 using namespace std::chrono_literals;
 
 namespace insite {
 
 void NestHandler::AddMessageIntoQueue(websocketpp::frame::opcode::value value,
-                                      std::string&& msg) {
+                                      std::string &&msg) {
   {
     std::lock_guard mutex(mut_);
     message_queue_.emplace_back(value, std::move(msg));
@@ -34,7 +34,7 @@ void NestHandler::Consumer() {
     while (!message_queue_.empty()) {
       if (message_queue_.back().first == websocketpp::frame::opcode::BINARY) {
         // storage.AddSpikesFromFlatbuffer(message_queue_.back().second.c_str());
-        const Insite::Nest::SpikeTable* spike_table =
+        const Insite::Nest::SpikeTable *spike_table =
             Insite::Nest::GetSpikeTable(message_queue_.back().second.c_str());
         double lastTimestamp = 0;
         if (spike_table->spikes()->size() > 0) {
@@ -76,4 +76,4 @@ void NestHandler::Consumer() {
   SPDLOG_DEBUG("Finished NestHandler Consumer Thread");
 }
 
-}  // namespace insite
+} // namespace insite
