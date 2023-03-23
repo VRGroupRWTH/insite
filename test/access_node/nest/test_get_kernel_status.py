@@ -12,6 +12,7 @@ import pytest
 
 #URL used for the "nest_get_kernel_status" HTTP-query
 URL_NEST_GET_KERNEL_STATUS = BASE_REQUEST_URL + "/kernelStatus"
+URL_NEST_GET_KERNEL_STATUS_V2 = BASE_REQUEST_URL_V2 + "/kernelStatus"
 
 #Dictionary that matches the names of the Kernel_status_infos to their corresponding data-types
 KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
@@ -75,6 +76,24 @@ KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES = {
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_get_kernel_status(nest_simulation):
     kernel_statuses = return_json_body_if_status_ok(URL_NEST_GET_KERNEL_STATUS)
+    assert (isinstance(kernel_statuses, list))
+
+    for kernel_status in kernel_statuses:
+        assert (isinstance(kernel_status, dict))
+
+        for status_info, status_info_type in KERNEL_STATUS_JSON_LIST_ENTRIES_WIRH_DATA_TYPES.items():
+            assert(status_info in kernel_status)
+            assert(isinstance(kernel_status[status_info], status_info_type))
+
+        assert (kernel_status['local_num_threads'] == 1)
+
+@pytest.mark.order(after="test_order.py::test_sim_finished")
+def test_get_kernel_status_v2(nest_simulation):
+    json_response = return_json_body_if_status_ok(URL_NEST_GET_KERNEL_STATUS_V2)
+    assert(JSON_VALUE_TO_FIELD_NAME.simulationId.value in json_response)
+
+    kernel_statuses = json_response[JSON_VALUE_TO_FIELD_NAME.kernelStatuses.value]
+
     assert (isinstance(kernel_statuses, list))
 
     for kernel_status in kernel_statuses:
