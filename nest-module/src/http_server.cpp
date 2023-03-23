@@ -154,7 +154,15 @@ crow::response HttpServer::GetKernelStatusV2(
     const crow::request& request) {
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  auto sim_id = std::to_string(HttpServer::user_id) + ":" + std::to_string(HttpServer::run_no[user_id]);
+
+  writer.StartObject();
+  writer.Key("simId");
+  writer.String(sim_id.c_str());
+
+  writer.Key("kernelStatus");
   storage_->GetKernelStatus(writer);
+  writer.EndObject();
 
   return crow::response(buffer.GetString());
 }

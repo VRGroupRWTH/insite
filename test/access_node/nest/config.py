@@ -14,3 +14,4 @@ class JSON_VALUE_TO_FIELD_NAME(Enum):
     lastFrame = "lastFrame"
     simulationId = "simId"
     nodeCollections = "nodeCollections"
+    kernelStatuses = "kernelStatuses"

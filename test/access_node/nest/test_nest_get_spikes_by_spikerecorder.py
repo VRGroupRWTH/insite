@@ -36,7 +36,6 @@ def get_nest_spikerecorder_ids():
     
     return id_list
 
-#Sends a nest_get_spikes_by_spikerecorder request to get all included spike-recorders and returns them
 def get_nest_spikerecorder_ids_v2():
     json_response = return_json_body_if_status_ok(URL_NEST_GET_SPIKES_BY_SPIKERECORDER_ID_V2)
     assert(JSON_VALUE_TO_FIELD_NAME.simulationId.value in json_response)
@@ -57,7 +56,6 @@ def get_nest_spikerecorder_ids_v2():
 def build_url_nest_get_spikes_by_spikerecorder(id):
     return (URL_NEST_GET_SPIKES_BY_SPIKERECORDER_ID + "/" + str(id) + "/" + JSON_VALUE_TO_FIELD_NAME.spikes.value + "/")
 
-#Combines the request-base-URL, a spike-recorder ID and the JSON-key for spikes to a String and returns it
 def build_url_nest_get_spikes_by_spikerecorder_v2(id):
     return (URL_NEST_GET_SPIKES_BY_SPIKERECORDER_ID_V2 + "/" + str(id) + "/" + JSON_VALUE_TO_FIELD_NAME.spikes.value + "/")
 
@@ -66,7 +64,6 @@ def request_nest_get_spikes_by_spikerecorder(id, parameter_values = None, parame
     prefix = build_url_nest_get_spikes_by_spikerecorder(id)
     return return_json_body_if_status_ok(build_query_string(prefix, NEST_GET_SPIKES_BY_SPIKERECORDER_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination))
 
-#Sends a nest_get_spikes_by_spikerecorder request by using a spike-recorder ID and values for all the possible parameters and returns the result in JSON-format
 def request_nest_get_spikes_by_spikerecorder_v2(id, parameter_values = None, parameter_set_combination = [False, False, False, False, False]):
     prefix = build_url_nest_get_spikes_by_spikerecorder_v2(id)
     return return_json_body_if_status_ok(build_query_string(prefix, NEST_GET_SPIKES_BY_SPIKERECORDER_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination))
@@ -79,7 +76,6 @@ def test_nest_get_spikes_by_spikerecorder_no_parameters():
         spike_data = request_nest_get_spikes_by_spikerecorder(id)
         spikes_is_valid_format(spike_data)
 
-#Tests a default nest_get_spikes_by_spikerecorder request without parameters for every possible spikerecorder
 def test_nest_get_spikes_by_spikerecorder_no_parameters_v2():
     spikerecorder_node_ids = get_nest_spikerecorder_ids_v2()
 
@@ -98,7 +94,6 @@ def test_nest_get_spikes_parameter_fromTime():
         spikes_is_valid_format(spike_data)
         spikes_simulation_times_are_greater_or_equal_than(spike_data, parameter_values[0])
 
-#Tests every possible nest_get_spikes_by_spikerecorder request with the "fromTime" parameter by checking if all returned times are greater or equal than requested for every possible spikerecorder
 def test_nest_get_spikes_parameter_fromTime_v2(): 
     parameter_values = [15, 0, 0, 0, 0]
     parameter_set_combination = [True, False, False, False, False]
@@ -120,7 +115,6 @@ def test_nest_get_spikes_parameter_toTime():
         spikes_is_valid_format(spike_data)
         spikes_simulation_times_are_smaller_or_equal_than(spike_data, parameter_values[1])
 
-#Tests a nest_get_spikes_by_spikerecorder request with the "toTime" parameter by checking if all returned times are smaller or equal than requested for every possible spikerecorder
 def test_nest_get_spikes_parameter_toTime_v2(): 
     parameter_values = [0, 25, 0, 0, 0]
     parameter_set_combination = [False, True, False, False, False]
@@ -143,7 +137,6 @@ def test_nest_get_spikes_parameter_fromTime_toTime():
         spikes_simulation_times_are_greater_or_equal_than(spike_data, parameter_values[0])
         spikes_simulation_times_are_smaller_or_equal_than(spike_data, parameter_values[1]) 
 
-#Tests a nest_get_spikes_by_spikerecorder request with the "fromTime" and the "toTime" parameter by checking if all returned times are in the requested timespan for every possible spikerecorder
 def test_nest_get_spikes_parameter_fromTime_toTime_v2(): 
     parameter_values = [10, 25, 0, 0, 0]
     parameter_set_combination = [True, True, False, False, False]
@@ -171,7 +164,6 @@ def test_nest_get_spikes_parameter_nodeIds():
         spikes_is_valid_format(spike_data)
         spikes_nodeIds_are_subset(spike_data, node_ids)
 
-#Tests a nest_get_spikes_by_spikerecorder request with the "nodeIds" parameter by checking if only the requested nodeIDs are returned for every possible spikerecorder
 def test_nest_get_spikes_parameter_nodeIds_v2():
     node_ids = [11, 101, 2759]
     parameter_set_combination = [False, False, True, False, False]
@@ -199,7 +191,6 @@ def test_nest_get_spikes_parameter_skip():
         spikes_is_valid_format(spike_data)
         spikes_has_offset_in_comparison_to(build_url_nest_get_spikes_by_spikerecorder(id), spike_data, NEST_GET_SPIKES_BY_SPIKERECORDER_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination)
 
-#Test a nest_get_spikes_by_spikerecorder request with the "skip" parameter by checking if a request without the "skip" parameter returns the same result but offset for every possible spikerecorder
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_skip_v2():
     parameter_values = [0, 0, 0, 4, 0]
@@ -222,7 +213,6 @@ def test_nest_get_spikes_parameter_top():
         spikes_is_valid_format(spike_data)
         spikes_length_less_or_equal_to(spike_data, parameter_values[4])
 
-#Test a nest_get_spikes_by_spikerecorder request with the "top" parameter by checking if the number of entries is smaller or equal than the desired amount for every possible spikerecorder
 def test_nest_get_spikes_parameter_top_v2():
     parameter_values = [0, 0, 0, 0, 23]
     parameter_set_combination = [False, False, False, False, True]
@@ -260,7 +250,6 @@ def test_nest_get_spikes_all_parameters():
         spikes_has_offset_in_comparison_to(build_url_nest_get_spikes_by_spikerecorder(id), spike_data, NEST_GET_SPIKES_BY_SPIKERECORDER_PARAMETER_NAME_LIST, paramater_values)
         spikes_length_less_or_equal_to(spike_data, paramater_values[4])
 
-#Tests a nest_get_spikes_by_spikerecorder request with the paramaters: "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data for every possible spikerecorder
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_all_parameters_v2():
     paramater_values = [
@@ -309,7 +298,6 @@ def test_nest_get_spikes_parameter_combinations():
         query_url = build_url_nest_get_spikes_by_spikerecorder(id)
         check_all_parameter_combinations(query_url, NEST_GET_SPIKES_BY_SPIKERECORDER_PARAMETER_NAME_LIST, paramater_values)
 
-#Tests every possible combination of the nest_get_spikes query-parameters "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_combinations_v2():
     paramater_values = [
@@ -358,7 +346,7 @@ def test_nest_get_spikes_last_frame_sim_finished_v2():
     assert(spikes_without_last['lastFrame'] == 1)
 
 @pytest.mark.order("first")
-def test_nest_get_spikes_last_frame_while_running(nest_simulation,printer):
+def test_nest_get_spikes_last_frame_while_running(nest_simulation, printer):
     simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
     end_time = simulation_time_info['end']
     curr_time = simulation_time_info['current']
@@ -372,7 +360,7 @@ def test_nest_get_spikes_last_frame_while_running(nest_simulation,printer):
     assert(spikes_without_last['lastFrame'] == False)
 
 @pytest.mark.order("first")
-def test_nest_get_spikes_last_frame_while_running_v2(nest_simulation,printer):
+def test_nest_get_spikes_last_frame_while_running_v2(nest_simulation, printer):
     simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
     end_time = simulation_time_info['end']
     curr_time = simulation_time_info['current']

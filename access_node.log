@@ -1,5 +1,5 @@
-[2023-03-21 17:13:29.389] [info] [main.cpp:31] Starting Insite access node
-[2023-03-21 17:13:29.389] [debug] [config.cpp:190] Server Config:
+[2023-03-23 15:02:05.589] [info] [main.cpp:31] Starting Insite access node
+[2023-03-23 15:02:05.589] [debug] [config.cpp:190] Server Config:
 Simulation Nodes NEST #: Access Node Websocket Port: {}
 
 Simulation Nodes ARBOR #: 1
@@ -9,8 +9,8 @@ Simulation Nodes Same Base URL: localhost
 Simulation Nodes Ports Consecutive: true
 Access Node Port: true
 
-[2023-03-21 17:13:29.389] [debug] [config.cpp:145] [ServerConfig::GenerateRequestUrls] Added http://localhost:18080 to the request urls
-[2023-03-21 17:13:29.389] [debug] [config.cpp:145] [ServerConfig::GenerateRequestUrls] Added http://localhost:1337 to the request urls
-[2023-03-21 17:13:29] [info] asio listen error: asio.system:98 (Address already in use)
+[2023-03-23 15:02:05.589] [debug] [config.cpp:145] [ServerConfig::GenerateRequestUrls] Added http://localhost:18080 to the request urls
+[2023-03-23 15:02:05.589] [debug] [config.cpp:145] [ServerConfig::GenerateRequestUrls] Added http://localhost:1337 to the request urls
+[2023-03-23 15:02:05] [info] asio listen error: asio.system:98 (Address already in use)
 terminate called after throwing an instance of 'websocketpp::exception'
   what():  Address already in use

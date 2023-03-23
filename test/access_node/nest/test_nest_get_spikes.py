@@ -101,6 +101,7 @@ def test_nest_get_spikes_parameter_nodeIds_v2():
 
     spikes_nodeIds_are_subset(filtered_spikes, parameter_values[2])
     assert(filtered_spikes[JSON_VALUE_TO_FIELD_NAME.simulationId.value] == "0:1")
+
 #Test a nest_get_spikes request with the "skip" parameter by checking if a request without the "skip" parameter returns the same result but offset
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_skip():
@@ -112,7 +113,6 @@ def test_nest_get_spikes_parameter_skip():
 
     spikes_has_offset_in_comparison_to(URL_NEST_GET_SPIKES, filtered_spikes, NEST_GET_SPIKES_PARAMETER_NAME_LIST, parameter_values, parameter_set_combination)
 
-#Test a nest_get_spikes request with the "skip" parameter by checking if a request without the "skip" parameter returns the same result but offset
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_skip_v2():
     parameter_values = [0, 0, 0, 4, 0]
@@ -164,7 +164,6 @@ def test_nest_get_spikes_all_parameters():
     spikes_has_offset_in_comparison_to(URL_NEST_GET_SPIKES, filtered_spikes, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
     spikes_length_less_or_equal_to(filtered_spikes, paramater_values[4])
 
-
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_all_parameters_v2():
     paramater_values = [
@@ -196,6 +195,18 @@ def test_nest_get_spikes_parameter_combinations():
     ]
 
     check_all_parameter_combinations(URL_NEST_GET_SPIKES, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
+
+@pytest.mark.order(after="test_order.py::test_sim_finished")
+def test_nest_get_spikes_parameter_combinations_v2():
+    paramater_values = [
+        2,
+        40,
+        [14,3,4,7,11,101],
+        2,
+        200
+    ]
+
+    check_all_parameter_combinations(URL_NEST_GET_SPIKES_V2, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
 
 @pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_last_frame_sim_finished():

@@ -84,8 +84,8 @@ add_executable(
   include/insite/arbor/spike_endpoints.h src/arbor/spike_endpoints.cpp
 
   include/insite/tvb/endpoints.h
-  include/insite/tvb/handler.h tvb/handler.cpp
-  include/insite/tvb/monitor.h tvb/monitor.cpp
+  include/insite/tvb/handler.h src/tvb/handler.cpp
+  include/insite/tvb/monitor.h src/tvb/monitor.cpp
 
 )
 
