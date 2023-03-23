@@ -1,3 +1,4 @@
+#include <nest/spike_container.h>
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/vector.h"
@@ -236,6 +237,7 @@ SpikeVector::iterator SpikeContainer::Begin(tl::optional<uint64_t> skip,
   }
   return Begin(std_skip, std_top);
 }
+
 SpikeVector::iterator SpikeContainer::Begin(std::optional<uint64_t> skip,
                                             std::optional<uint64_t> top) {
   uint64_t start_index = 0;
@@ -266,4 +268,19 @@ SpikeVector::iterator SpikeContainer::Begin(std::optional<uint64_t> skip,
 }
 
 SpikeVector::iterator SpikeContainer::Begin() { return spikes_.begin(); }
+
+std::size_t SpikeContainer::Size() { return spikes_.size(); };
+
+SpikeVector::iterator SpikeContainer::End() { return spikes_.end(); };
+
+SpikeVector& SpikeContainer::GetSpikeVector() { return spikes_; };
+
+Insite::Nest::Spikes SpikeContainer::Pack(const Spike &spike) {
+  return Insite::Nest::Spikes{spike.time, spike.node_id};
+};
+
+Spike SpikeContainer::UnPack(const Insite::Nest::Spikes &spike) {
+  return Spike{spike.spike_time(), spike.node_id()};
+};
+
 } // namespace insite

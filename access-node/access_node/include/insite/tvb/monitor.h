@@ -1,15 +1,15 @@
 #pragma once
-#include "circular_timeseries.h"
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 #include <cstdint>
 #include <iterator>
 #include <limits>
 #include <optional>
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "circular_timeseries.h"
 // #include "params.h"
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/spdlog.h"
@@ -17,20 +17,18 @@
 
 namespace insite {
 
-template <typename T> class TvbMonitor {
+template <typename T>
+class TvbMonitor {
   using It = typename std::vector<T>::iterator;
 
-public:
+ public:
   uint32_t internal_id;
   std::string name;
   std::string uid;
   std::vector<std::string> observed_variables;
 
-  TvbMonitor(std::string name, uint32_t internal_id, std::string uid,
-             std::vector<std::string> observed_variables)
-      : name(std::move(name)), internal_id(internal_id), uid(std::move(uid)),
-        data(10, {1, 76, 2}),
-        observed_variables(std::move(observed_variables)) {
+  TvbMonitor(std::string name, uint32_t internal_id, std::string uid, std::vector<std::string> observed_variables)
+      : name(std::move(name)), internal_id(internal_id), uid(std::move(uid)), data(10, {1, 76, 2}), observed_variables(std::move(observed_variables)) {
     stride_length.push_back(1);
     stride_length.push_back(76);
     stride_length.push_back(2);
@@ -38,7 +36,7 @@ public:
   };
 
   void
-  SerializeMetadataToJson(rapidjson::Writer<rapidjson::StringBuffer> &writer) {
+  SerializeMetadataToJson(rapidjson::Writer<rapidjson::StringBuffer>& writer) {
     writer.StartObject();
     writer.Key("uid");
     writer.String(uid.c_str());
@@ -48,14 +46,14 @@ public:
     writer.String(name.c_str());
     writer.Key("observedVariables");
     writer.StartArray();
-    for (const auto &var : observed_variables) {
+    for (const auto& var : observed_variables) {
       writer.String(var.c_str());
     }
     writer.EndArray();
     writer.EndObject();
   }
 
-  void SerializeDataToJson(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  void SerializeDataToJson(rapidjson::Writer<rapidjson::StringBuffer>& writer,
                            tl::optional<double> from_time,
                            tl::optional<double> to_time) {
     writer.StartObject();
@@ -76,7 +74,7 @@ public:
         writer.Key(observed_variables[var].c_str());
         writer.StartArray();
         auto res = data.GetVarByIndex(timestep, var);
-        for (auto &data : res) {
+        for (auto& data : res) {
           if constexpr (std::is_same_v<T, double>) {
             writer.Double(data);
           }
@@ -100,17 +98,18 @@ public:
   };
 };
 
-} // namespace insite
+}  // namespace insite
 
-template <typename T> struct fmt::formatter<insite::TvbMonitor<T>> {
-  constexpr auto parse(format_parse_context &ctx) // NOLINT
+template <typename T>
+struct fmt::formatter<insite::TvbMonitor<T>> {
+  constexpr auto parse(format_parse_context& ctx)  // NOLINT
       -> decltype(ctx.begin()) {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const insite::TvbMonitor<T> &monitor, // NOLINT
-              FormatContext &ctx) const -> decltype(ctx.out()) {
+  auto format(const insite::TvbMonitor<T>& monitor,  // NOLINT
+              FormatContext& ctx) const -> decltype(ctx.out()) {
     return fmt::format_to(ctx.out(), "Monitor {} Name: {}, Observed Vars: {}",
                           monitor.uid, monitor.name,
                           monitor.observed_variables);

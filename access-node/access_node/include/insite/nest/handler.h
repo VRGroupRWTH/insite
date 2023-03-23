@@ -18,10 +18,8 @@ class NestHandler {
  public:
   NestHandler() = default;
   void ParseDataPacket(const std::string& payload);
-  void SerializeMonitorsJson(
-      rapidjson::Writer<rapidjson::StringBuffer>& writer);
-  void AddMessageIntoQueue(websocketpp::frame::opcode::value value,
-                           std::string&& msg);
+  void SerializeMonitorsJson(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+  void AddMessageIntoQueue(websocketpp::frame::opcode::value value, std::string&& msg);
 
   void StartThread() {
     consumer_thread_ = std::thread(&NestHandler::Consumer, this);
@@ -41,8 +39,7 @@ class NestHandler {
   bool runConsumerLoop_ = true;
   // std::vector<std::pair<websocketpp::frame::opcode::value ,std::string>>
   // message_queue_;
-  std::deque<std::pair<websocketpp::frame::opcode::value, std::string>>
-      message_queue_;
+  std::deque<std::pair<websocketpp::frame::opcode::value, std::string>> message_queue_;
   uint32_t number_of_monitors = 0;
   std::thread consumer_thread_;
   // std::vector<TvbMonitor<double>> double_monitors_;

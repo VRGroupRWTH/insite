@@ -58,14 +58,14 @@ add_executable(
   include/insite/config.h src/config.cpp
   include/insite/opcodes.h
   include/insite/query_params.h
-  include/insite/query_string_builder.h
+  include/insite/query_string_builder.h src/query_string_builder.cpp
   include/insite/resource_flags.h
-  include/insite/spike_util.h
+  include/insite/spike_util.h src/spike_util.cpp
   include/insite/utility_functions.h src/utility_functions.cpp
   include/insite/websocket_sender.h src/websocket_sender.cpp
   include/insite/websocket_server.h src/websocket_server.cpp
 
-  include/insite/nest/endpoints.h
+  include/insite/nest/endpoints.h src/nest/endpoints.cpp
   include/insite/nest/handler.h src/nest/handler.cpp
   include/insite/nest/json_strings.h
   include/insite/nest/kernel_status.h src/nest/kernel_status.cpp
@@ -73,6 +73,7 @@ add_executable(
   include/insite/nest/multimeter_container.h src/nest/multimeter_container.cpp
   include/insite/nest/nodecollections.h src/nest/nodecollections.cpp
   include/insite/nest/spike_container.h src/nest/spike_container.cpp
+  include/insite/nest/spikerecorder_container.h  src/nest/spikerecorder_container.cpp
   include/insite/nest/spikerecorders.h  src/nest/spikerecorders.cpp
   include/insite/nest/spikes.h src/nest/spikes.cpp
   include/insite/nest/version.h src/nest/version.cpp
@@ -82,8 +83,9 @@ add_executable(
   include/insite/arbor/parameters.h src/arbor/parameters.cpp
   include/insite/arbor/probe_endpoints.h src/arbor/probe_endpoints.cpp
   include/insite/arbor/spike_endpoints.h src/arbor/spike_endpoints.cpp
+  include/insite/arbor/arbor_endpoints.h src/arbor/arbor_endpoints.cpp
 
-  include/insite/tvb/endpoints.h
+  include/insite/tvb/endpoints.h src/tvb/endpoints.cpp
   include/insite/tvb/handler.h src/tvb/handler.cpp
   include/insite/tvb/monitor.h src/tvb/monitor.cpp
 

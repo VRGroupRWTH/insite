@@ -58,8 +58,7 @@ auto ParseEnvVarIfExist(const std::string &field_name) -> tl::optional<T> {
 }
 
 template <typename T>
-auto UpdateVarIfEnvVarExists(T &var_to_update, const std::string &field_name)
-    -> bool {
+auto UpdateVarIfEnvVarExists(T &var_to_update, const std::string &field_name)-> bool {
   auto var = ParseEnvVarIfExist<T>(field_name);
   if (var) {
     var_to_update = var.value();

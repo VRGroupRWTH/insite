@@ -3,6 +3,7 @@
 // stores constant strings that are used to access json-properties in http-query
 // results
 namespace insite::json_strings {
+    
 inline static const char kSimTimes[] = "simulationTimes";
 inline static const char kSimId[] = "simId";
 inline static const char kLastFrame[] = "lastFrame";
