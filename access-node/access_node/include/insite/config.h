@@ -35,8 +35,7 @@ public:
   // void GenerateUrls();
   void GenerateUrls(std::string base_url, int port_number_nodes);
 
-  void GenerateUrls(std::vector<std::string> &url_container,
-                    const std::string &base_url, int port_number_nodes);
+  void GenerateUrls(std::vector<std::string> &url_container, const std::string &base_url, int port_number_nodes);
 
   bool ports_consecutive_nest = true;
   bool ports_consecutive_arbor = true;
