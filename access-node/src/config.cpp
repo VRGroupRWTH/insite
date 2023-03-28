@@ -1,30 +1,30 @@
 #include "config.h"
+#include <spdlog/spdlog.h>
+#include <toml++/toml.h>
+#include <yaml-cpp/yaml.h>
+#include <cstdlib>
+#include <iostream>
+#include <iterator>
+#include <string_view>
+#include <type_traits>
+#include <vector>
 #include "filesystem"
 #include "string_util.h"
 #include "tl/optional.hpp"
 #include "yaml-cpp/node/parse.h"
-#include <cstdlib>
-#include <iostream>
-#include <iterator>
-#include <spdlog/spdlog.h>
-#include <string_view>
-#include <toml++/toml.h>
-#include <type_traits>
-#include <vector>
-#include <yaml-cpp/yaml.h>
 
 namespace insite {
 
 using VecInt = int;
 
-template <typename> struct IsStdVector : std::false_type {};
+template <typename>
+struct IsStdVector : std::false_type {};
 
 template <typename T, typename A>
 struct IsStdVector<std::vector<T, A>> : std::true_type {};
 
 template <typename T>
-auto ParseIfFieldExists(const YAML::Node &config, const std::string &field_name,
-                        T default_value) -> T {
+auto ParseIfFieldExists(const YAML::Node& config, const std::string& field_name, T default_value) -> T {
   if (auto field_node = config[field_name]; field_node) {
     if constexpr (IsStdVector<T>::value) {
       if (field_node.IsSequence()) {
@@ -43,8 +43,8 @@ auto ParseIfFieldExists(const YAML::Node &config, const std::string &field_name,
 }
 
 template <typename T>
-auto ParseEnvVarIfExist(const std::string &field_name) -> tl::optional<T> {
-  auto *env_var = std::getenv(field_name.c_str());
+auto ParseEnvVarIfExist(const std::string& field_name) -> tl::optional<T> {
+  auto* env_var = std::getenv(field_name.c_str());
   if (env_var) {
     try {
       return ConvertStringToType<T>(env_var);
@@ -58,7 +58,7 @@ auto ParseEnvVarIfExist(const std::string &field_name) -> tl::optional<T> {
 }
 
 template <typename T>
-auto UpdateVarIfEnvVarExists(T &var_to_update, const std::string &field_name)-> bool {
+auto UpdateVarIfEnvVarExists(T& var_to_update, const std::string& field_name) -> bool {
   auto var = ParseEnvVarIfExist<T>(field_name);
   if (var) {
     var_to_update = var.value();
@@ -67,39 +67,41 @@ auto UpdateVarIfEnvVarExists(T &var_to_update, const std::string &field_name)-> 
   return false;
 }
 
-void ServerConfig::ParseYamlConfigFromString(const std::string &content) {
+void ServerConfig::ParseYamlConfigFromString(const std::string& content) {
   YAML::Node config = YAML::Load(content);
 
   // ARBOR Variables
+  auto sim_config = config["abor"];
   number_of_nodes_arbor = ParseIfFieldExists<int>(
-      config["arbor"], "numberOfNodes", number_of_nodes_arbor);
+      sim_config, "numberOfNodes", number_of_nodes_arbor);
 
   base_url =
-      ParseIfFieldExists<std::string>(config["nest"], "baseUrl", base_url);
+      ParseIfFieldExists<std::string>(sim_config, "baseUrl", base_url);
 
   port_number_nodes_nest =
-      ParseIfFieldExists<int>(config["nest"], "ports", port_number_nodes_nest);
+      ParseIfFieldExists<int>(sim_config, "ports", port_number_nodes_nest);
 
   ports_consecutive_nest = ParseIfFieldExists<bool>(
-      config["nest"], "portsConsecutive", ports_consecutive_nest);
+      sim_config, "portsConsecutive", ports_consecutive_nest);
 
-  same_base_url_nest = ParseIfFieldExists<bool>(config["nest"], "sameBaseUrl",
+  same_base_url_nest = ParseIfFieldExists<bool>(sim_config, "sameBaseUrl",
                                                 same_base_url_nest);
 
   // NEST Variables
+  sim_config = config["nest"];
   number_of_nodes_nest = ParseIfFieldExists<int>(
-      config["nest"], "numberOfNodes", number_of_nodes_nest);
+      sim_config, "numberOfNodes", number_of_nodes_nest);
 
   base_url =
-      ParseIfFieldExists<std::string>(config["nest"], "baseUrl", base_url);
+      ParseIfFieldExists<std::string>(sim_config, "baseUrl", base_url);
 
   port_number_nodes_nest =
-      ParseIfFieldExists<int>(config["nest"], "ports", port_number_nodes_nest);
+      ParseIfFieldExists<int>(sim_config, "ports", port_number_nodes_nest);
 
   ports_consecutive_nest = ParseIfFieldExists<bool>(
-      config["nest"], "portsConsecutive", ports_consecutive_nest);
+      sim_config, "portsConsecutive", ports_consecutive_nest);
 
-  same_base_url_nest = ParseIfFieldExists<bool>(config["nest"], "sameBaseUrl",
+  same_base_url_nest = ParseIfFieldExists<bool>(sim_config, "sameBaseUrl",
                                                 same_base_url_nest);
   //
   // Access Node Variables
@@ -110,13 +112,13 @@ void ServerConfig::ParseYamlConfigFromString(const std::string &content) {
       config["accessNode"], "websocketPort", port_number_access_ws);
 }
 
-void ServerConfig::ParseYamlConfigFromFile(const std::string &filename) {
+void ServerConfig::ParseYamlConfigFromFile(const std::string& filename) {
   std::ifstream fin(filename);
   ParseYamlConfigFromString(std::string(std::istreambuf_iterator<char>(fin),
                                         std::istreambuf_iterator<char>()));
 }
 
-void ServerConfig::ParseTomlConfigFromFile(const std::string &filename) {
+void ServerConfig::ParseTomlConfigFromFile(const std::string& filename) {
   auto config = toml::parse_file(filename);
   std::stringstream yaml;
   yaml << toml::yaml_formatter(config);
@@ -131,12 +133,19 @@ void ServerConfig::ParseConfigFromEnv() {
   UpdateVarIfEnvVarExists(number_of_nodes_nest, "INSITE_NEST_NUM_NODES");
   UpdateVarIfEnvVarExists(base_url, "INSITE_NEST_BASE_URL");
   UpdateVarIfEnvVarExists(port_number_nodes_nest, "INSITE_NEST_PORT");
+
+  UpdateVarIfEnvVarExists(ports_consecutive_arbor, "INSITE_ARBOR_PORTS_CONSECUTIVE");
+  UpdateVarIfEnvVarExists(same_base_url_arbor, "INSITE_ARBOR_SAME_BASE_URL");
+  UpdateVarIfEnvVarExists(number_of_nodes_arbor, "INSITE_ARBOR_NUM_NODES");
+  UpdateVarIfEnvVarExists(base_url_arbor, "INSITE_ARBOR_BASE_URL");
+  UpdateVarIfEnvVarExists(port_number_nodes_arbor, "INSITE_ARBOR_PORT");
+
   UpdateVarIfEnvVarExists(port_number_access, "INSITE_ACCESS_NODE_PORT");
   UpdateVarIfEnvVarExists(port_number_access_ws, "INSITE_ACCESS_NODE_WSPORT");
 }
 
-void ServerConfig::GenerateUrls(std::vector<std::string> &url_container,
-                                const std::string &base_url,
+void ServerConfig::GenerateUrls(std::vector<std::string>& url_container,
+                                const std::string& base_url,
                                 int port_number_nodes) {
   std::string url("http://" + base_url + ":" +
                   std::to_string(port_number_nodes));
@@ -161,18 +170,20 @@ void ServerConfig::GenerateRequestUrls() {
 }
 
 std::string ServerConfig::ToString() const {
-  return fmt::format("Server Config:\n"
-                     "Simulation Nodes NEST #: {}\n"
-                     "Simulation Nodes ARBOR #: {}\n"
-                     "Simulation Nodes Ports: {}\n"
-                     "Simulation Nodes URLs: {}\n"
-                     "Simulation Nodes Same Base URL: {}\n"
-                     "Simulation Nodes Ports Consecutive: {}\n"
-                     "Access Node Port: {}\n",
-                     "Access Node Websocket Port: {}\n", number_of_nodes_nest,
-                     number_of_nodes_arbor, port_number_nodes_nest, base_url,
-                     same_base_url_nest, ports_consecutive_nest,
-                     port_number_access, port_number_access_ws);
+  return fmt::format(
+      "\nServer Config: \n"
+      "Simulation Nodes NEST #: {0}\n"
+      "Simulation Nodes ARBOR #: {1}\n"
+      "Simulation Nodes Ports: {2}\n"
+      "Simulation Nodes URLs: {3}\n"
+      "Simulation Nodes Same Base URL: {4}\n"
+      "Simulation Nodes Ports Consecutive: {5}\n"
+      "Access Node Port: {6}\n"
+      "Access Node Websocket Port: {7}\n",
+      number_of_nodes_nest,
+      number_of_nodes_arbor, port_number_nodes_nest, base_url,
+      same_base_url_nest, ports_consecutive_nest,
+      port_number_access, port_number_access_ws);
 }
 
 void ServerConfig::ParseConfigIfExists() {
@@ -189,15 +200,16 @@ void ServerConfig::ParseConfigIfExists() {
   SPDLOG_DEBUG("{}", ToString());
 }
 
-} // namespace insite
+}  // namespace insite
 
-template <> struct fmt::formatter<insite::ServerConfig> {
-  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+template <>
+struct fmt::formatter<insite::ServerConfig> {
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const insite::ServerConfig &config, FormatContext &ctx) const
+  auto format(const insite::ServerConfig& config, FormatContext& ctx) const
       -> decltype(ctx.out()) {
     // clang-format off
     return fmt::format_to(ctx.out(),config.ToString());
