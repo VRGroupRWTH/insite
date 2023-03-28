@@ -42,8 +42,8 @@ endif()
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/schema_generated.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include
-    COMMAND flatc --cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/insite/flatbuffer-schema/schema.fbs
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/include
+    COMMAND flatc --cpp  -o ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include/insite/flatbuffer-schema/schema.fbs
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/include/insite/flatbuffer-schema/schema.fbs
 )
 
