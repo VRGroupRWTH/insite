@@ -27,7 +27,7 @@ build:
         - ninja install
 
         - cd .. && mkdir build_access_node && cd build_access_node
-        - cmake -G Ninja ../access-node/access_node
+        - cmake -G Ninja ../access-node
         - ninja insite-access-node
 
 test:

@@ -27,7 +27,7 @@ build:
         - ninja install
 
         - cd .. && mkdir build_access_node && cd build_access_node
-        - cmake -G Ninja ../access-node/access_node
+        - cmake -G Ninja ../access-node
         - ninja insite-access-node
 
 test:
@@ -47,7 +47,7 @@ test:
         expire_in: 1 day
         when: always
     before_script:
-        - pip3 install -r test-requirements.txt
+        - pip3 install -r test/test-requirements.txt
         - cd build_nest_module
         - ninja install
         - cd ..
