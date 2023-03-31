@@ -3,3 +3,5 @@ pytest
 pytest-repeat
 pytest-order
 pytest-print
+six
+numpy
