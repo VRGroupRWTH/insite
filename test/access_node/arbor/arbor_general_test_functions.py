@@ -18,7 +18,7 @@ def return_json_body_if_status_ok(request):
 
 #Converts the given spike data to pairs out of nodeId and corresponding simulation times
 def zip_spikes(spikes):
-    return zip(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value], spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])
+    return zip(spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value], spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])
 
 #Checks if the given spike data has a correct length, is sorted by time and does not include values smaller than zero
 def spikes_is_valid_format(spikes):
@@ -36,23 +36,23 @@ def spikes_is_sorted_by_time(spikes):
 
 #Checks if nodeIds of the given spike data have the desired minimum
 def spikes_nodeIds_are_greater_or_equal_than(spikes, minimum):
-    for id in spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]:
+    for id in spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]:
         assert(id >= minimum)
 
 #Checks if the length of the two given spike-data sets is equal and if exactly the two wanted data-sets are included
 def spikes_is_data_length_valid(spikes, canBeEmpty = False):
     assert(JSON_VALUE_TO_FIELD_NAME.simulationTimes.value in spikes)
-    assert(JSON_VALUE_TO_FIELD_NAME.nodeIds.value in spikes)
+    assert(JSON_VALUE_TO_FIELD_NAME.gIds.value in spikes)
     assert(len(spikes.keys()) == 2)
-    assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) == len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
+    assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]) == len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
     if not canBeEmpty:
-        assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) > 0)
+        assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]) > 0)
 
 #Checks and returns whether the two given spike data-sets are equal
 def spikes_is_data_equal(spike_data_a, spike_data_b):
     spike_data_a[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]
-    spike_data_a[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]
+    spike_data_a[JSON_VALUE_TO_FIELD_NAME.gIds.value] == spike_data_b[JSON_VALUE_TO_FIELD_NAME.gIds.value]
 
 #Checks if the given simulation times are all greater than the desired time
 def spikes_simulation_times_are_greater_or_equal_than(spikes, minimum_time):
@@ -66,18 +66,18 @@ def spikes_simulation_times_are_smaller_or_equal_than(spikes, maximum_time):
 
 #Checks if the given spike-data only includes the desired nodeIDs
 def spikes_nodeIds_are_subset(spikes, nodeId_list):
-    for id in spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]:
+    for id in spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]:
         assert(id in nodeId_list)
 
 #Checks if the given skipped spikes have the desired offset in comparison to the given unskipped spikes
 def spikes_has_offset(skipped_spikes, non_skipped_spikes, skip):
-    assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]))
+    assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]))
     assert(len(skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) + skip == len(non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]))
 
-    skipped_nodeIds = non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][skip::]
+    skipped_nodeIds = non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value][skip::]
     skipped_simulationTimes = non_skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][skip::]
 
-    assert(skipped_nodeIds == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value])
+    assert(skipped_nodeIds == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value])
     assert(skipped_simulationTimes == skipped_spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value])
 
 #Receives an list of spikes as input that was queried with the offset set to a value > 0.
@@ -97,7 +97,7 @@ def spikes_has_offset_in_comparison_to(REQUEST_URL, skipped_spikes, PARAMETER_NA
         startIndex = nest_get_spikes_query_parameters[3]
         endIndex = nest_get_spikes_query_parameters[3] + nest_get_spikes_query_parameters[4]
 
-        spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.nodeIds.value][startIndex:endIndex]
+        spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.gIds.value] = spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.gIds.value][startIndex:endIndex]
         spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = spikes_no_skip_no_top[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value][startIndex:endIndex]
 
         spikes_has_offset(skipped_spikes, spikes_no_skip_no_top, 0)
@@ -113,7 +113,7 @@ def spikes_has_offset_in_comparison_to(REQUEST_URL, skipped_spikes, PARAMETER_NA
 #Checks if the length of the given spike-data is less or equal to the maximum_number
 #Returns true if this is the case, false otherwise
 def spikes_length_less_or_equal_to(spikes, maximum_number):
-    assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value]) <= maximum_number)
+    assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value]) <= maximum_number)
     assert(len(spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value]) <= maximum_number)
 
 #Filters and returns the given spike data by deleting every entrie with a simulation time higher than the minimum time
@@ -128,7 +128,7 @@ def get_spikes_with_minimum_time(spikes, minimum_time):
             filtered_nodes.append(node_id)
 
     spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = filtered_times
-    spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = filtered_nodes
+    spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value] = filtered_nodes
 
     return spikes
 
@@ -144,7 +144,7 @@ def get_spikes_with_maximum_time(spikes, maximum_time):
             filtered_nodes.append(node_id)
 
     spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = filtered_times
-    spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = filtered_nodes
+    spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value] = filtered_nodes
 
     return spikes
 
@@ -160,7 +160,7 @@ def get_spikes_with_nodeIds(spikes, nodeIds):
             filtered_nodes.append(node_id)
 
     spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = filtered_times
-    spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = filtered_nodes
+    spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value] = filtered_nodes
 
     return spikes
 
@@ -179,7 +179,7 @@ def get_offset_spike_data(spikes, offset):
         count = count + 1
 
     spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = filtered_times
-    spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = filtered_nodes
+    spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value] = filtered_nodes
 
     return spikes
 
@@ -198,7 +198,7 @@ def get_top_spike_data(spikes, max_number):
         count = count + 1
 
     spikes[JSON_VALUE_TO_FIELD_NAME.simulationTimes.value] = filtered_times
-    spikes[JSON_VALUE_TO_FIELD_NAME.nodeIds.value] = filtered_nodes
+    spikes[JSON_VALUE_TO_FIELD_NAME.gIds.value] = filtered_nodes
 
     return spikes
 

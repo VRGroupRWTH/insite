@@ -8,7 +8,7 @@ URL_NEST_GET_SPIKES = BASE_REQUEST_URL + "/spikes/"
 class NEST_GET_SPIKES_PARAMETER_NAME_LIST (Enum):
     fromTime = "fromTime"
     toTime = "toTime"
-    nodeIds = "gId"
+    gId = "gId"
     skip = "skip"
     top = "top"
 
@@ -80,7 +80,6 @@ def test_nest_get_spikes_parameter_top():
     spikes_length_less_or_equal_to(filtered_spikes, parameter_values[4])
 
 #Tests a nest_get_spikes request with the paramaters: "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data
-@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_all_parameters():
     paramater_values = [
         2,
@@ -100,7 +99,6 @@ def test_nest_get_spikes_all_parameters():
     spikes_length_less_or_equal_to(filtered_spikes, paramater_values[4])
 
 #Tests every possible combination of the nest_get_spikes query-parameters "fromTime", "toTime", "nodeIds", "skip" and "top" by checking if the conditions for each of the parameters apply to the returned data
-@pytest.mark.order(after="test_order.py::test_sim_finished")
 def test_nest_get_spikes_parameter_combinations():
     paramater_values = [
         2,
@@ -111,24 +109,3 @@ def test_nest_get_spikes_parameter_combinations():
     ]
 
     check_all_parameter_combinations(URL_NEST_GET_SPIKES, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
-
-#@pytest.mark.order(after="test_order.py::test_sim_finished")
-#def test_nest_get_spikes_last_frame_sim_finished():
-#    end_time = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')['end']
-#     
-#    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES,[NEST_GET_SPIKES_PARAMETER_NAME_LIST.toTime],[end_time - 1.0]))
-#    assert(spikes_without_last['lastFrame'] == 0)
-#
-#    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES))
-#    assert(spikes_without_last['lastFrame'] == 1)
-#
-#@pytest.mark.order("first")
-#def test_nest_get_spikes_last_frame_while_running(nest_simulation,printer):
-#    simulation_time_info = return_json_body_if_status_ok(BASE_REQUEST_URL + '/simulationTimeInfo')
-#    end_time = simulation_time_info['end']
-#    curr_time = simulation_time_info['current']
-#    if curr_time == end_time:
-#        return
-#    
-#    spikes_without_last = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES))
-#    assert(spikes_without_last['lastFrame'] == False)
