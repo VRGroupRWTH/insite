@@ -8,7 +8,7 @@ URL_NEST_GET_SPIKES = BASE_REQUEST_URL + "/spikes/"
 class NEST_GET_SPIKES_PARAMETER_NAME_LIST (Enum):
     fromTime = "fromTime"
     toTime = "toTime"
-    nodeIds = "nodeIds"
+    nodeIds = "gId"
     skip = "skip"
     top = "top"
 
@@ -49,7 +49,7 @@ def test_nest_get_spikes_parameter_fromTime_toTime():
 
 #Tests a nest_get_spikes request with the "nodeIds" parameter by checking if only the requested nodeIDs are returned
 def test_nest_get_spikes_parameter_nodeIds():
-    node_ids = [11, 101]
+    node_ids = [0, 1]
     parameter_values = [0, 0, node_ids, 0, 0]
     parameter_set_combination = [False, False, True, False, False]
     
@@ -84,10 +84,10 @@ def test_nest_get_spikes_parameter_top():
 def test_nest_get_spikes_all_parameters():
     paramater_values = [
         2,
-        40,
-        [14,3,4,7,11,101],
+        500,
+        [1],
         2,
-        20000
+        4
     ]
     
     filtered_spikes = return_json_body_if_status_ok(build_query_string(URL_NEST_GET_SPIKES, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values))
@@ -104,10 +104,10 @@ def test_nest_get_spikes_all_parameters():
 def test_nest_get_spikes_parameter_combinations():
     paramater_values = [
         2,
-        40,
-        [14,3,4,7,11,101],
+        500,
+        [0],
         2,
-        200
+        20
     ]
 
     check_all_parameter_combinations(URL_NEST_GET_SPIKES, NEST_GET_SPIKES_PARAMETER_NAME_LIST, paramater_values)
