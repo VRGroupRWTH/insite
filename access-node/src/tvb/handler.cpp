@@ -81,14 +81,10 @@ void TvbHandler::Consumer() {
 }
 void TvbHandler::ParseSimInfo(const std::string& payload) {
   sim_info.Parse(payload.c_str() + 1);
-  // spdlog::error(payload);
 }
 
 void TvbHandler::ParseSimInfoReturn(const std::string& payload) {
-  // spdlog::error("ParseSimInfoReturn: {}", payload);
-  // sim_info.Parse(payload.c_str() + 1);
   sim_info_promise.set_value(payload.substr(1));
-  // spdlog::error(payload);
 }
 
 void TvbHandler::ParseNewMonitorPacket(const std::string& payload) {

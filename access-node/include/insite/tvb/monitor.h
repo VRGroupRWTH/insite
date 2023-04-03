@@ -75,11 +75,9 @@ class TvbMonitor {
       writer.StartObject();
       writer.Key("time");
       writer.Double(time);
-      spdlog::error("{}", data.data_.capacity());
       for (int var = 0; var < observed_variables.size(); var++) {
         writer.Key(observed_variables[var].c_str());
         writer.StartArray();
-        spdlog::error("GetVarByIndex {} {}", timestep, var);
         auto res = data.GetVarByIndex(timestep, var);
         for (auto& data : res) {
           if constexpr (std::is_same_v<T, double>) {

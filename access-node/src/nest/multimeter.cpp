@@ -52,7 +52,6 @@ crow::response MultimeterResponse(int api_version) {
   for (auto &multimeter : multimeter_responses) {
     rapidjson::Document multimeter_resp_doc;
     multimeter_resp_doc.Parse(multimeter.text.c_str());
-    // spdlog::error(multimeter.text.c_str());
 
     if (api_version == 1) {
       for (auto &multimeter : multimeter_resp_doc.GetArray()) {
@@ -111,7 +110,6 @@ crow::response MultimeterByIdResponse(int api_version,
   for (auto &multimeter : multimeter_responses) {
     rapidjson::Document multimeter_resp_doc;
     multimeter_resp_doc.Parse(multimeter.text.c_str());
-    // spdlog::error(multimeter.text.c_str());
 
     if (api_version == 1) {
       for (auto &multimeter : multimeter_resp_doc.GetArray()) {
@@ -196,7 +194,6 @@ NestGetMultimeterAttributesV2(const uint64_t multimeter_id,
   for (auto &response : mm_data_sets) {
     rapidjson::Document json_doc;
     json_doc.Parse(response.text.c_str());
-    // spdlog::error(response.text);
     multimeter_values.AddDataFromJson(json_doc);
     multimeter_values.sim_id = json_doc["simId"];
   }
@@ -250,13 +247,11 @@ crow::response MultimeterAttributesResponse(const crow::request &req,
     MultimeterValueContainer result = std::move(
         NestGetMultimeterAttributes(multimeter_id, attr_name, params));
     result.SerializeToJson(writer);
-    // spdlog::error(buffer.GetString());
 
   } else if (api_version == 2) {
     MultimeterValueContainer result = std::move(
         NestGetMultimeterAttributesV2(multimeter_id, attr_name, params));
     result.SerializeToJsonV2(writer);
-    // spdlog::error(buffer.GetString());
   }
   return {buffer.GetString()};
 }

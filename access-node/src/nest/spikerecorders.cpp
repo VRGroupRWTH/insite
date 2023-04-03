@@ -37,7 +37,6 @@ crow::response SpikeRecorders(int api_version) {
 
   std::string response_text = response.text;
   rapidjson::Document json_spikerecorders;
-  // spdlog::error("{}", response_text);
   json_spikerecorders.Parse(response_text.c_str());
 
   if (api_version == 1) {
@@ -78,7 +77,6 @@ crow::response SpikesBySpikeRecorderId(const crow::request& req, int api_version
   // rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   //
   // SpikeContainer spikes = std::move(NestGetSpikes(params, api_version));
-  // spdlog::stopwatch sw_serialize;
   // if (api_version == 1) {
   //
   //   spikes.SerializeToJson(writer, params.skip, params.top,

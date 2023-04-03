@@ -146,14 +146,11 @@ CircularTimeSeries<T>::GetByTimeIndex(SizeType index) {
 template <typename T>
 typename CircularTimeSeries<T>::CircularDataView
 CircularTimeSeries<T>::GetVarByIndex(SizeType index, uint8_t var) {
-  // spdlog::error("GetVarByIndex {} {}", index, var);
   index = head_ + index;
   if (index >= capacity_) {
     index -= capacity_;
   }
   auto start = data_.data() + index * strides_product_ + var * dimensions_[1];
-  // spdlog::error("index: {}, strides_product_: {}, var:{}, var*dim1: {}, start {}", index, strides_product_, var, var * dimensions_[1], index * strides_product_ + var * dimensions_[1]);
-  // SPDLOG_DEBUG("Getting data from index: {}", index);
   return {timesteps_[index], start, start + dimensions_[1]};
 }
 

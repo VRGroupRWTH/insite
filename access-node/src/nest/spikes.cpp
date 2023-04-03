@@ -78,7 +78,6 @@ crow::response NestGetSpikes(const SpikeParameter& parameter, int api_version) {
   for (const cpr::Response& spike_data_set : spike_data_sets) {
     rapidjson::Document document;
     document.Parse(spike_data_set.text.c_str());
-    // spdlog::error(spike_data_set.text.c_str());
 
     if (api_version == 1) {
       spikes.AddSpikesFromJson(document);

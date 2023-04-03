@@ -97,7 +97,6 @@ rapidjson::Value NestGetNodesV2(rapidjson::MemoryPoolAllocator<>& json_alloc,
   for (auto& node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    // spdlog::error(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
@@ -319,7 +318,6 @@ rapidjson::Value GetNodeIds(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   for (auto& node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    // spdlog::error(node_data_set.text.c_str());
 
     assert(current_node_data.IsArray());
 
@@ -342,7 +340,6 @@ rapidjson::Value GetNodeIdsV2(rapidjson::MemoryPoolAllocator<>& json_alloc) {
   for (auto& node_data_set : node_data_sets) {
     rapidjson::Document current_node_data;
     current_node_data.Parse(node_data_set.text.c_str());
-    // spdlog::error(node_data_set.text.c_str());
 
     sim_id = current_node_data["simId"];
 
