@@ -1,26 +1,26 @@
-#include "config.h"
-#include "cpr/response.h"
-#include "crow/http_response.h"
-#include "query_params.h"
-#include <algorithm>
-#include <cstdint>
-#include <iterator>
 #include <nest/json_strings.h>
 #include <nest/multimeter.h>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <utility_functions.h>
+#include <algorithm>
+#include <cstdint>
+#include <iterator>
 #include <unordered_map>
 #include <utility>
-#include <utility_functions.h>
 #include <vector>
+#include "config.h"
+#include "cpr/response.h"
+#include "crow/http_response.h"
+#include "query_params.h"
 
 namespace insite {
 
 // Receives a rapidjson-Document and checks if it has all the necessary
 // properties for multimeter measurements
 void CheckMultimeterMeasurementValid(
-    const rapidjson::GenericObject<false, rapidjson::Value> &multimeter) {
+    const rapidjson::GenericObject<false, rapidjson::Value>& multimeter) {
   assert(multimeter.HasMember(json_strings::kSimTimes) &&
          multimeter[json_strings::kSimTimes].IsArray());
   assert(multimeter.HasMember(json_strings::kNodeIds) &&
@@ -32,7 +32,7 @@ void CheckMultimeterMeasurementValid(
 // Receives a rapidjson-Object and checks if it has all the necessary properties
 // for multimeterData
 void CheckMultimeterDataValid(
-    const rapidjson::GenericObject<false, rapidjson::Value> &multimeter) {
+    const rapidjson::GenericObject<false, rapidjson::Value>& multimeter) {
   assert(multimeter.HasMember(json_strings::kMultimeterId) &&
          multimeter[json_strings::kMultimeterId].IsInt());
   assert(multimeter.HasMember(json_strings::kNodeIds) &&
@@ -49,25 +49,25 @@ crow::response MultimeterResponse(int api_version) {
   std::unordered_map<uint64_t, MultimeterContainer> merged_multimeters;
   std::string sim_id;
 
-  for (auto &multimeter : multimeter_responses) {
+  for (auto& multimeter : multimeter_responses) {
     rapidjson::Document multimeter_resp_doc;
     multimeter_resp_doc.Parse(multimeter.text.c_str());
 
     if (api_version == 1) {
-      for (auto &multimeter : multimeter_resp_doc.GetArray()) {
+      for (auto& multimeter : multimeter_resp_doc.GetArray()) {
         auto multimeter_id =
             multimeter[json_strings::kMultimeterId].GetUint64();
-        auto &multimeter_container = merged_multimeters[multimeter_id];
+        auto& multimeter_container = merged_multimeters[multimeter_id];
         multimeter_container.AddDataFromJson(multimeter);
       }
     }
 
     if (api_version == 2) {
       sim_id = multimeter_resp_doc["simId"].GetString();
-      for (auto &multimeter : multimeter_resp_doc["multimeter"].GetArray()) {
+      for (auto& multimeter : multimeter_resp_doc["multimeter"].GetArray()) {
         auto multimeter_id =
             multimeter[json_strings::kMultimeterId].GetUint64();
-        auto &multimeter_container = merged_multimeters[multimeter_id];
+        auto& multimeter_container = merged_multimeters[multimeter_id];
         multimeter_container.AddDataFromJson(multimeter);
       }
     }
@@ -78,7 +78,7 @@ crow::response MultimeterResponse(int api_version) {
 
   if (api_version == 1) {
     writer.StartArray();
-    for (const auto &multimeter : merged_multimeters) {
+    for (const auto& multimeter : merged_multimeters) {
       multimeter.second.SerializeToJson(writer);
     }
     writer.EndArray();
@@ -88,7 +88,7 @@ crow::response MultimeterResponse(int api_version) {
     writer.String(sim_id.c_str());
     writer.Key("multimeter");
     writer.StartArray();
-    for (const auto &multimeter : merged_multimeters) {
+    for (const auto& multimeter : merged_multimeters) {
       multimeter.second.SerializeToJson(writer);
     }
     writer.EndArray();
@@ -107,25 +107,25 @@ crow::response MultimeterByIdResponse(int api_version,
   std::unordered_map<uint64_t, MultimeterContainer> merged_multimeters;
   std::string sim_id;
 
-  for (auto &multimeter : multimeter_responses) {
+  for (auto& multimeter : multimeter_responses) {
     rapidjson::Document multimeter_resp_doc;
     multimeter_resp_doc.Parse(multimeter.text.c_str());
 
     if (api_version == 1) {
-      for (auto &multimeter : multimeter_resp_doc.GetArray()) {
+      for (auto& multimeter : multimeter_resp_doc.GetArray()) {
         auto multimeter_id =
             multimeter[json_strings::kMultimeterId].GetUint64();
-        auto &multimeter_container = merged_multimeters[multimeter_id];
+        auto& multimeter_container = merged_multimeters[multimeter_id];
         multimeter_container.AddDataFromJson(multimeter);
       }
     }
 
     if (api_version == 2) {
       sim_id = multimeter_resp_doc["simId"].GetString();
-      for (auto &multimeter : multimeter_resp_doc["multimeter"].GetArray()) {
+      for (auto& multimeter : multimeter_resp_doc["multimeter"].GetArray()) {
         auto multimeter_id =
             multimeter[json_strings::kMultimeterId].GetUint64();
-        auto &multimeter_container = merged_multimeters[multimeter_id];
+        auto& multimeter_container = merged_multimeters[multimeter_id];
         multimeter_container.AddDataFromJson(multimeter);
       }
     }
@@ -154,11 +154,11 @@ MultimeterContainer NestGetMultimeterById(uint64_t requested_multimeter_id) {
 
   MultimeterContainer result_multimeter;
 
-  for (auto &multimeter : multimeter_responses) {
+  for (auto& multimeter : multimeter_responses) {
     rapidjson::Document multimeter_resp_doc;
     multimeter_resp_doc.Parse(multimeter.text.c_str());
 
-    for (auto &multimeter : multimeter_resp_doc.GetArray()) {
+    for (auto& multimeter : multimeter_resp_doc.GetArray()) {
       auto multimeter_id = multimeter[json_strings::kMultimeterId].GetUint64();
       if (multimeter_id != requested_multimeter_id) {
         continue;
@@ -172,8 +172,8 @@ MultimeterContainer NestGetMultimeterById(uint64_t requested_multimeter_id) {
 
 MultimeterValueContainer
 NestGetMultimeterAttributesV2(const uint64_t multimeter_id,
-                              const std::string &attribute_name,
-                              const MultimeterParameter &parameters) {
+                              const std::string& attribute_name,
+                              const MultimeterParameter& parameters) {
   MultimeterContainer multimeter = NestGetMultimeterById(multimeter_id);
 
   std::string query_string = BuildQueryString("/multimeter_measurement",
@@ -191,7 +191,7 @@ NestGetMultimeterAttributesV2(const uint64_t multimeter_id,
   }
 
   MultimeterValueContainer multimeter_values(node_id_vec);
-  for (auto &response : mm_data_sets) {
+  for (auto& response : mm_data_sets) {
     rapidjson::Document json_doc;
     json_doc.Parse(response.text.c_str());
     multimeter_values.AddDataFromJson(json_doc);
@@ -205,8 +205,8 @@ NestGetMultimeterAttributesV2(const uint64_t multimeter_id,
 
 MultimeterValueContainer
 NestGetMultimeterAttributes(const uint64_t multimeter_id,
-                            const std::string &attribute_name,
-                            const MultimeterParameter &parameters) {
+                            const std::string& attribute_name,
+                            const MultimeterParameter& parameters) {
   MultimeterContainer multimeter = NestGetMultimeterById(multimeter_id);
 
   std::string query_string = BuildQueryString("/multimeter_measurement",
@@ -224,7 +224,7 @@ NestGetMultimeterAttributes(const uint64_t multimeter_id,
   }
 
   MultimeterValueContainer multimeter_values(node_id_vec);
-  for (auto &response : mm_data_sets) {
+  for (auto& response : mm_data_sets) {
     rapidjson::Document json_doc;
     json_doc.Parse(response.text.c_str());
     multimeter_values.AddDataFromJson(json_doc);
@@ -233,9 +233,10 @@ NestGetMultimeterAttributes(const uint64_t multimeter_id,
   return multimeter_values;
 }
 
-crow::response MultimeterAttributesResponse(const crow::request &req,
-                                            int api_version, int multimeter_id,
-                                            const std::string &attr_name) {
+crow::response MultimeterAttributesResponse(const crow::request& req,
+                                            int api_version,
+                                            int multimeter_id,
+                                            const std::string& attr_name) {
   MultimeterParameter params(req.url_params);
   params.multimeter_id = multimeter_id;
   params.attribute = attr_name;
@@ -256,4 +257,4 @@ crow::response MultimeterAttributesResponse(const crow::request &req,
   return {buffer.GetString()};
 }
 
-} // namespace insite
+}  // namespace insite
