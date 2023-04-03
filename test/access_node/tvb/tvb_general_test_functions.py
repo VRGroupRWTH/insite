@@ -10,6 +10,18 @@ from requests.api import request
 from requests.sessions import Request
 from tvb_config import *
 
+def print_todo(message):
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    print(WARNING + UNDERLINE + BOLD + "[TODO] " + message + ENDC)
+
 #Checks if the given HTTP-request has a valid http-response-code. Returns the spike-data in Json format.
 def return_json_body_if_status_ok(request):
     request = requests.get(request)

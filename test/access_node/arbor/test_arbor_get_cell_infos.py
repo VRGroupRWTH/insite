@@ -2,8 +2,7 @@ from arbor_general_test_functions import *
 import pytest
 
 #URL used for the "nest_get_spikes" HTTP-query
-URL_NEST_GET_CELL_INFOS = BASE_REQUEST_URL + "/cell_infos/"
-#TODO: Fix inconsistency between plural and singular regarding "cell_info(s)"
+URL_NEST_GET_CELL_INFOS = BASE_REQUEST_URL + "/cellInfos/"
 
 #Names for the "nest_get_spikes" request-parameters
 class NEST_GET_PROBE_DATA_PARAMETER_NAME_LIST (Enum):
