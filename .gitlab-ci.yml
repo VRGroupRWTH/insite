@@ -7,15 +7,11 @@
     # - test
     # - deploy
 
-build:
-  image: docker
-  services:
-    - docker:dind
+test:
   tags: 
-    - docker-runner
+    - shell-executor
   script:
-    - docker build . -t test
-    - docker run test
+    - docker-compose -f ./test/run-tests.yml --build --exit-code-from pytest
 
 # build:
 #     stage: build
