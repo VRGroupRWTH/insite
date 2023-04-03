@@ -1,4 +1,5 @@
 #pragma once
+#include <opcodes.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cstddef>
@@ -19,9 +20,9 @@ class CircularTimeSeries {
   using DataBuffer = std::vector<T>;
   using TimeBuffer = std::vector<double>;
 
- private:
+ public:
   std::vector<int> dimensions_;
-  uint32_t strides_product_ = 1;
+  uint32_t strides_product_ = 0;
   DataBuffer data_;
   TimeBuffer timesteps_;
   SizeType head_ = 0;
@@ -79,7 +80,7 @@ class CircularTimeSeries {
 
    private:
     bool is_end_ = false;
-    SizeType strides_product_;
+    SizeType strides_product_ = 0;
     SizeType offset_;
     TimeBuffer* time_series_ptr_;
     CircularTimeSeries* circular_time_series_ptr_;
@@ -114,7 +115,7 @@ class CircularTimeSeries {
 
    private:
     bool is_end_ = false;
-    SizeType strides_product_;
+    SizeType strides_product_ = strides_product_;
     SizeType offset_;
     CircularDataView view_{};
     TimeBuffer* time_series_ptr_;
@@ -160,7 +161,7 @@ class CircularTimeSeries {
 
   CircularDataView GetVarByIndex(SizeType index, uint8_t var);
 
-  void PushBack(double time,
+  void PushBack(DataHeader time,
                 ConstPointerType items_begin,
                 ConstPointerType items_end);
 
