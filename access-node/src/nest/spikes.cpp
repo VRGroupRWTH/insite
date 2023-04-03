@@ -1,17 +1,17 @@
 #include <config.h>
 
+#include <nest/spikes.h>
+#include <cstdint>
+#include <limits>
+#include <unordered_set>
 #include "query_params.h"
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
 #include "tl/optional.hpp"
-#include <cstdint>
-#include <limits>
-#include <nest/spikes.h>
-#include <unordered_set>
 
 namespace insite {
 void CheckSpikeDataValid(
-    const rapidjson::GenericObject<false, rapidjson::Value> &spike_object) {
+    const rapidjson::GenericObject<false, rapidjson::Value>& spike_object) {
   assert(spike_object.HasMember(json_strings::kSimTimes) &&
          spike_object[json_strings::kSimTimes].IsArray());
   assert(spike_object.HasMember(json_strings::kNodeIds) &&
@@ -21,7 +21,7 @@ void CheckSpikeDataValid(
 }
 
 SpikeVector ConvertFromJsonToSpikes(
-    const rapidjson::GenericObject<false, rapidjson::Value> &data) {
+    const rapidjson::GenericObject<false, rapidjson::Value>& data) {
   CheckSpikeDataValid(data);
 
   SpikeVector res;
@@ -35,7 +35,7 @@ SpikeVector ConvertFromJsonToSpikes(
   return res;
 }
 
-SpikeContainer NestGetSpikesFB(const SpikeParameter &parameter) {
+SpikeContainer NestGetSpikesFB(const SpikeParameter& parameter) {
   spdlog::stopwatch stopwatch;
   SPDLOG_DEBUG("Getting spikes from nodes...");
   std::string query_string =
@@ -49,15 +49,14 @@ SpikeContainer NestGetSpikesFB(const SpikeParameter &parameter) {
   SpikeContainer spikes;
 
   stopwatch.reset();
-  for (const cpr::Response &spike_data_set : spike_data_sets) {
+  for (const cpr::Response& spike_data_set : spike_data_sets) {
     spikes.AddSpikesFromFlatbuffer(spike_data_set.text.c_str());
   }
 
   return spikes;
 }
 
-crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
-
+crow::response NestGetSpikes(const SpikeParameter& parameter, int api_version) {
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
@@ -76,8 +75,7 @@ crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
 
   stopwatch.reset();
 
-  for (const cpr::Response &spike_data_set : spike_data_sets) {
-
+  for (const cpr::Response& spike_data_set : spike_data_sets) {
     rapidjson::Document document;
     document.Parse(spike_data_set.text.c_str());
     // spdlog::error(spike_data_set.text.c_str());
@@ -106,14 +104,14 @@ crow::response NestGetSpikes(const SpikeParameter &parameter, int api_version) {
     spikes.SerializeToJsonV2(writer, parameter.skip, parameter.top,
                              parameter.reverse_order, true, sim_id);
   }
-  SPDLOG_INFO("Serialized in {}", sw_serialize.elapsed());
+  SPDLOG_TRACE("Serialized in {}", sw_serialize.elapsed());
   return {buffer.GetString()};
 }
 
 //
 // #################### ENDPOINT DEFINITIONS ####################
 //
-crow::response Spikesfb(const crow::request &req) {
+crow::response Spikesfb(const crow::request& req) {
   SpikeParameter params(req.url_params);
 
   rapidjson::StringBuffer buffer;
@@ -128,4 +126,4 @@ crow::response Spikesfb(const crow::request &req) {
   return {buffer.GetString()};
 }
 
-} // namespace insite
+}  // namespace insite

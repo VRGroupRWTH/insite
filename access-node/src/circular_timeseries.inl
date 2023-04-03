@@ -6,11 +6,6 @@ template <typename T>
 CircularTimeSeries<T>::CircularTimeSeries(SizeType capacity,
                                           std::vector<int> dimensions)
     : capacity_(capacity), dimensions_(std::move(dimensions)) {
-  for (auto& elem : dimensions_) {
-    strides_product_ *= elem;
-  }
-  timesteps_.reserve(capacity_);
-  data_.reserve(capacity_ * strides_product_);
 }
 
 template <typename T>
@@ -151,26 +146,35 @@ CircularTimeSeries<T>::GetByTimeIndex(SizeType index) {
 template <typename T>
 typename CircularTimeSeries<T>::CircularDataView
 CircularTimeSeries<T>::GetVarByIndex(SizeType index, uint8_t var) {
+  // spdlog::error("GetVarByIndex {} {}", index, var);
   index = head_ + index;
   if (index >= capacity_) {
     index -= capacity_;
   }
   auto start = data_.data() + index * strides_product_ + var * dimensions_[1];
+  // spdlog::error("index: {}, strides_product_: {}, var:{}, var*dim1: {}, start {}", index, strides_product_, var, var * dimensions_[1], index * strides_product_ + var * dimensions_[1]);
   // SPDLOG_DEBUG("Getting data from index: {}", index);
   return {timesteps_[index], start, start + dimensions_[1]};
 }
 
 template <typename T>
-void CircularTimeSeries<T>::PushBack(double time,
+void CircularTimeSeries<T>::PushBack(DataHeader header,
                                      ConstPointerType items_begin,
                                      ConstPointerType items_end) {
+  if (strides_product_ == 0) {
+    dimensions_.clear();
+    dimensions_ = {static_cast<int>(header.dim1), static_cast<int>(header.dim2), static_cast<int>(header.dim3)};
+    strides_product_ = header.dim1 * header.dim2 * header.dim3;
+    timesteps_.reserve(capacity_);
+    data_.reserve(capacity_ * strides_product_);
+  }
   if (Full()) {
-    *(timesteps_.data() + head_) = time;
+    *(timesteps_.data() + head_) = header.time;
     std::copy(items_begin, items_end, CalculateDataPointer(head_));
     Increment(head_);
     end_ = head_;
   } else {
-    timesteps_.push_back(time);
+    timesteps_.push_back(header.time);
     data_.insert(data_.end(), items_begin, items_end);
     Increment(end_);
   }
