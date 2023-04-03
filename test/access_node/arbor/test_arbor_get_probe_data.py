@@ -1,7 +1,7 @@
 from arbor_general_test_functions import *
 import pytest
 
-URL_NEST_GET_PROBE_DATA = BASE_REQUEST_URL + "/probe_data/"
+URL_NEST_GET_PROBE_DATA = BASE_REQUEST_URL + "/probeData/"
 
 class NEST_GET_PROBE_DATA_PARAMETER_NAME_LIST (Enum):
     #TODO: make "x_id_" and "xId" consistent between json and params

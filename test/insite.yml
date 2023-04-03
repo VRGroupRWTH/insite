@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  insite-access-node:
+    image: access_node:rc2.1 
+    ports:
+      - "52056:52056"
+    depends_on:
+      - "insite-nest-module"
+    network_mode: "host"
+    environment:
+      INSITE_NEST_BASE_URL: "insite-nest-module"
+      # INSITE_ARBOR_BASE_URL: "arbor-module"
+    # volumes:
+    #   - ${PWD}/config.toml:/config.toml
+
+  nest-desktop:
+    image: docker-registry.ebrains.eu/nest/nest-desktop:3.2
+    environment:
+      NEST_SIMULATOR_PORT: 52425
+    ports:
+      - '54286:54286'
+
+  insite-nest-module:
+    image: insite-nest_module:v2
+    ports:
+      - "18080:18080"
+      - "52425:52425"
+    volumes:
+      - ${PWD}/data:/opt/data
+    environment:
+      NEST_CONTAINER_MODE: "nest-server"
+  tvb-module: 
+    network_mode: "host"
+    image: insite-tvb
+
+    # ports:
+      # - "1337:1337"
+
+  # arbor-module: 
+  #   image: insite-arbor
+  #   ports:
+  #     - "1337:1337"

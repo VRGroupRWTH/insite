@@ -9,9 +9,14 @@
 
 test:
   tags: 
-    - shell-executor
+    - shell-runner
+  variables:
+      GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker-compose -f ./test/run-tests.yml --build --exit-code-from pytest
+    - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb
+    - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor
+    - docker build . -f ./docker/simulators/Dockerfile_NEST -t insite-nest
+    - docker-compose -f ./test/run-tests.yml up --build --exit-code-from pytest
 
 # build:
 #     stage: build
