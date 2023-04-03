@@ -1,0 +1,11 @@
+find_package(arbor REQUIRED)
+
+add_library(insite-arbor STATIC IMPORTED GLOBAL)
+
+set_target_properties(
+    insite-arbor
+    PROPERTIES 
+        INTERFACE_INCLUDE_DIRECTORIES "@CMAKE_INSTALL_PREFIX@/include/;@CMAKE_INSTALL_PREFIX@/include/insite/extern"
+        IMPORTED_LOCATION "@CMAKE_INSTALL_PREFIX@/lib/libinsite-arbor.a"
+        IMPORTED_LINK_INTERFACE_LIBRARIES "arbor::arbor-public-deps;arbor::arbor;arbor::arborenv;ssl;crypto"
+)
