@@ -27,8 +27,13 @@ class TvbMonitor {
   std::string uid;
   std::vector<std::string> observed_variables;
 
+  TvbMonitor(std::string name, uint32_t internal_id, std::string uid, std::vector<int> dimensions, std::vector<std::string> observed_variables)
+      : name(std::move(name)), internal_id(internal_id), uid(std::move(uid)), data(2, dimensions), observed_variables(std::move(observed_variables)) {
+    stride_length = dimensions;
+  }
+
   TvbMonitor(std::string name, uint32_t internal_id, std::string uid, std::vector<std::string> observed_variables)
-      : name(std::move(name)), internal_id(internal_id), uid(std::move(uid)), data(10, {1, 76, 2}), observed_variables(std::move(observed_variables)) {
+      : name(std::move(name)), internal_id(internal_id), uid(std::move(uid)), data(1000000, {1, 76, 2}), observed_variables(std::move(observed_variables)) {
     stride_length.push_back(1);
     stride_length.push_back(76);
     stride_length.push_back(2);
@@ -40,7 +45,7 @@ class TvbMonitor {
     writer.StartObject();
     writer.Key("uid");
     writer.String(uid.c_str());
-    writer.Key("interalId");
+    writer.Key("internalId");
     writer.Int(internal_id);
     writer.Key("type");
     writer.String(name.c_str());
@@ -70,9 +75,11 @@ class TvbMonitor {
       writer.StartObject();
       writer.Key("time");
       writer.Double(time);
+      spdlog::error("{}", data.data_.capacity());
       for (int var = 0; var < observed_variables.size(); var++) {
         writer.Key(observed_variables[var].c_str());
         writer.StartArray();
+        spdlog::error("GetVarByIndex {} {}", timestep, var);
         auto res = data.GetVarByIndex(timestep, var);
         for (auto& data : res) {
           if constexpr (std::is_same_v<T, double>) {
