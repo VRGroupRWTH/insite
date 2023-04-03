@@ -1,0 +1,17 @@
+FROM alpine
+
+RUN apk update && apk add git ninja openssl-dev cmake build-base linux-headers openmpi openmpi-dev bash nlohmann-json openssh
+RUN git clone --branch v0.8.1 --depth 1 https://github.com/arbor-sim/arbor.git --recurse-submodules
+WORKDIR /arbor_build
+RUN cmake ../arbor -DARB_WITH_MPI=ON -DARB_USE_BUNDLED_LIBS=ON
+RUN make -j install
+
+COPY ./arbor-module/src /insite-arbor/src
+COPY ./arbor-module/include /insite-arbor/include
+COPY ./arbor-module/CMakeLists.txt /insite-arbor/CMakeLists.txt
+COPY ./arbor-module/CPM.cmake /insite-arbor/CPM.cmake
+COPY ./arbor-module/insite-arbor-config.cmake.in /insite-arbor/insite-arbor-config.cmake.in
+
+WORKDIR /insite_build
+RUN cmake ../insite-arbor 
+RUN make -j install

@@ -1,0 +1,18 @@
+FROM ubuntu:jammy 
+
+RUN apt-get update && apt-get install -y git ninja-build libssl-dev cmake build-essential 
+COPY ./access-node/src ./access_node/src
+COPY ./access-node/include ./access_node/include
+COPY ./access-node/CMakeLists.txt ./access_node/CMakeLists.txt
+COPY ./access-node/CPM.cmake ./access_node/CPM.cmake
+
+WORKDIR access_node_build
+
+RUN cmake -G Ninja ../access_node -DBUILD_SHARED_LIBS=OFF
+RUN ninja insite-access-node
+
+FROM ubuntu:jammy
+RUN apt-get update && apt-get install -y libssl-dev
+COPY --from=0 /access_node_build/insite-access-node /insite-access-node
+
+ENTRYPOINT ["./insite-access-node"]

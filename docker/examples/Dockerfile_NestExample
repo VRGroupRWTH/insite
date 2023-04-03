@@ -1,0 +1,7 @@
+FROM insite-nest
+
+COPY ./nest-module/example/pytest_simulation.py ./pytest_simulation.py
+ENV PYTHONPATH="/opt/nest/lib/python3.10/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+
+# RUN chmod +x ./tests/ring
+ENTRYPOINT ["python","pytest_simulation.py"]
