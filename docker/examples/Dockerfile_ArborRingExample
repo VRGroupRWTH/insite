@@ -1,0 +1,10 @@
+FROM insite-arbor
+
+COPY ./arbor-module/examples/ring /insite_arbor_ring_example/
+
+WORKDIR /insite_arbor_ring_example_build
+RUN cmake ../insite_arbor_ring_example
+RUN make -j
+
+# RUN chmod +x ./tests/ring
+ENTRYPOINT ["/insite_arbor_ring_example_build/ring"]

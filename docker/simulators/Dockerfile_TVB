@@ -1,0 +1,11 @@
+# FROM ubuntu:jammy
+FROM python:3.10
+
+RUN pip install tvb-library
+RUN pip install tvb-framework 
+RUN pip install orjson numpy 
+
+COPY ./tvb-module /insite
+
+# RUN python sim.py
+ENTRYPOINT ["python","/insite/simulation.py"]

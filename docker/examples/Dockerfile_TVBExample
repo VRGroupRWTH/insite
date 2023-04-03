@@ -1,0 +1,6 @@
+FROM insite-tvb
+
+COPY ./tvb-module/examples/simulation.py /insite
+
+# RUN python sim.py
+ENTRYPOINT ["python","/insite/simulation.py"]
