@@ -12,9 +12,9 @@ void StopwatchHelper::reset() {
 }
 
 void StopwatchHelper::print() {
-  SPDLOG_INFO("Checkpoints: ");
+  SPDLOG_TRACE("Checkpoints: ");
   for (const auto& checkpoint : checkpoints) {
-    SPDLOG_INFO("{} - {}", checkpoint.first, checkpoint.second);
+    SPDLOG_TRACE("{} - {}", checkpoint.first, checkpoint.second);
   }
 }
 }  // namespace insite

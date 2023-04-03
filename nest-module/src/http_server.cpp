@@ -101,7 +101,7 @@ HttpServer::HttpServer(std::string address, DataStorage* storage)
   crow_server = app.port(18080 + nest::kernel().mpi_manager.get_rank()).multithreaded().run_async();
   app.wait_for_server_start();
 
-  spdlog::info("[insite] http server is listening...");
+  SPDLOG_INFO("[insite] http server is listening...");
 }
 
 void HttpServer::ClearSimulationHasEnded() {
@@ -248,7 +248,6 @@ crow::response HttpServer::GetSpikeRecordersV2(
 }
 
 crow::response HttpServer::GetSpikesFB(const crow::request& request) {
-  spdlog::stopwatch spikes_fb;
   std::unordered_map<std::string, std::string> parameters;
 
   const auto from_time_parameter = parameters.find("fromTime");
@@ -316,12 +315,9 @@ crow::response HttpServer::GetSpikesFB(const crow::request& request) {
   }
 
   bool last_frame = simulation_end_time_ != -1 && (to_time >= simulation_end_time_);
-  spdlog::stopwatch fb_building;
   flatbuffers::FlatBufferBuilder fbb(40000000 * 16);
   auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes>(spikes, flatbuffers::Pack);
   auto fb_spike_table = Test::Foo::CreateSpikyTable(fbb, fb_spikes);
-  spdlog::info("Fb building: {}", fb_building.elapsed());
-  spdlog::info("Get Spikes: {}", spikes_fb.elapsed());
   fbb.Finish(fb_spike_table);
   return crow::response(std::string((const char*)fbb.GetBufferPointer(), fbb.GetSize()));
 }
@@ -360,12 +356,11 @@ crow::response HttpServer::GetSpikesSendWS(const crow::request& request) {
       return crow::response("InvalidSpikeDetectorId");
     }
 
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
-
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
     spike_detector->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
                                   to_node_id, &params.node_gids);
   } else {
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
     std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
       spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
@@ -419,12 +414,12 @@ crow::response HttpServer::GetSpikesV2(const crow::request& request) {
       return crow::response("InvalidSpikeDetectorId");
     }
 
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
 
     spike_detector->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
                                   to_node_id, &params.node_gids);
   } else {
-    spdlog::info("[insite] Querying spikes: [time: ( %d - %) ] [nodes: (%i - %i)]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
     std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
       spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
@@ -476,12 +471,12 @@ crow::response HttpServer::GetSpikes(const crow::request& request) {
       return crow::response("InvalidSpikeDetectorId");
     }
 
-    spdlog::info("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})] spikedetector = %i", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, params.spike_detector_id.value());
 
     spike_detector->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id,
                                   to_node_id, &params.node_gids);
   } else {
-    spdlog::info("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
+    SPDLOG_TRACE("[insite] Querying spikes: [time: ( {} - {}) ] [nodes: ({} - {})]", params.from_time.value(), params.to_time.value(), from_node_id, to_node_id);
     std::unordered_map<std::uint64_t, std::shared_ptr<SpikedetectorStorage>> spike_detectors = storage_->GetSpikeDetectors();
     for (const auto& spike_detector_id_storage : spike_detectors) {
       spike_detector_id_storage.second->ExtractSpikes(&spikes, params.from_time.value(), params.to_time.value(), from_node_id, to_node_id, &params.node_gids);
@@ -524,7 +519,7 @@ crow::response HttpServer::GetMultimeterMeasurement(
     const crow::request& request) {
   MultimeterParameter params(request.url_params);
 
-  spdlog::debug("filter nodes: {}", params.node_gids);
+  SPDLOG_TRACE("filter nodes: {}", params.node_gids);
 
   if (not params.attribute.has_value()) {
     return crow::response("The 'attributeName' parameter is missing from the request.");
@@ -543,7 +538,7 @@ crow::response HttpServer::GetMultimeterMeasurement(
   rapidjson::StringBuffer s;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
 
-  spdlog::info("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
+  SPDLOG_TRACE("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
   multimeter->second->ExtractMeasurements(writer, params.attribute.value(), params.node_gids, params.from_time.value(), params.to_time.value());
   return crow::response(s.GetString());
 }
@@ -552,7 +547,7 @@ crow::response HttpServer::GetMultimeterMeasurementV2(
     const crow::request& request) {
   MultimeterParameter params(request.url_params);
 
-  spdlog::debug("filter nodes: {}", params.node_gids);
+  SPDLOG_TRACE("filter nodes: {}", params.node_gids);
 
   if (not params.attribute.has_value()) {
     return crow::response("The 'attributeName' parameter is missing from the request.");
@@ -571,7 +566,7 @@ crow::response HttpServer::GetMultimeterMeasurementV2(
   rapidjson::StringBuffer s;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
 
-  spdlog::info("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
+  SPDLOG_TRACE("Getting MM Measurements {} for {} from {} to {}", params.attribute.value(), multimeter->second->id_, params.from_time.value(), params.to_time.value());
   multimeter->second->ExtractMeasurementsV2(writer, params.attribute.value(), params.node_gids, params.from_time.value(), params.to_time.value());
   return crow::response(s.GetString());
 }
