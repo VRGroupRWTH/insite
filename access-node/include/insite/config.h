@@ -9,22 +9,22 @@ namespace insite {
 
 inline constexpr int kDefaultPortNumberAccessNode = 52056;
 inline constexpr int kDefaultPortNumberSimulationNode = 18080;
-inline constexpr int kDefaultPortNumberSimulationNodeArbor = 1337;
-inline constexpr int kDefaultPortNumberAccessWebsocket = 9010;
+inline constexpr int kDefaultPortNumberSimulationNodeArbor = 19000;
+inline constexpr int kDefaultPortNumberAccessWebsocket = 9011;
 
 class ServerConfig {
-public:
-  static ServerConfig &GetInstance() {
-    static ServerConfig instance; // Guaranteed to be destroyed.
-                                  // Instantiated on first use.
+ public:
+  static ServerConfig& GetInstance() {
+    static ServerConfig instance;  // Guaranteed to be destroyed.
+                                   // Instantiated on first use.
     return instance;
   }
 
-  ServerConfig() = default; // Constructor? (the {} brackets) are needed here.
+  ServerConfig() = default;  // Constructor? (the {} brackets) are needed here.
 
-  void ParseTomlConfigFromFile(const std::string &filename);
-  void ParseYamlConfigFromFile(const std::string &filename);
-  void ParseYamlConfigFromString(const std::string &content);
+  void ParseTomlConfigFromFile(const std::string& filename);
+  void ParseYamlConfigFromFile(const std::string& filename);
+  void ParseYamlConfigFromString(const std::string& content);
   void ParseConfigFromEnv();
 
   void ParseConfigIfExists();
@@ -35,7 +35,7 @@ public:
   // void GenerateUrls();
   void GenerateUrls(std::string base_url, int port_number_nodes);
 
-  void GenerateUrls(std::vector<std::string> &url_container, const std::string &base_url, int port_number_nodes);
+  void GenerateUrls(std::vector<std::string>& url_container, const std::string& base_url, int port_number_nodes);
 
   bool ports_consecutive_nest = true;
   bool ports_consecutive_arbor = true;
@@ -55,4 +55,4 @@ public:
 
   friend struct fmt::formatter<ServerConfig>;
 };
-} // namespace insite
+}  // namespace insite
