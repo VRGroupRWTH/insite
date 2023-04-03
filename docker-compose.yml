@@ -2,22 +2,29 @@ version: "3"
 
 services:
   insite-access-node:
-    build: ./access-node
+    image:
+      registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-access-node
     ports:
-      - "8080:8080"
-    depends_on:
-      - "insite-nest-module"
-    command: ["http://insite-nest-module:9000"]
-
-  insite-nest-module:
-    build: ./nest-module
-    ports:
-      - "5000:5000"
-      - "9000-9005:9000-9005"
+      - "52056:52056" # depends_on:
+      - "9011:9011" # depends_on:
     environment:
-      INSITE_DOCKER_USE_NEST_SERVER: 1
-      NEST_SERVER_HOST: "0.0.0.0"
-      NEST_SERVER_MODULES: "nest,numpy"
-      NEST_SERVER_PORT: 5000
-      NEST_SERVER_RESTRICTION_OFF: 1
-      NEST_SERVER_STDOUT: 1
+      INSITE_NEST_BASE_URL: "insite-nest-module"
+      INSITE_ARBOR_BASE_URL: "arbor-module"
+
+  nest-example:
+    image:
+      registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-nest-example
+
+  tvb-example: 
+    image:
+      registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-tvb-example
+    environment:
+      INSITE_ACCESS_NODE_URL: "insite-access-node"
+    depends_on:
+      - insite-access-node
+
+  arbor-example: 
+    image:
+      registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor-example
+    depends_on:
+      - insite-access-node
