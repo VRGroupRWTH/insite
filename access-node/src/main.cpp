@@ -1,13 +1,7 @@
 #define CROW_MAIN
-#include "arbor/arbor_endpoints.h"
-#include "crow/middlewares/cors.h"
-#include "spdlog/cfg/env.h"
-#include "spdlog/spdlog.h"
 #include <config.h>
 #include <crow/app.h>
 #include <crow/routing.h>
-#include <exception>
-#include <limits>
 #include <nest/endpoints.h>
 #include <nest/handler.h>
 #include <nest/spikerecorders.h>
@@ -15,7 +9,13 @@
 #include <tvb/endpoints.h>
 #include <tvb/handler.h>
 #include <websocket_server.h>
+#include <exception>
+#include <limits>
 #include <websocketpp/config/asio_no_tls.hpp>
+#include "arbor/arbor_endpoints.h"
+#include "crow/middlewares/cors.h"
+#include "spdlog/cfg/env.h"
+#include "spdlog/spdlog.h"
 
 using Server = websocketpp::server<websocketpp::config::asio>;
 
@@ -23,7 +23,7 @@ using MessagePtr = Server::message_ptr;
 
 int main() {
   using namespace insite;
-  spdlog::set_level(spdlog::level::trace);
+  spdlog::set_level(spdlog::level::debug);
   SPDLOG_INFO("Starting Insite access node");
   ServerConfig::GetInstance().ParseConfigIfExists();
   ServerConfig::GetInstance().GenerateRequestUrls();
@@ -34,10 +34,12 @@ int main() {
 
   NestHttpEndpoint::RegisterRoutes(app);
   ArborHttpEndpoint::RegisterRoutes(app);
-  CROW_ROUTE(app, "/version/")(Version);
-  CROW_ROUTE(app, "/")(Version);
+  CROW_ROUTE(app, "/version/")
+  (Version);
+  CROW_ROUTE(app, "/")
+  (Version);
 
-  WebsocketServer srv(ServerConfig::GetInstance().port_number_access_ws + 1);
+  WebsocketServer srv(ServerConfig::GetInstance().port_number_access_ws);
 
   TvbHandler tvb_handler;
   NestHandler nest_handler;

@@ -78,7 +78,7 @@ cpr::Response QueryRandomNode(const std::vector<std::string>& urls,
 
   std::string url = *rand_it + version + postfix;
 
-  SPDLOG_DEBUG("Querying simulator instance: {}", url);
+  SPDLOG_TRACE("Querying simulator instance: {}", url);
   auto response = cpr::GetAsync(cpr::Url(url));
 
   response.wait();
@@ -111,7 +111,7 @@ CprResponseVec GetAccessNodeRequests(const std::vector<std::string>& urls,
     session->SetUrl(url + versioned_postfix);
     sessions.emplace_back(std::move(session));
     multiperform.AddSession(sessions.back());
-    SPDLOG_DEBUG(
+    SPDLOG_TRACE(
         "[GetAccessNodeRequests] Added {} to the multiperform request.",
         url + versioned_postfix);
   }
