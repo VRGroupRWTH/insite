@@ -21,6 +21,7 @@ build:
     - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example
     - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example
     - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring
+    - sleep 2
     - ./docker-compose -f ./test/run-tests.yml up --build --exit-code-from pytest
 
 deploy:
