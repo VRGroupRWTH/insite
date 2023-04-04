@@ -1,53 +1,55 @@
-# include:
-#     - 'access-node/.gitlab-ci.yml'
-#     - 'nest-module/.gitlab-ci.yml'
-
 stages:
     - build
     - test
-    # - deploy
+    - deploy
 
 build:
-    stage: build
-    image: registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/base:latest
-    tags:
-        - docker-executor
-    variables:
-        GIT_SUBMODULE_STRATEGY: recursive
-    artifacts:
-        paths:
-        - build_access_node
-        - build_nest_module
-        expire_in: 1 day
-        when: always
-    script:
-        - mkdir build_nest_module
-        - cd build_nest_module
-        - cmake -G Ninja -Dwith-nest=/opt/nest/bin/nest-config ../nest-module/src
-        - ninja install
+  stage: build
+  tags: 
+    - shell-runner
+  variables:
+      GIT_SUBMODULE_STRATEGY: recursive
 
-        - cd .. && mkdir build_access_node && cd build_access_node
-        - cmake -G Ninja ../access-node
-        - ninja insite-access-node
+  script:
+    - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb
+    - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor
+    - docker build . -f ./docker/simulators/Dockerfile_NEST -t insite-nest
+    - docker build . -f ./docker/Dockerfile_AccessNode -t insite-access-node
+    - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example
+    - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example
+    - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring
+    - docker-compose -f ./test/run-tests.yml up --build --exit-code-from pytest
 
-test:
-    stage: test
-    image: registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/base:latest
-    tags:
-        - docker-executor
-    artifacts:
-        paths:
-        - build_access_node
-        - build_nest_module
-        expire_in: 1 day
-        when: always
-    before_script:
-        - pip3 install -r test-requirements.txt
-        - cd build_nest_module
-        - ninja install
-        - cd ..
-        - cp build_access_node/insite-access-node .
-    script:
-        - pytest --count=2 --repeat-scope=session -x --showlocals ./test
-        # - pytest --count=2 --repeat-scope=session -x --showlocals --ignore-glob=**/_deps/* --ignore-glob=**/extern/* -s
+deploy:
+  stage: deploy
+  tags: 
+    - shell-runner
+  variables:
+      GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - echo $REGISTRY_TOKEN | docker login -u "registry_pusher" --password-stdin  registry.git-ce.rwth-aachen.de
+  script:
+    - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb
+    - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor
+    - docker build . -f ./docker/simulators/Dockerfile_NEST -t insite-nest
+    - docker build . -f ./docker/Dockerfile_AccessNode -t insite-access-node
+    - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example
+    - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example
+    - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring
+    - docker tag insite-access-node registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-access-node
+    - docker tag insite-tvb registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-tvb
+    - docker tag insite-arbor registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor
+    - docker tag insite-nest registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-nest
+    - docker tag insite-nest-example registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-nest-example
+    - docker tag insite-arbor-example registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor-example
+    - docker tag insite-arbor-example registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor-example-ring
+    - docker tag insite-tvb-example registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-tvb-example
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-access-node
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-tvb
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-nest
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-tvb-example
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor-example
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-arbor-example-ring
+    - docker push registry.git-ce.rwth-aachen.de/vr-vis/vr-group/in-situ-pipeline/insite/insite-nest-example
 

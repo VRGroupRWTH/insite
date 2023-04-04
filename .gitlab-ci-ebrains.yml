@@ -1,0 +1,58 @@
+stages:
+    - build
+    - test
+    - deploy
+
+build:
+  stage: build
+  tags: 
+    - shell-runner
+  variables:
+      GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64" -o ./docker-compose
+    - chmod +x docker-compose
+
+  script:
+    - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb
+    - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor
+    - docker build . -f ./docker/simulators/Dockerfile_NEST -t insite-nest
+    - docker build . -f ./docker/Dockerfile_AccessNode -t insite-access-node
+    - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example
+    - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example
+    - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring
+    - sleep 2
+    - ./docker-compose -f ./test/run-tests.yml up --build --exit-code-from pytest
+
+deploy:
+  stage: deploy
+  tags: 
+    - shell-runner
+  variables:
+      GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - docker login -u "robot\$insite+registry_pusher" -p $REGISTRY_TOKEN  docker-registry.ebrains.eu/insite/insite-tvb
+  script:
+    - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb:CI-Test
+    - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor:CI-Test
+    - docker build . -f ./docker/simulators/Dockerfile_NEST -t insite-nest:CI-Test
+    - docker build . -f ./docker/Dockerfile_AccessNode -t insite-access-node:CI-Test
+    - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example:CI-Test
+    - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example:CI-Test
+    - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring:CI-Test
+    #
+    - docker tag insite-access-node:CI-Test docker-registry.ebrains.eu/insite/insite-access-node:CI-Test
+    - docker tag insite-tvb:CI-Test docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
+    - docker tag insite-arbor:CI-Test docker-registry.ebrains.eu/insite/insite-arbor:CI-Test
+    - docker tag insite-nest:CI-Test docker-registry.ebrains.eu/insite/insite-nest:CI-Test
+    - docker tag insite-nest-example:CI-Test docker-registry.ebrains.eu/insite/insite-nest-example:CI-Test
+    - docker tag insite-arbor-example-ring:CI-Test docker-registry.ebrains.eu/insite/insite-arbor-example-ring:CI-Test
+    - docker tag insite-tvb-example:CI-Test docker-registry.ebrains.eu/insite/insite-tvb-example:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-access-node:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-arbor:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-nest:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-tvb-example:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-arbor-example-ring:CI-Test
+    - docker push docker-registry.ebrains.eu/insite/insite-nest-example:CI-Test
+
