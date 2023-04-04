@@ -46,4 +46,7 @@ services:
     build: .
     depends_on: 
       - insite-access-node
+      - tvb-module
+      - insite-nest-module
+      - arbor-module
 
