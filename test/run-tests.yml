@@ -7,9 +7,6 @@ services:
       dockerfile: ./docker/Dockerfile_AccessNode
     image:
       insite-access-node
-    ports:
-      - "52056:52056" # depends_on:
-      - "9011:9011" # depends_on:
     environment:
       INSITE_NEST_BASE_URL: "insite-nest-module"
       INSITE_ARBOR_BASE_URL: "arbor-module"
@@ -20,9 +17,8 @@ services:
       dockerfile: ./docker/examples/Dockerfile_NestExample
     image:
       insite-nest-example
-    ports:
-      - "18080:18080"
-      - "52425:52425"
+    depends_on:
+      - insite-access-node
 
   tvb-module: 
     build:
@@ -41,9 +37,14 @@ services:
       dockerfile: ./docker/examples/Dockerfile_ArborRingExample
     image:
       insite-arbor-example-ring
-  #
+    depends_on:
+      - insite-access-node
+
   pytest:
     build: .
     depends_on: 
       - insite-access-node
+      - tvb-module
+      - insite-nest-module
+      - arbor-module
 
