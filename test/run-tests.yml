@@ -32,8 +32,6 @@ services:
       insite-tvb-example
     environment:
       INSITE_ACCESS_NODE_URL: "insite-access-node"
-    depends_on:
-      - insite-access-node
 
   arbor-module: 
     build: 

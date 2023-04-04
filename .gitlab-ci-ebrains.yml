@@ -40,14 +40,14 @@ deploy:
     - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example:CI-Test
     - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring:CI-Test
     #
-    - docker tag insite-access-node docker-registry.ebrains.eu/insite/insite-access-node:CI-Test
-    - docker tag insite-tvb docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
-    - docker tag insite-arbor docker-registry.ebrains.eu/insite/insite-arbor:CI-Test
-    - docker tag insite-nest docker-registry.ebrains.eu/insite/insite-nest:CI-Test
-    - docker tag insite-nest-example docker-registry.ebrains.eu/insite/insite-nest-example:CI-Test
-    - docker tag insite-arbor-example docker-registry.ebrains.eu/insite/insite-arbor-example:CI-Test
-    - docker tag insite-arbor-example docker-registry.ebrains.eu/insite/insite-arbor-example-ring:CI-Test
-    - docker tag insite-tvb-example docker-registry.ebrains.eu/insite/insite-tvb-example:CI-Test
+    - docker tag insite-access-node:CI-Test docker-registry.ebrains.eu/insite/insite-access-node:CI-Test
+    - docker tag insite-tvb:CI-Test docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
+    - docker tag insite-arbor:CI-Test docker-registry.ebrains.eu/insite/insite-arbor:CI-Test
+    - docker tag insite-nest:CI-Test docker-registry.ebrains.eu/insite/insite-nest:CI-Test
+    - docker tag insite-nest-example:CI-Test docker-registry.ebrains.eu/insite/insite-nest-example:CI-Test
+    - docker tag insite-arbor-example:CI-Test docker-registry.ebrains.eu/insite/insite-arbor-example:CI-Test
+    - docker tag insite-arbor-example:CI-Test docker-registry.ebrains.eu/insite/insite-arbor-example-ring:CI-Test
+    - docker tag insite-tvb-example:CI-Test docker-registry.ebrains.eu/insite/insite-tvb-example:CI-Test
     - docker push docker-registry.ebrains.eu/insite/insite-access-node:CI-Test
     - docker push docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
     - docker push docker-registry.ebrains.eu/insite/insite-arbor:CI-Test
