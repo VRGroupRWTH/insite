@@ -15,8 +15,8 @@ void TVBHttpEndpoint::RegisterRoutes(crow::App<crow::CORSHandler>& app) {
 
 crow::response TVBHttpEndpoint::GetSimInfoDetails(const crow::request& request, const std::string& value) {
   if (tvb_handler->srv != nullptr) {
-    tvb_handler->srv->BroadcastAll(value, ResourceFlag::kTVB);
     tvb_handler->sim_info_promise = std::promise<std::string>();
+    tvb_handler->srv->BroadcastAll(value, ResourceFlag::kTVB);
     auto future = tvb_handler->sim_info_promise.get_future();
     auto result = future.wait_for(std::chrono::milliseconds(500));
 
