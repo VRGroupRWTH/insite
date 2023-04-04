@@ -10,6 +10,7 @@ build:
   variables:
       GIT_SUBMODULE_STRATEGY: recursive
   before_script:
+    - docker login -u "robot\$insite+registry_pusher" -p $REGISTRY_TOKEN https://docker-registry.ebrains.eu/
     - curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64" -o ./docker-compose
     - chmod +x docker-compose
 
@@ -21,7 +22,7 @@ build:
     - docker build . -f ./docker/examples/Dockerfile_TVBExample -t insite-tvb-example
     - docker build . -f ./docker/examples/Dockerfile_NestExample -t insite-nest-example
     - docker build . -f ./docker/examples/Dockerfile_ArborRingExample -t insite-arbor-example-ring
-    - docker compose -f ./test/run-tests.yml up --build --exit-code-from pytest
+    - ./docker-compose -f ./test/run-tests.yml up --build --exit-code-from pytest
 
 deploy:
   stage: deploy
@@ -30,7 +31,7 @@ deploy:
   variables:
       GIT_SUBMODULE_STRATEGY: recursive
   before_script:
-    - echo $REGISTRY_TOKEN | docker login -u "robot$insite+registry_pusher" --password-stdin  registry.git-ce.rwth-aachen.de
+    - docker login -u "robot\$insite+registry_pusher" -p $REGISTRY_TOKEN  docker-registry.ebrains.eu/insite/insite-tvb
   script:
     - docker build . -f ./docker/simulators/Dockerfile_TVB -t insite-tvb:CI-Test
     # - docker build . -f ./docker/simulators/Dockerfile_Arbor -t insite-arbor
@@ -49,7 +50,7 @@ deploy:
     # - docker tag insite-arbor-example docker-registry.ebrains.eu/insite/insite-arbor-example-ring
     # - docker tag insite-tvb-example docker-registry.ebrains.eu/insite/insite-tvb-example
     # - docker push docker-registry.ebrains.eu/insite/insite-access-node
-    # - docker push docker-registry.ebrains.eu/insite/insite-tvb
+    - docker push docker-registry.ebrains.eu/insite/insite-tvb:CI-Test
     # - docker push docker-registry.ebrains.eu/insite/insite-arbor
     # - docker push docker-registry.ebrains.eu/insite/insite-nest
     # - docker push docker-registry.ebrains.eu/insite/insite-tvb-example
