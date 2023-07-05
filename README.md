@@ -2,6 +2,8 @@
 You can find the information provided in this readme and the complete documentation here: [https://vrgrouprwth.github.io/insite/](https://vrgrouprwth.github.io/insite/)
 
 # Insite - A Pipeline Enabling In-Transit Access for NEST, TVB and Arbor.
+This  research  was  supported  by  the  EBRAINS  research  infrastructure,  funded  from  the  European  Union’s Horizon 2020 Framework Programme 
+for Research and Innovation under the Specific Grant Agreement No. 945539 (Human Brain Project SGA3).</br>
 This project/research has received funding from the European Union’s Horizon 2020 Framework Programme for Research and Innovation under the
 Specific Grant Agreement No. 945539 (Human Brain Project SGA3) and Specific Grant Agreement No. 785907 (Human Brain Project SGA2).
 
