@@ -11,7 +11,7 @@ namespace insite {
 struct NeuronInfo {
   bool operator<(const NeuronInfo& that) const { return gid < that.gid; }
 
-  nest::index gid;
+  size_t gid;
   nest::NodeCollectionPTR gid_collection;
   std::vector<double> position;
 };
