@@ -3,8 +3,8 @@
 #include <regex>
 #include <string>
 #include <vector>
-#include "extern/crow/include/crow/query_string.h"
-#include "extern/tartanllama/optional.h"
+#include "crow/query_string.h"
+#include "tl/optional.hpp"
 
 template <typename T>
 T ConvertStringToType(const char* input_string);

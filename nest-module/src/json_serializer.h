@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "extern/rapidjson/include/rapidjson/writer.h"
+#include "rapidjson/writer.h"
 #include "storage/data_storage.hpp"
 #include "storage/multimeter_storage.hpp"
 #include "storage/spikedetector_storage.hpp"

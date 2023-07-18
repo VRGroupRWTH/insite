@@ -20,8 +20,6 @@
 #include "connection_label.h"
 #include "dict.h"
 #include "dictdatum.h"
-#include "extern/flatbuffers/tests/native_type_test_impl.h"
-#include "extern/spdlog/include/spdlog/spdlog.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "insite_nest_events.h"
 #include "kernel_manager.h"
@@ -33,6 +31,7 @@
 #include "schema_generated.h"
 #include "simulation_manager.h"
 #include "spatial.h"
+#include "spdlog/spdlog.h"
 #include "stopwatch_helper.h"
 // #include "topology.h"
 
