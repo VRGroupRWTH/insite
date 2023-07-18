@@ -119,3 +119,5 @@ target_link_libraries(
   optional
   asio::asio
 )
+
+install(TARGETS insite-access-node )
