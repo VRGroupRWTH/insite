@@ -24,11 +24,6 @@ std::unique_ptr<T> make_unique(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-namespace {
-constexpr size_t TIME_DIMENSION = 0;
-constexpr size_t NEURON_DIMENSION = 1;
-}  // namespace
-
 std::ostream& operator<<(std::ostream& os, const NodeCollection& c) {
   os << "first node: " << c.first_node_id << " node count: " << c.node_count << " model name: " << c.model_name << " model status: " << c.model_status;
   return os;

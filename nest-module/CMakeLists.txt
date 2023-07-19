@@ -17,8 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required( VERSION 2.8.12 )
+include(FetchContent)
+include(CPM.cmake)
+
+cmake_minimum_required( VERSION 3.14 )
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+set( CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 # This CMakeLists.txt is configured to build your external module for NEST. For
 # illustrative reasons this module is called 'my' (change SHORT_NAME to your
@@ -38,20 +43,20 @@ set( SHORT_NAME insite )
 #    the complete module name is here:
 set( MODULE_NAME ${SHORT_NAME}module )
 
- include_directories(.)
+include_directories(src)
 # 2) Add all your sources here and specify dependencies, e.g., link libraries
 set( MODULE_SOURCES
-     insitemodule.h insitemodule.cpp
-     parameters.h 
-     json_serializer.h json_serializer.cpp
-     recording_backend_insite.h recording_backend_insite.cpp
-     http_server.hpp http_server.cpp
-     serialize.hpp serialize.cpp
-     storage/data_storage.hpp storage/data_storage.cpp
-     storage/spikedetector_storage.hpp storage/spikedetector_storage.cpp
-     storage/multimeter_storage.hpp storage/multimeter_storage.cpp
-     schema_generated.h
-     stopwatch_helper.h stopwatch_helper.cpp
+     src/insitemodule.h src/insitemodule.cpp
+     src/parameters.h 
+     src/json_serializer.h src/json_serializer.cpp
+     src/recording_backend_insite.h src/recording_backend_insite.cpp
+     src/http_server.hpp src/http_server.cpp
+     src/serialize.hpp src/serialize.cpp
+     src/storage/data_storage.hpp src/storage/data_storage.cpp
+     src/storage/spikedetector_storage.hpp src/storage/spikedetector_storage.cpp
+     src/storage/multimeter_storage.hpp src/storage/multimeter_storage.cpp
+     src/schema_generated.h
+     src/stopwatch_helper.h src/stopwatch_helper.cpp
    )
 
 # 3) We require a header name like this:
@@ -71,7 +76,6 @@ set( MODULE_VERSION "${MODULE_VERSION_MAJOR}.${MODULE_VERSION_MINOR}" )
 # Set the `nest-config` executable to use during configuration.
 set( with-nest OFF CACHE STRING "Specify the `nest-config` executable." )
 set(ASIO_INCLUDE_DIR extern/asio/asio/include)
-set( CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 # If it is not set, look for a `nest-config` in the PATH.
@@ -106,17 +110,30 @@ endif ()
 # Setting the compiler has to happen before the call to "project(...)" function.
 set( CMAKE_CXX_COMPILER "${NEST_COMPILER}" )
 
+
+CPMAddPackage("gh:zaphoyd/websocketpp#0.8.2")
+CPMAddPackage("gh:gabime/spdlog@1.10.0")
+CPMAddPackage("gh:google/flatbuffers@2.0.6")
+CPMAddPackage("gh:OlivierLDff/asio.cmake@1.1.3")
+CPMAddPackage("gh:TartanLlama/optional@1.0.0")
+
+
+CPMAddPackage(
+    NAME rapidjson
+    GIT_REPOSITORY https://github.com/Tencent/rapidjson
+    GIT_TAG master
+    DOWNLOAD_ONLY TRUE
+    EXCLUDE_FROM_ALL TRUE
+)
+
+CPMAddPackage(
+    NAME Crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow
+    GIT_TAG master
+    EXCLUDE_FROM_ALL TRUE
+    OPTIONS "CROW_INSTALL OFF"
+)
 project( ${MODULE_NAME} CXX )
-
-# Add HDF5
-# find_package( HDF5 REQUIRED COMPONENTS CXX )
-# # A little ugly but there is no USER_INCLUDE_DIRECTORIES
-# include_directories( ${HDF5_INCLUDE_DIRS} )
-# set( USER_LINK_LIBRARIES ${HDF5_LIBRARIES} )
-
-# Add cpprestsdk
-# find_package(cpprestsdk REQUIRED)
-# find_package(spdlog REQUIRED)
 
 # Get the Python executable (for help generation).
 execute_process(
@@ -271,25 +288,15 @@ add_custom_target( dist
     COMMENT "Creating a source distribution from ${MODULE_NAME}..."
     )
 
-# check the user link libraries whether installed or not
-# foreach( LINKLIB ${USER_LINK_LIBRARIES} )
-#   find_library( LIB_${LINKLIB} ${LINKLIB} )
-#   if( NOT LIB_${LINKLIB} )
-#     message(FATAL_ERROR "ERROR: " ${LINKLIB} " library not found")
-#   else()
-#     message( "-- " ${LINKLIB} " library found")
-#   endif()
-# endforeach()
 find_package(Threads REQUIRED)
 add_compile_definitions(ASIO_STANDALONE _WEBSOCKETPP_CPP11_STRICT_)
-add_subdirectory(extern/flatbuffers)
-add_subdirectory(extern/crow)
-set (BUILD_SHARED_LIBS OFF)
-add_subdirectory(extern/spdlog)
-set (BUILD_SHARED_LIBS ON)
-include_directories(extern/asio/asio/include/)
-include_directories(extern/websocketpp/)
-# include_directories(/home/mk821590/Code/Work/HBP/nest/cpprestsdk/Release/libs/websocketpp/)
+
+include_directories(
+  insite-access-node
+  PRIVATE
+  ${CMAKE_BINARY_DIR}/_deps/rapidjson-src/include
+  ${CMAKE_BINARY_DIR}/_deps/websocketpp-src
+)
 if ( BUILD_SHARED_LIBS )
   # When building shared libraries, also create a module for loading at runtime
   # with the `Install` command.
@@ -305,7 +312,7 @@ if ( BUILD_SHARED_LIBS )
       DESTINATION ${CMAKE_INSTALL_LIBDIR}
       )
     # target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog_header_only cpprestsdk::cpprest FlatBuffers::FlatBuffers Crow::Crow)
-    target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog FlatBuffers::FlatBuffers Crow::Crow)
+    target_link_libraries(${MODULE_NAME}_module PRIVATE spdlog::spdlog FlatBuffers::FlatBuffers Crow::Crow optional)
     target_include_directories(${MODULE_NAME}_module PRIVATE extern/rapidjson/include)
 endif ()
 
@@ -322,12 +329,12 @@ set_target_properties( ${MODULE_NAME}_lib
     LINK_FLAGS "${NEST_LIBS}"
     OUTPUT_NAME ${MODULE_NAME} )
   # target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog_header_only cpprestsdk::cpprest FlatBuffers::FlatBuffers Crow::Crow )
-  target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog  FlatBuffers::FlatBuffers Crow::Crow )
+  target_link_libraries(${MODULE_NAME}_lib PRIVATE spdlog::spdlog  FlatBuffers::FlatBuffers Crow::Crow optional )
   target_include_directories(${MODULE_NAME}_lib PRIVATE extern/rapidjson/include)
 # Install library, header and sli init files.
 install( TARGETS ${MODULE_NAME}_lib DESTINATION ${CMAKE_INSTALL_LIBDIR} )
-install( FILES ${MODULE_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MODULE_NAME} )
-install( DIRECTORY sli DESTINATION ${CMAKE_INSTALL_DATADIR} )
+install( FILES src/${MODULE_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MODULE_NAME} )
+install( DIRECTORY src/sli DESTINATION ${CMAKE_INSTALL_DATADIR} )
 
 # Install help --- based on doc/CMakeLists.txt
 # Install only if Py >= 2.7.8 and NEST was installed with help
@@ -366,13 +373,13 @@ if ( ( NOT CMAKE_CROSSCOMPILING )
 endif ()
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/scripts/start_script.sh.in
+  ${CMAKE_SOURCE_DIR}/src/scripts/start_script.sh.in
   ${CMAKE_BINARY_DIR}/start_script.sh
   @ONLY
 )
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/scripts/run_simulation.sh.in
+  ${CMAKE_SOURCE_DIR}/src/scripts/run_simulation.sh.in
   ${CMAKE_BINARY_DIR}/run_simulation.sh
   @ONLY
 )

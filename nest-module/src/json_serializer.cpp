@@ -1,7 +1,7 @@
 #include "json_serializer.h"
-#include "extern/rapidjson/include/rapidjson/stringbuffer.h"
 #include "http_server.hpp"
 #include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
 
 namespace insite {
 namespace json_serializer {

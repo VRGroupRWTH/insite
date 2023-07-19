@@ -1,11 +1,11 @@
 // #include <cpprest/http_msg.h>
 #include <crow.h>
 #include "crow/query_string.h"
-#include "extern/tartanllama/optional.h"
-#include "extern/websocketpp/websocketpp/frame.hpp"
 #include "json_serializer.h"
 #include "parameters.h"
 #include "stopwatch_helper.h"
+#include "tl/optional.hpp"
+#include "websocketpp/frame.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -20,7 +20,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <crow/app.h>
 #include <crow/http_request.h>
 #include <crow/http_response.h>
 #include "http_server.hpp"
@@ -51,9 +50,9 @@
 
 namespace flatbuffers {
 
-static Test::Foo::Spikes32 Pack32(const insite::Spike32& spike) {
-  return Test::Foo::Spikes32{spike.simulation_time, spike.node_id};
-};
+// static Test::Foo::Spikes32 Pack32(const insite::Spike32& spike) {
+//   return Test::Foo::Spikes32{spike.simulation_time, spike.node_id};
+// };
 
 static Test::Foo::Spikes Pack(const insite::Spike& spike) {
   return Test::Foo::Spikes{spike.simulation_time, spike.node_id};
@@ -314,7 +313,7 @@ crow::response HttpServer::GetSpikesFB(const crow::request& request) {
     }
   }
 
-  bool last_frame = simulation_end_time_ != -1 && (to_time >= simulation_end_time_);
+  // bool last_frame = simulation_end_time_ != -1 && (to_time >= simulation_end_time_);
   flatbuffers::FlatBufferBuilder fbb(40000000 * 16);
   auto fb_spikes = fbb.CreateVectorOfNativeStructs<Test::Foo::Spikes>(spikes, flatbuffers::Pack);
   auto fb_spike_table = Test::Foo::CreateSpikyTable(fbb, fb_spikes);
