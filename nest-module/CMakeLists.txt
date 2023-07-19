@@ -111,7 +111,7 @@ endif ()
 set( CMAKE_CXX_COMPILER "${NEST_COMPILER}" )
 
 
-CPMAddPackage("gh:zaphoyd/websocketpp#master")
+CPMAddPackage("gh:zaphoyd/websocketpp#0.8.2")
 CPMAddPackage("gh:gabime/spdlog@1.10.0")
 CPMAddPackage("gh:google/flatbuffers@2.0.6")
 CPMAddPackage("gh:OlivierLDff/asio.cmake@1.1.3")
