@@ -80,7 +80,7 @@ class RecordingBackendInsite : public nest::RecordingBackend {
   void UpdateKernelStatus();
   DataStorage data_storage_;
   HttpServer http_server_;
-  int simulation_node_id_;
+  // int simulation_node_id_;
   double latest_simulation_time_ = 0.0;
   std::vector<Spike> spikes;
   bool send_positions = false;

@@ -135,7 +135,6 @@ void RecordingBackendInsite::set_value_names(
 
 void RecordingBackendInsite::prepare() {
   std::unordered_map<uint64_t, int> nc_maps;
-  int nc_counter = 0;
   std::cout << "[insite] prepare" << std::endl;
   DictionaryDatum properties(new Dictionary());
   nest::NodeCollectionPTR local_nodes = nest::kernel().node_manager.get_nodes(properties, true);
