@@ -2,6 +2,7 @@
 #define HTTP_SERVER_HPP
 
 // #include <cpprest/http_listener.h>
+#undef VERSION
 #include <crow/app.h>
 #include <crow/http_request.h>
 #include <crow/http_response.h>
